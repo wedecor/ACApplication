@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+.expo/
+.expo-shared/
+*.tsbuildinfo
+next-env.d.ts
+
+# Generated
+.prisma/
+prisma/generated/
+**/src/generated/
+
+# Env files
+.env
+.env.local
+.env.*.local
+!.env.example
+!.env.*.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# Misc
+*.pem
+.vercel
+.netlify
+.sentryclirc
+
+# React Native / Expo
+*.ipa
+*.apk
+*.aab
+ios/Pods/
+android/.gradle/
+android/app/build/
+android/build/
+
+# Cache
+.cache/
+.eslintcache
+.stylelintcache
+.parcel-cache

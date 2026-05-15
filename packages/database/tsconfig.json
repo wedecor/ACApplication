@@ -1,0 +1,10 @@
+{
+  "extends": "@ac/typescript-config/node-library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": ["node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "prisma/migrations", "**/*.spec.ts", "**/*.test.ts", "**/__tests__/**"]
+}

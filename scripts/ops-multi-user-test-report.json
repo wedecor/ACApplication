@@ -1,0 +1,2297 @@
+{
+  "timestamp": "2026-05-15T14:44:20.873Z",
+  "step1_users": [
+    {
+      "user": "Ravi Sharma",
+      "phone": "+919900000001",
+      "role": "SUPER_ADMIN",
+      "permissionCount": 1,
+      "permissionsSample": [
+        "*"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 1,
+      "jwtPermissionCount": 1,
+      "jwtRoles": [
+        "SUPER_ADMIN"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "allow",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "allow",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    },
+    {
+      "user": "Priya Nair",
+      "phone": "+919900000002",
+      "role": "ADMIN",
+      "permissionCount": 101,
+      "permissionsSample": [
+        "payout:view",
+        "lead:update",
+        "lead:assign",
+        "lead:delete",
+        "booking:read",
+        "booking:write",
+        "booking:create",
+        "booking:update"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 101,
+      "jwtPermissionCount": 101,
+      "jwtRoles": [
+        "ADMIN"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "allow",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    },
+    {
+      "user": "Amit Verma",
+      "phone": "+919900000003",
+      "role": "DISPATCHER",
+      "permissionCount": 67,
+      "permissionsSample": [
+        "payout:view",
+        "lead:update",
+        "lead:assign",
+        "booking:read",
+        "booking:write",
+        "booking:create",
+        "booking:update",
+        "booking:assign"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 67,
+      "jwtPermissionCount": 67,
+      "jwtRoles": [
+        "DISPATCHER"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    },
+    {
+      "user": "Suresh Kumar",
+      "phone": "+919900000004",
+      "role": "TECHNICIAN",
+      "permissionCount": 13,
+      "permissionsSample": [
+        "payout:view",
+        "booking:read",
+        "booking:update",
+        "technician:location:write",
+        "technician:status:write",
+        "inventory:view",
+        "conversation:view",
+        "conversation:reply"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 13,
+      "jwtPermissionCount": 13,
+      "jwtRoles": [
+        "TECHNICIAN"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    },
+    {
+      "user": "Meera Iyer",
+      "phone": "+919900000005",
+      "role": "CALL_CENTER_AGENT",
+      "permissionCount": 29,
+      "permissionsSample": [
+        "lead:update",
+        "booking:read",
+        "booking:write",
+        "booking:create",
+        "customer:read",
+        "customer:write",
+        "technician:read",
+        "invoice:view"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 29,
+      "jwtPermissionCount": 29,
+      "jwtRoles": [
+        "CALL_CENTER_AGENT"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    },
+    {
+      "user": "Anita Desai",
+      "phone": "+919900000006",
+      "role": "CUSTOMER",
+      "permissionCount": 4,
+      "permissionsSample": [
+        "amc:subscribe",
+        "ticket:view",
+        "ticket:create",
+        "kb:view"
+      ],
+      "loginOk": true,
+      "jwtPermissionsMatchDb": true,
+      "usersMePermissionsCount": 4,
+      "jwtPermissionCount": 4,
+      "jwtRoles": [
+        "CUSTOMER"
+      ],
+      "apiChecks": [
+        {
+          "check": "bookings:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "dispatch:unassigned",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "invoices:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "finance:overview",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "tickets:list",
+          "status": 200,
+          "expected": "allow",
+          "actual": "allow",
+          "mismatch": false
+        },
+        {
+          "check": "workflows:list",
+          "status": 403,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "notifications:admin",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        },
+        {
+          "check": "users:manage",
+          "status": 404,
+          "expected": "deny",
+          "actual": "deny",
+          "mismatch": false
+        }
+      ],
+      "tokens": {
+        "hasAccess": true
+      }
+    }
+  ],
+  "step2_seed": {
+    "city": {
+      "id": "cmp5rdali003eedx2p73ki4g1",
+      "tenantId": "cmp5rda8f0000edx261i615nw",
+      "name": "Bengaluru",
+      "state": "Karnataka",
+      "country": "IN",
+      "pincodes": [
+        "560001",
+        "560002",
+        "560034"
+      ],
+      "timezone": "Asia/Kolkata",
+      "isActive": true,
+      "serviceableFrom": null,
+      "createdAt": "2026-05-14T17:24:29.287Z",
+      "updatedAt": "2026-05-15T07:25:31.903Z",
+      "deletedAt": null
+    },
+    "customer": {
+      "id": "cmp710p1l000ddo7txhcoqnfq",
+      "tenantId": "cmp5rda8f0000edx261i615nw",
+      "userId": "cmp710p1c000bdo7t92hphn03",
+      "cityId": "cmp5rdali003eedx2p73ki4g1",
+      "fullName": "Anita Desai (Ops)",
+      "email": "anita.ops@test.local",
+      "phone": "+919900000006",
+      "defaultAddressId": null,
+      "lifetimeValueMinor": "0",
+      "totalBookings": 0,
+      "preferences": {},
+      "createdAt": "2026-05-15T14:42:23.818Z",
+      "updatedAt": "2026-05-15T14:44:21.019Z",
+      "deletedAt": null
+    },
+    "technician": {
+      "id": "cmp710p1r000fdo7t3rrqnwwl",
+      "tenantId": "cmp5rda8f0000edx261i615nw",
+      "userId": "cmp710p0v0007do7t5fhxn75n",
+      "cityId": "cmp5rdali003eedx2p73ki4g1",
+      "employeeCode": "TECH-OPS-001",
+      "fullName": "Suresh Kumar",
+      "phone": "+919900000004",
+      "skills": [
+        "AC_SERVICING"
+      ],
+      "rating": 0,
+      "totalJobs": 0,
+      "acceptanceRate": 1,
+      "completionRate": 1,
+      "dailyCapacity": 8,
+      "status": "ONLINE",
+      "lastSeenAt": null,
+      "onlineSince": null,
+      "lastLatitude": null,
+      "lastLongitude": null,
+      "lastHeading": null,
+      "lastSpeedMps": null,
+      "lastAccuracyM": null,
+      "lastBatteryPct": null,
+      "lastLocationAt": null,
+      "workingHours": {},
+      "documents": [],
+      "deviceFingerprint": null,
+      "locationSignKey": null,
+      "createdAt": "2026-05-15T14:42:23.823Z",
+      "updatedAt": "2026-05-15T14:42:23.823Z",
+      "deletedAt": null
+    },
+    "booking": {
+      "id": "cmp710p24000jdo7ttmcpcen9",
+      "tenantId": "cmp5rda8f0000edx261i615nw",
+      "code": "OPS-MP710P24",
+      "leadId": null,
+      "customerId": "cmp710p1l000ddo7txhcoqnfq",
+      "technicianId": null,
+      "cityId": "cmp5rdali003eedx2p73ki4g1",
+      "addressId": "cmp710p1x000hdo7t9v060k9h",
+      "category": "AC_SERVICING",
+      "serviceType": null,
+      "applianceBrand": null,
+      "applianceType": null,
+      "issueDescription": null,
+      "status": "CONFIRMED",
+      "priority": "STANDARD",
+      "paymentStatus": "UNPAID",
+      "scheduledAt": "2026-05-16T14:42:23.832Z",
+      "scheduledTimeSlot": "10:00-12:00",
+      "assignedAt": null,
+      "enRouteAt": null,
+      "arrivedAt": null,
+      "startedAt": null,
+      "waitingPartsAt": null,
+      "completedAt": null,
+      "cancelledAt": null,
+      "cancellationReason": null,
+      "rescheduledFromAt": null,
+      "rescheduleCount": 0,
+      "notes": null,
+      "otpCodeHash": null,
+      "otpExpiresAt": null,
+      "otpVerifiedAt": null,
+      "otpAttempts": 0,
+      "customerSignatureUrl": null,
+      "estimatedAmountMinor": 0,
+      "finalAmountMinor": null,
+      "currency": "INR",
+      "addressSnapshot": {
+        "city": "Bengaluru",
+        "line1": "12 MG Road",
+        "state": "Karnataka",
+        "country": "IN",
+        "pincode": "560001"
+      },
+      "geoLatitude": null,
+      "geoLongitude": null,
+      "metadata": {},
+      "createdAt": "2026-05-15T14:42:23.836Z",
+      "updatedAt": "2026-05-15T14:42:23.836Z",
+      "deletedAt": null,
+      "createdBy": "cmp710p0i0005do7tu9egsm5b",
+      "updatedBy": null
+    }
+  },
+  "step3_frontend": [
+    {
+      "role": "SUPER_ADMIN",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": true,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": true,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": true,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": true,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": true,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": true,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": true,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": true,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": true,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": true,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": true,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": true,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": true,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": true,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": true,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": true,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": true,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": true,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": true,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": true,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": true,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": true,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    },
+    {
+      "role": "ADMIN",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": true,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": true,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": true,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": true,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": true,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": true,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": true,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": true,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": true,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": true,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": true,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": true,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": true,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": true,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": true,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": true,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": true,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": true,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": true,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": true,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": false,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": false,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    },
+    {
+      "role": "DISPATCHER",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": true,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": true,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": true,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": true,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": true,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": true,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": true,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": true,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": true,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": true,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": true,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": true,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": true,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": true,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": true,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": true,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": true,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": true,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": true,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": true,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": true,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": false,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": false,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    },
+    {
+      "role": "TECHNICIAN",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": false,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": false,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": true,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": false,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": false,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": false,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": false,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": false,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": true,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": true,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": false,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": false,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": false,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": false,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": false,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": false,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": false,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": false,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": false,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": false,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": false,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": false,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": false,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": true,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": true,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": true,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": false,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": true,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": false,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": true,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": false,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": false,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": false,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": false,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": false,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": false,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": false,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": true,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": true,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": false,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": false,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": true,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": false,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": false,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    },
+    {
+      "role": "CUSTOMER",
+      "routes": [
+        {
+          "route": "/",
+          "visible": true,
+          "required": []
+        },
+        {
+          "route": "/dispatch",
+          "visible": false,
+          "required": [
+            "dispatch:view"
+          ]
+        },
+        {
+          "route": "/live-map",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/leads",
+          "visible": false,
+          "required": [
+            "lead:view"
+          ]
+        },
+        {
+          "route": "/bookings",
+          "visible": false,
+          "required": [
+            "booking:read"
+          ]
+        },
+        {
+          "route": "/customers",
+          "visible": false,
+          "required": [
+            "customer:read"
+          ]
+        },
+        {
+          "route": "/technicians",
+          "visible": false,
+          "required": [
+            "technician:track"
+          ]
+        },
+        {
+          "route": "/finance",
+          "visible": false,
+          "required": [
+            "finance:view"
+          ]
+        },
+        {
+          "route": "/invoices",
+          "visible": false,
+          "required": [
+            "invoice:view"
+          ]
+        },
+        {
+          "route": "/payments",
+          "visible": false,
+          "required": [
+            "payment:view"
+          ]
+        },
+        {
+          "route": "/amc",
+          "visible": false,
+          "required": [
+            "amc:view"
+          ]
+        },
+        {
+          "route": "/payouts",
+          "visible": false,
+          "required": [
+            "payout:view"
+          ]
+        },
+        {
+          "route": "/inventory",
+          "visible": false,
+          "required": [
+            "inventory:view"
+          ]
+        },
+        {
+          "route": "/warehouses",
+          "visible": false,
+          "required": [
+            "warehouse:view"
+          ]
+        },
+        {
+          "route": "/vendors",
+          "visible": false,
+          "required": [
+            "vendor:view"
+          ]
+        },
+        {
+          "route": "/purchase-orders",
+          "visible": false,
+          "required": [
+            "purchase_order:view"
+          ]
+        },
+        {
+          "route": "/transfers",
+          "visible": false,
+          "required": [
+            "stock_transfer:view"
+          ]
+        },
+        {
+          "route": "/inventory-alerts",
+          "visible": false,
+          "required": [
+            "inventory_alert:view"
+          ]
+        },
+        {
+          "route": "/support",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/inbox",
+          "visible": false,
+          "required": [
+            "inbox:view"
+          ]
+        },
+        {
+          "route": "/tickets",
+          "visible": true,
+          "required": [
+            "ticket:view"
+          ]
+        },
+        {
+          "route": "/call-center",
+          "visible": false,
+          "required": [
+            "call:view"
+          ]
+        },
+        {
+          "route": "/csat",
+          "visible": false,
+          "required": [
+            "support_analytics:view"
+          ]
+        },
+        {
+          "route": "/knowledge-base",
+          "visible": true,
+          "required": [
+            "kb:view"
+          ]
+        },
+        {
+          "route": "/sla",
+          "visible": false,
+          "required": [
+            "sla:view"
+          ]
+        },
+        {
+          "route": "/canned-responses",
+          "visible": false,
+          "required": [
+            "canned_response:view"
+          ]
+        },
+        {
+          "route": "/notifications",
+          "visible": false,
+          "required": [
+            "notification:view"
+          ]
+        },
+        {
+          "route": "/automation",
+          "visible": false,
+          "required": [
+            "workflow:view"
+          ]
+        },
+        {
+          "route": "/settings",
+          "visible": true,
+          "required": []
+        }
+      ]
+    }
+  ],
+  "step4_operational": {
+    "assignTechnician": {
+      "status": 201,
+      "body": {
+        "id": "cmp710p24000jdo7ttmcpcen9",
+        "tenantId": "cmp5rda8f0000edx261i615nw",
+        "code": "OPS-MP710P24",
+        "leadId": null,
+        "customerId": "cmp710p1l000ddo7txhcoqnfq",
+        "technicianId": "cmp710p1r000fdo7t3rrqnwwl",
+        "cityId": "cmp5rdali003eedx2p73ki4g1",
+        "addressId": "cmp710p1x000hdo7t9v060k9h",
+        "category": "AC_SERVICING",
+        "serviceType": null,
+        "applianceBrand": null,
+        "applianceType": null,
+        "issueDescription": null,
+        "status": "ASSIGNED",
+        "priority": "STANDARD",
+        "paymentStatus": "UNPAID",
+        "scheduledAt": "2026-05-16T14:42:23.832Z",
+        "scheduledTimeSlot": "10:00-12:00",
+        "assignedAt": "2026-05-15T14:44:21.990Z",
+        "enRouteAt": null,
+        "arrivedAt": null,
+        "startedAt": null,
+        "waitingPartsAt": null,
+        "completedAt": null,
+        "cancelledAt": null,
+        "cancellationReason": null,
+        "rescheduledFromAt": null,
+        "rescheduleCount": 0,
+        "notes": null,
+        "otpCodeHash": null,
+        "otpExpiresAt": null,
+        "otpVerifiedAt": null,
+        "otpAttempts": 0,
+        "customerSignatureUrl": null,
+        "estimatedAmountMinor": 0,
+        "finalAmountMinor": null,
+        "currency": "INR",
+        "addressSnapshot": {
+          "city": "Bengaluru",
+          "line1": "12 MG Road",
+          "state": "Karnataka",
+          "country": "IN",
+          "pincode": "560001"
+        },
+        "geoLatitude": null,
+        "geoLongitude": null,
+        "metadata": {},
+        "createdAt": "2026-05-15T14:42:23.836Z",
+        "updatedAt": "2026-05-15T14:44:21.992Z",
+        "deletedAt": null,
+        "createdBy": "cmp710p0i0005do7tu9egsm5b",
+        "updatedBy": "cmp710p0i0005do7tu9egsm5b"
+      }
+    },
+    "updateStatus": {
+      "status": 403
+    },
+    "workflowInstances": {
+      "status": 403,
+      "count": {
+        "success": false,
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "Requires permissions: workflow:view",
+          "statusCode": 403,
+          "details": {
+            "message": "Requires permissions: workflow:view",
+            "error": "Forbidden",
+            "statusCode": 403
+          }
+        },
+        "requestId": "req-2q"
+      }
+    }
+  },
+  "step5_websocket": [
+    {
+      "role": "SUPER_ADMIN",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "SUPER_ADMIN",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [
+        "dispatch:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "SUPER_ADMIN",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [
+        "finance:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "SUPER_ADMIN",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [
+        "booking:fake-id"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "SUPER_ADMIN",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "ADMIN",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "ADMIN",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [
+        "dispatch:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "ADMIN",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [
+        "finance:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "ADMIN",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [
+        "booking:fake-id"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "ADMIN",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "DISPATCHER",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "DISPATCHER",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [
+        "dispatch:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "DISPATCHER",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [
+        "finance:global"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "DISPATCHER",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [
+        "booking:fake-id"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "DISPATCHER",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "TECHNICIAN",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "TECHNICIAN",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "TECHNICIAN",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "TECHNICIAN",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [
+        "booking:fake-id"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "TECHNICIAN",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [
+        "booking:fake-id"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CALL_CENTER_AGENT",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CUSTOMER",
+      "rooms": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "connected": true,
+      "joined": [
+        "tenant:cmp5rda8f0000edx261i615nw"
+      ],
+      "expectJoin": true,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CUSTOMER",
+      "rooms": [
+        "dispatch:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CUSTOMER",
+      "rooms": [
+        "finance:global"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CUSTOMER",
+      "rooms": [
+        "booking:fake-id"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    },
+    {
+      "role": "CUSTOMER",
+      "rooms": [
+        "secret:room"
+      ],
+      "connected": true,
+      "joined": [],
+      "expectJoin": false,
+      "ok": true,
+      "error": null
+    }
+  ],
+  "step6_issues": [],
+  "scores": {
+    "productionReadiness": 100
+  }
+}

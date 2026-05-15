@@ -1,0 +1,3443 @@
+// ============================================================================
+// AC Platform — Foundational Prisma Schema
+// ----------------------------------------------------------------------------
+// Conventions:
+//   * IDs are CUIDs (collision-safe, sortable, opaque).
+//   * Every domain model carries `createdAt`, `updatedAt`, and `deletedAt`
+//     (soft delete). Audit-sensitive models also track `createdBy` /
+//     `updatedBy` / `deletedBy`.
+//   * Multi-tenancy is modeled via `tenantId` on every user-scoped table
+//     to enable future white-labelling and franchise expansion.
+//   * Multi-city scalability is modeled via the `City` table referenced
+//     from every operational entity (bookings, technicians).
+//   * Money is stored in INTEGER minor units to avoid float drift.
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions", "fullTextSearch"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pgcrypto, citext, pg_trgm]
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  DISPATCHER
+  TECHNICIAN
+  CALL_CENTER_AGENT
+  CUSTOMER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum AuthProvider {
+  PASSWORD
+  OTP
+  GOOGLE
+  APPLE
+  CLERK
+}
+
+enum SessionDevice {
+  WEB
+  ANDROID
+  IOS
+  ADMIN_WEB
+  TECHNICIAN_APP
+  CUSTOMER_APP
+  UNKNOWN
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  ASSIGNED
+  TECHNICIAN_EN_ROUTE
+  IN_PROGRESS
+  WAITING_PARTS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+  NO_SHOW
+}
+
+enum BookingPaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum BookingPriority {
+  STANDARD
+  PRIORITY
+  EMERGENCY
+}
+
+enum ServiceCategory {
+  AC_REPAIR
+  AC_INSTALLATION
+  AC_SERVICING
+  REFRIGERATOR
+  WASHING_MACHINE
+  MICROWAVE
+  GEYSER
+  CHIMNEY
+  OTHER
+}
+
+enum TechnicianStatus {
+  OFFLINE
+  ONLINE
+  AVAILABLE
+  BUSY
+  ON_BREAK
+  EN_ROUTE
+  WORKING
+  UNREACHABLE
+}
+
+/// Stable, append-only label for every dispatch decision we make. Used by the
+/// audit trail and the dispatcher control-center activity feed.
+enum DispatchDecision {
+  AUTO_ASSIGNED
+  MANUAL_ASSIGNED
+  REASSIGNED
+  RECOMMENDED
+  REJECTED_BY_TECHNICIAN
+  FALLBACK_DISPATCHER
+  CANCELLED
+}
+
+enum DispatchAlertKind {
+  TECHNICIAN_DELAYED
+  TECHNICIAN_UNREACHABLE
+  BOOKING_OVERDUE
+  LOW_AVAILABILITY
+  NO_CANDIDATES
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  CARD
+  NET_BANKING
+  WALLET
+  RAZORPAY
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum QuotationStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+enum PaymentTransactionStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum RefundStatus {
+  REQUESTED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum LedgerEntryType {
+  INVOICE
+  PAYMENT
+  REFUND
+  CREDIT_NOTE
+  AMC_CHARGE
+  AMC_CREDIT
+  ADJUSTMENT
+}
+
+enum LedgerEntryDirection {
+  DEBIT
+  CREDIT
+}
+
+enum AMCPlanType {
+  BASIC
+  STANDARD
+  PREMIUM
+  CUSTOM
+}
+
+enum AMCSubscriptionStatus {
+  ACTIVE
+  PAUSED
+  EXPIRED
+  CANCELLED
+  PENDING_PAYMENT
+}
+
+enum AMCVisitStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  MISSED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum CommissionType {
+  FLAT
+  PERCENTAGE
+  PER_JOB
+}
+
+enum CommissionStatus {
+  ACCRUED
+  ADJUSTED
+  PAID
+  REVERSED
+}
+
+enum PayoutStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+enum PayoutCycle {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  ON_DEMAND
+}
+
+enum CreditNoteStatus {
+  DRAFT
+  ISSUED
+  APPLIED
+  VOID
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  PUSH
+  WHATSAPP
+  IN_APP
+}
+
+enum NotificationStatus {
+  QUEUED
+  PROCESSING
+  RETRYING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  DLQ
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  RESTORE
+  LOGIN
+  LOGOUT
+  PERMISSION_CHANGE
+  ROLE_CHANGE
+  EXPORT
+  IMPORT
+}
+
+enum LeadSource {
+  WEBSITE
+  WHATSAPP
+  GOOGLE_ADS
+  FACEBOOK
+  INSTAGRAM
+  CALL
+  MANUAL
+  REFERRAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  BOOKING_CREATED
+  CANCELLED
+  SPAM
+}
+
+enum LeadPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// Generic activity type used by the timeline service. Common shape between
+/// LeadActivity and BookingActivity so the same UI component can render both.
+enum ActivityType {
+  CREATED
+  STATUS_CHANGED
+  ASSIGNED
+  REASSIGNED
+  NOTE_ADDED
+  FIELD_UPDATED
+  TAGS_UPDATED
+  SCHEDULED
+  RESCHEDULED
+  TECHNICIAN_EN_ROUTE
+  ARRIVED_ON_SITE
+  OTP_SENT
+  OTP_VERIFIED
+  WAITING_PARTS
+  WORK_RESUMED
+  COMPLETED
+  CANCELLED
+  ATTACHMENT_ADDED
+  SIGNATURE_CAPTURED
+  PAYMENT_RECORDED
+  CONVERTED_TO_BOOKING
+}
+
+enum BookingAttachmentKind {
+  PRE_SERVICE_PHOTO
+  POST_SERVICE_PHOTO
+  INVOICE
+  DOCUMENT
+  PARTS_PHOTO
+  OTHER
+}
+
+// ----------------------------------------------------------------------------
+// INVENTORY / ERP ENUMS
+// ----------------------------------------------------------------------------
+
+enum InventoryItemType {
+  SPARE_PART
+  APPLIANCE
+  CONSUMABLE
+  TOOL
+  ACCESSORY
+}
+
+enum InventoryUnit {
+  PIECE
+  SET
+  BOX
+  METER
+  KILOGRAM
+  LITRE
+  PACK
+}
+
+enum WarehouseKind {
+  CENTRAL
+  BRANCH
+  TRANSIT
+  VENDOR_RETURNS
+  SCRAP
+}
+
+enum StockMovementKind {
+  IN_PURCHASE
+  IN_RETURN_VENDOR
+  IN_RETURN_TECHNICIAN
+  IN_TRANSFER
+  IN_ADJUSTMENT
+  IN_OPENING
+  OUT_SALE
+  OUT_TRANSFER
+  OUT_ADJUSTMENT
+  OUT_TO_TECHNICIAN
+  OUT_TO_BOOKING
+  OUT_SCRAP
+  RESERVE
+  RELEASE_RESERVE
+}
+
+enum StockTransferStatus {
+  DRAFT
+  REQUESTED
+  APPROVED
+  IN_TRANSIT
+  RECEIVED
+  CANCELLED
+  REJECTED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  AWAITING_APPROVAL
+  APPROVED
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+  CLOSED
+}
+
+enum GoodsReceiptStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+enum VendorStatus {
+  ACTIVE
+  BLACKLISTED
+  ON_HOLD
+  PROSPECT
+}
+
+enum TechnicianStockStatus {
+  ALLOCATED
+  ACKNOWLEDGED
+  USED
+  RETURNED
+  RECONCILED
+}
+
+enum InventoryAlertKind {
+  LOW_STOCK
+  OUT_OF_STOCK
+  EXPIRING_SOON
+  EXPIRED
+  SLOW_MOVING
+  DEAD_STOCK
+  TECHNICIAN_MISMATCH
+  PENDING_TRANSFER
+  OVERDUE_PO
+  NEGATIVE_STOCK
+}
+
+enum InventoryAlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum InventoryAlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  SNOOZED
+}
+
+// ============================================================================
+// TENANCY & GEOGRAPHY
+// ============================================================================
+
+model Tenant {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  logoUrl     String?
+  isActive    Boolean  @default(true)
+  /// Incremented when RBAC permissions or role mappings change (invalidates JWT `pv`).
+  rbacVersion Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  users       User[]
+  cities      City[]
+  roles       Role[]
+
+  @@index([slug])
+  @@map("tenants")
+}
+
+model City {
+  id              String    @id @default(cuid())
+  tenantId        String
+  name            String
+  state           String
+  country         String    @default("IN")
+  pincodes        String[]
+  timezone        String    @default("Asia/Kolkata")
+  isActive        Boolean   @default(true)
+  serviceableFrom DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customers   Customer[]
+  technicians Technician[]
+  bookings    Booking[]
+  leads       Lead[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@map("cities")
+}
+
+// ============================================================================
+// AUTH: USERS, ROLES, PERMISSIONS, SESSIONS, OTP
+// ============================================================================
+
+model User {
+  id              String        @id @default(cuid())
+  tenantId        String
+  email           String?       @unique
+  phone           String?       @unique
+  emailVerified   Boolean       @default(false)
+  phoneVerified   Boolean       @default(false)
+  passwordHash    String?
+  firstName       String?
+  lastName        String?
+  avatarUrl       String?
+  status          UserStatus    @default(PENDING)
+  authProvider    AuthProvider  @default(PASSWORD)
+  lastLoginAt     DateTime?
+  lastLoginIp     String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  deletedBy String?
+
+  tenant            Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  roles             UserRoleAssignment[]
+  sessions          Session[]
+  otpChallenges     OtpChallenge[]
+  customer          Customer?
+  technician        Technician?
+  notifications     Notification[]
+  pushDevices       PushDevice[]
+  auditLogs         AuditLog[]           @relation("AuditActor")
+  assignedLeads     Lead[]               @relation("LeadAssignee")
+  authoredLeadNotes LeadNote[]           @relation("LeadNoteAuthor")
+  authoredBookingNotes BookingNote[]     @relation("BookingNoteAuthor")
+  leadActivities    LeadActivity[]       @relation("LeadActivityActor")
+  bookingActivities BookingActivity[]    @relation("BookingActivityActor")
+  assignedTickets       SupportTicket[]           @relation("TicketAssignedAgent")
+  authoredTicketMessages TicketMessage[]
+  ticketActivities      TicketActivity[]
+  assignedConversations Conversation[]            @relation("ConversationAssignee")
+  conversationParticipations ConversationParticipant[]
+  authoredConversationMessages ConversationMessage[]
+  handledCalls          CallLog[]                 @relation("CallAgent")
+  authoredKbArticles    KnowledgeBaseArticle[]
+  ownedCannedResponses  CannedResponse[]
+
+  @@index([tenantId, status])
+  @@index([phone])
+  @@index([email])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String
+  key         UserRole
+  name        String
+  description String?
+  isSystem    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  permissions RolePermission[]
+  users       UserRoleAssignment[]
+
+  @@unique([tenantId, key])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  /// Dotted permission key, e.g. "booking:write". Wildcard "*" = super admin.
+  key         String   @unique
+  resource    String
+  action      String
+  description String?
+
+  createdAt DateTime @default(now())
+
+  roles RolePermission[]
+
+  @@index([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRoleAssignment {
+  userId String
+  roleId String
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+  assignedBy String?
+
+  @@id([userId, roleId])
+  @@map("user_role_assignments")
+}
+
+model Session {
+  id            String        @id @default(cuid())
+  userId        String
+  refreshTokenHash String     @unique
+  device        SessionDevice @default(UNKNOWN)
+  deviceId      String?
+  userAgent     String?
+  ipAddress     String?
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  lastUsedAt    DateTime      @default(now())
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model OtpChallenge {
+  id            String   @id @default(cuid())
+  userId        String?
+  /// Destination of OTP (phone E.164 or email).
+  destination   String
+  /// Salted hash, NEVER the raw code.
+  codeHash      String
+  attempts      Int      @default(0)
+  maxAttempts   Int      @default(5)
+  consumedAt    DateTime?
+  expiresAt     DateTime
+  purpose       String   @default("LOGIN")
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([destination])
+  @@index([expiresAt])
+  @@map("otp_challenges")
+}
+
+// ============================================================================
+// CUSTOMER DOMAIN
+// ============================================================================
+
+model Customer {
+  id              String   @id @default(cuid())
+  tenantId        String
+  userId          String   @unique
+  cityId          String?
+  fullName        String
+  email           String?
+  phone           String
+  defaultAddressId String? @unique
+  /// Lifetime value, minor units (paise).
+  lifetimeValueMinor BigInt @default(0)
+  totalBookings   Int      @default(0)
+  preferences     Json     @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city            City?      @relation(fields: [cityId], references: [id])
+  addresses       Address[]  @relation("CustomerAddresses")
+  defaultAddress  Address?   @relation("DefaultAddress", fields: [defaultAddressId], references: [id])
+  bookings        Booking[]
+  invoices        Invoice[]
+  quotations      Quotation[]
+  ledgerEntries   CustomerLedgerEntry[]
+  amcSubscriptions AMCSubscription[]
+  creditNotes     CreditNote[]
+  paymentTransactions PaymentTransaction[]
+  supportTickets  SupportTicket[]
+  conversations   Conversation[]
+  calls           CallLog[]
+
+  @@index([tenantId, phone])
+  @@map("customers")
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  customerId  String
+  label       String?
+  line1       String
+  line2       String?
+  landmark    String?
+  city        String
+  state       String
+  pincode     String
+  country     String   @default("IN")
+  latitude    Float?
+  longitude   Float?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  customer        Customer  @relation("CustomerAddresses", fields: [customerId], references: [id], onDelete: Cascade)
+  defaultedBy     Customer? @relation("DefaultAddress")
+  bookings        Booking[]
+
+  @@index([customerId])
+  @@index([pincode])
+  @@map("addresses")
+}
+
+// ============================================================================
+// TECHNICIAN DOMAIN
+// ============================================================================
+
+model Technician {
+  id              String           @id @default(cuid())
+  tenantId        String
+  userId          String           @unique
+  cityId          String
+  employeeCode    String           @unique
+  fullName        String
+  phone           String
+  skills          ServiceCategory[]
+  rating          Float            @default(0)
+  totalJobs       Int              @default(0)
+  /// Aggregated lifetime acceptance rate (0..1). Recomputed nightly.
+  acceptanceRate  Float            @default(1)
+  /// Aggregated lifetime completion rate (0..1).
+  completionRate  Float            @default(1)
+  /// Soft daily job cap; the dispatcher avoids exceeding it.
+  dailyCapacity   Int              @default(8)
+  status          TechnicianStatus @default(OFFLINE)
+  lastSeenAt      DateTime?
+  onlineSince     DateTime?
+  lastLatitude    Float?
+  lastLongitude   Float?
+  lastHeading     Float?
+  lastSpeedMps    Float?
+  lastAccuracyM   Float?
+  lastBatteryPct  Int?
+  lastLocationAt  DateTime?
+  /// JSON: { mon:[[09:00,18:00]], ... } — local time.
+  workingHours    Json             @default("{}")
+  /// Documents (KYC, license URLs) — pointers, not blobs.
+  documents       Json             @default("[]")
+  /// Optional device fingerprint to detect spoofed clients.
+  deviceFingerprint String?
+  /// Per-tech HMAC secret for signing location uploads.
+  locationSignKey String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city             City                     @relation(fields: [cityId], references: [id])
+  bookings         Booking[]
+  locations        TechnicianLocation[]
+  availability     TechnicianAvailability[]
+  shifts           TechnicianShift[]
+  dispatchAssigns  DispatchAssignment[]
+  dispatchEvents   DispatchEvent[]
+  commissions      TechnicianCommission[]
+  payouts          TechnicianPayout[]
+  commissionRule   TechnicianCommissionRule?
+
+  @@index([tenantId, cityId, status])
+  @@index([tenantId, status, lastLocationAt])
+  @@index([lastLatitude, lastLongitude])
+  @@map("technicians")
+}
+
+// ============================================================================
+// BOOKINGS
+// ============================================================================
+
+model Booking {
+  id              String          @id @default(cuid())
+  tenantId        String
+  /// Short human-readable code, e.g. "ACB-2025-000123".
+  code            String          @unique
+  leadId          String?         @unique
+  customerId      String
+  technicianId    String?
+  cityId          String
+  addressId       String
+  category        ServiceCategory
+  /// Free-text service type label, e.g. "AC Gas Refill", set independently
+  /// of the structural ServiceCategory.
+  serviceType     String?
+  applianceBrand  String?
+  applianceType   String?
+  issueDescription String?
+  status          BookingStatus   @default(PENDING)
+  priority        BookingPriority @default(STANDARD)
+  paymentStatus   BookingPaymentStatus @default(UNPAID)
+
+  /// Logical service slot — start time is `scheduledAt`, plus the human label
+  /// like "10:00-12:00" for ops dashboards.
+  scheduledAt     DateTime
+  scheduledTimeSlot String?
+
+  assignedAt      DateTime?
+  enRouteAt       DateTime?
+  arrivedAt       DateTime?
+  startedAt       DateTime?
+  waitingPartsAt  DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  cancellationReason String?
+  rescheduledFromAt DateTime?
+  rescheduleCount Int             @default(0)
+
+  notes           String?
+  /// OTP delivered to the customer on technician arrival; stored as SHA-256.
+  otpCodeHash     String?
+  otpExpiresAt    DateTime?
+  otpVerifiedAt   DateTime?
+  otpAttempts     Int             @default(0)
+
+  customerSignatureUrl String?
+
+  /// Estimated price in minor units.
+  estimatedAmountMinor Int        @default(0)
+  finalAmountMinor     Int?
+  currency        String          @default("INR")
+
+  /// Snapshot of the service address at booking time — survives address
+  /// edits/deletions and is what's printed on the technician's job sheet.
+  addressSnapshot Json            @default("{}")
+  geoLatitude     Float?
+  geoLongitude    Float?
+
+  metadata        Json            @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  lead        Lead?       @relation(fields: [leadId], references: [id])
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  technician  Technician? @relation(fields: [technicianId], references: [id])
+  city        City        @relation(fields: [cityId], references: [id])
+  address     Address     @relation(fields: [addressId], references: [id])
+  invoice     Invoice?
+  activities  BookingActivity[]
+  bookingNotes BookingNote[]
+  attachments BookingAttachment[]
+  quotation   Quotation?
+  amcVisit    AMCVisit?
+  commission  TechnicianCommission?
+  supportTickets SupportTicket[]
+  calls       CallLog[]
+
+  @@index([tenantId, status, scheduledAt])
+  @@index([customerId, status])
+  @@index([technicianId, status])
+  @@index([cityId, scheduledAt])
+  @@index([tenantId, paymentStatus])
+  @@index([tenantId, createdAt])
+  @@map("bookings")
+}
+
+model BookingActivity {
+  id           String        @id @default(cuid())
+  bookingId    String
+  tenantId     String
+  type         ActivityType
+  /// For STATUS_CHANGED activities we persist the from/to status as strings
+  /// so the timeline can render them without joining the enum.
+  fromStatus   String?
+  toStatus     String?
+  actorUserId  String?
+  message      String?
+  metadata     Json          @default("{}")
+
+  createdAt DateTime @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  actor   User?   @relation("BookingActivityActor", fields: [actorUserId], references: [id])
+
+  @@index([bookingId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@map("booking_activities")
+}
+
+model BookingNote {
+  id          String   @id @default(cuid())
+  bookingId   String
+  tenantId    String
+  authorUserId String
+  body        String
+  /// Whether the note is visible to the customer (false = internal only).
+  isInternal  Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  author  User    @relation("BookingNoteAuthor", fields: [authorUserId], references: [id])
+
+  @@index([bookingId, createdAt])
+  @@map("booking_notes")
+}
+
+model BookingAttachment {
+  id           String                @id @default(cuid())
+  bookingId    String
+  tenantId     String
+  kind         BookingAttachmentKind
+  /// Stored object key in S3-compatible storage; never a raw blob.
+  storageKey   String
+  /// Public URL or pre-signed URL for client display.
+  url          String
+  mimeType     String?
+  sizeBytes    Int?
+  /// Caption / description shown on the timeline.
+  caption      String?
+  uploadedBy   String?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId, kind])
+  @@map("booking_attachments")
+}
+
+// ============================================================================
+// INVOICING & PAYMENTS
+// ============================================================================
+
+model Invoice {
+  id              String         @id @default(cuid())
+  tenantId        String
+  /// Sequential, tenant-scoped invoice number, e.g. "INV-2025-000123".
+  number          String         @unique
+  /// Optional — invoices may be raised for AMC charges with no booking.
+  bookingId       String?        @unique
+  amcSubscriptionId String?
+  customerId      String
+  status          InvoiceStatus  @default(DRAFT)
+  issueDate       DateTime?
+  dueDate         DateTime?
+  paidAt          DateTime?
+  sentAt          DateTime?
+  cancelledAt     DateTime?
+
+  /// Money — minor units. `subtotal` = sum(lineItem.totalBeforeTax),
+  /// `discount` is invoice-level on top of line-level adjustments, `tax` =
+  /// sum(lineItem.taxAmount), `total` = subtotal − discount + tax.
+  subtotalMinor    Int           @default(0)
+  discountMinor    Int           @default(0)
+  taxMinor         Int           @default(0)
+  totalMinor       Int           @default(0)
+  amountPaidMinor  Int           @default(0)
+  amountRefundedMinor Int        @default(0)
+  /// Computed: total − amountPaid + amountRefunded. Denormalised so dues
+  /// reports avoid an aggregate scan.
+  dueAmountMinor   Int           @default(0)
+  currency         String        @default("INR")
+
+  /// GST / tax-context fields. `gstNumber` is the customer's GSTIN when
+  /// they want a tax invoice; `placeOfSupply` is the 2-letter Indian state
+  /// code used to decide CGST+SGST vs. IGST.
+  gstEnabled       Boolean       @default(true)
+  gstNumber        String?
+  placeOfSupply    String?
+
+  notes            String?
+  terms            String?
+  pdfUrl           String?
+  /// Cryptographic hash of the rendered invoice — defeats post-issue
+  /// tampering of stored PDFs.
+  pdfHash          String?
+
+  generatedBy      String?
+  /// External system reference (e.g. parent AMC visit id, recurring run id).
+  externalRef      String?
+  metadata         Json          @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  booking           Booking?            @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  customer          Customer            @relation(fields: [customerId], references: [id])
+  amcSubscription   AMCSubscription?    @relation(fields: [amcSubscriptionId], references: [id])
+  lineItems         InvoiceLineItem[]
+  payments          Payment[]
+  paymentTransactions PaymentTransaction[]
+  refunds           Refund[]
+  creditNotes       CreditNote[]
+  ledgerEntries     CustomerLedgerEntry[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+  @@index([customerId, status])
+  @@index([amcSubscriptionId])
+  @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id              String  @id @default(cuid())
+  invoiceId       String
+  description     String
+  quantity        Int     @default(1)
+  unitPriceMinor  Int     @default(0)
+  /// Per-line discount (minor units) — applied before tax.
+  discountMinor   Int     @default(0)
+  /// Tax rate in basis points: 1800 = 18%. Tax is computed AFTER discount.
+  taxRateBps      Int     @default(0)
+  /// HSN/SAC code for GST reporting.
+  hsnSacCode      String?
+  /// Computed values cached at write time so reports don't recompute.
+  subtotalMinor   Int     @default(0)
+  taxMinor        Int     @default(0)
+  totalMinor      Int     @default(0)
+  /// CGST / SGST / IGST split when GST is enabled.
+  cgstMinor       Int     @default(0)
+  sgstMinor       Int     @default(0)
+  igstMinor       Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_line_items")
+}
+
+/// Legacy payment row — kept as the "settled money" record (per-method,
+/// per-invoice). `PaymentTransaction` is the gateway-side audit trail.
+model Payment {
+  id            String        @id @default(cuid())
+  tenantId      String
+  invoiceId     String
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amountMinor   Int
+  currency      String        @default("INR")
+  gatewayRef    String?
+  gatewayPayload Json?
+  capturedAt    DateTime?
+  refundedAt    DateTime?
+  failureReason String?
+  /// The originating PaymentTransaction id (for gateway methods).
+  transactionId String?       @unique
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  invoice     Invoice              @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  transaction PaymentTransaction?  @relation(fields: [transactionId], references: [id])
+  refunds     Refund[]
+
+  @@index([tenantId, status])
+  @@index([invoiceId])
+  @@index([gatewayRef])
+  @@map("payments")
+}
+
+/// Gateway-side audit trail — captures the full lifecycle of a payment
+/// attempt including unsuccessful / abandoned tries. One transaction row
+/// per gateway order; the `Payment` row only exists once we have settled
+/// money. Crucial for reconciliation and chargeback investigations.
+model PaymentTransaction {
+  id              String                    @id @default(cuid())
+  tenantId        String
+  customerId      String
+  invoiceId       String?
+  amcSubscriptionId String?
+  /// Free-form attribution — "INVOICE" / "AMC_RENEWAL" / "ADHOC_LINK".
+  purpose         String
+  provider        String                    // "razorpay" | "stripe" | "manual"
+  method          PaymentMethod?
+  status          PaymentTransactionStatus  @default(CREATED)
+  amountMinor     Int
+  currency        String                    @default("INR")
+  /// Provider-side identifiers.
+  orderRef        String?
+  paymentRef      String?
+  /// Hosted checkout URL when the gateway returns one.
+  hostedLink      String?
+  /// Webhook signature received (verified by the time we persist).
+  signatureRef    String?
+  /// Idempotency key — used to dedupe webhook replays.
+  idempotencyKey  String?
+  /// Last raw payload from the gateway — full body, for audit.
+  rawPayload      Json?
+  failureCode     String?
+  failureReason   String?
+  authorizedAt    DateTime?
+  capturedAt      DateTime?
+  failedAt        DateTime?
+  refundedAt      DateTime?
+  /// Optimistic-lock counter, incremented on every webhook touch.
+  version         Int                       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer        Customer         @relation(fields: [customerId], references: [id])
+  invoice         Invoice?         @relation(fields: [invoiceId], references: [id])
+  amcSubscription AMCSubscription? @relation(fields: [amcSubscriptionId], references: [id])
+  refunds         Refund[]
+  payment         Payment?
+
+  @@unique([provider, orderRef])
+  @@unique([provider, idempotencyKey])
+  @@index([tenantId, status, createdAt])
+  @@index([customerId])
+  @@index([invoiceId])
+  @@map("payment_transactions")
+}
+
+/// Refund record — every refund must reference a Payment (the money we
+/// took) and may optionally reference an Invoice (for credit-note flow).
+model Refund {
+  id              String        @id @default(cuid())
+  tenantId        String
+  paymentId       String
+  invoiceId       String?
+  transactionId   String?
+  customerId      String
+  amountMinor     Int
+  currency        String        @default("INR")
+  reason          String?
+  status          RefundStatus  @default(REQUESTED)
+  /// Provider-side identifier (rzp_ref_xxx / re_xxx).
+  gatewayRef      String?
+  gatewayPayload  Json?
+  requestedBy     String?
+  approvedBy      String?
+  /// Optional credit note generated by the refund — links the refund
+  /// to a customer-facing credit document.
+  creditNoteId    String?       @unique
+  failureReason   String?
+  processedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment      Payment             @relation(fields: [paymentId], references: [id])
+  invoice      Invoice?            @relation(fields: [invoiceId], references: [id])
+  transaction  PaymentTransaction? @relation(fields: [transactionId], references: [id])
+  creditNote   CreditNote?         @relation(fields: [creditNoteId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([invoiceId])
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+/// Customer-facing credit document. Created when an invoice is partially
+/// reduced (returns, adjustments) or refunded after issue. Applies as a
+/// credit on the customer's running ledger balance.
+model CreditNote {
+  id             String           @id @default(cuid())
+  tenantId       String
+  number         String           @unique
+  customerId     String
+  invoiceId      String?
+  status         CreditNoteStatus @default(DRAFT)
+  amountMinor    Int
+  currency       String           @default("INR")
+  reason         String?
+  notes          String?
+  issuedAt       DateTime?
+  appliedAt      DateTime?
+  pdfUrl         String?
+  pdfHash        String?
+  /// Free for the ops team — JSON of line-level adjustments.
+  metadata       Json             @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  invoice    Invoice?  @relation(fields: [invoiceId], references: [id])
+  refund     Refund?
+
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@map("credit_notes")
+}
+
+/// Running customer ledger. Every financial event writes one row; the
+/// `runningBalanceMinor` lets statements render in O(N) without scanning.
+/// DEBIT (positive) = customer owes us; CREDIT (negative) = we owe them.
+model CustomerLedgerEntry {
+  id              String                @id @default(cuid())
+  tenantId        String
+  customerId      String
+  entryType       LedgerEntryType
+  direction       LedgerEntryDirection
+  amountMinor     Int
+  currency        String                @default("INR")
+  /// Description used on statements — kept short for PDF layouts.
+  description     String
+  invoiceId       String?
+  paymentId       String?
+  refundId        String?
+  creditNoteId    String?
+  amcSubscriptionId String?
+  /// Snapshot of the customer's running balance immediately AFTER this
+  /// entry was posted. Negative = customer in credit.
+  runningBalanceMinor Int
+  /// Idempotency — prevents double-posting from webhook replays.
+  externalRef     String?
+  occurredAt      DateTime              @default(now())
+  createdAt       DateTime              @default(now())
+
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  invoice       Invoice?    @relation(fields: [invoiceId], references: [id])
+
+  @@unique([customerId, externalRef])
+  @@index([customerId, occurredAt])
+  @@index([tenantId, occurredAt])
+  @@map("customer_ledger_entries")
+}
+
+// ============================================================================
+// QUOTATIONS
+// ============================================================================
+
+model Quotation {
+  id              String          @id @default(cuid())
+  tenantId        String
+  number          String          @unique
+  bookingId       String?         @unique
+  leadId          String?
+  customerId      String
+  status          QuotationStatus @default(DRAFT)
+  expiresAt       DateTime
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  convertedAt     DateTime?
+  /// Once converted, the invoice this quote materialised into.
+  convertedInvoiceId String?      @unique
+  subtotalMinor   Int             @default(0)
+  discountMinor   Int             @default(0)
+  taxMinor        Int             @default(0)
+  totalMinor      Int             @default(0)
+  currency        String          @default("INR")
+  gstEnabled      Boolean         @default(true)
+  notes           String?
+  terms           String?
+  pdfUrl          String?
+  pdfHash         String?
+  /// Anonymous view-token (UUID) for the customer landing page.
+  viewToken       String          @unique @default(cuid())
+  rejectedReason  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  customer  Customer            @relation(fields: [customerId], references: [id])
+  booking   Booking?            @relation(fields: [bookingId], references: [id])
+  lineItems QuotationLineItem[]
+
+  @@index([tenantId, status])
+  @@index([customerId])
+  @@index([expiresAt])
+  @@map("quotations")
+}
+
+model QuotationLineItem {
+  id              String   @id @default(cuid())
+  quotationId     String
+  description     String
+  quantity        Int      @default(1)
+  unitPriceMinor  Int      @default(0)
+  discountMinor   Int      @default(0)
+  taxRateBps      Int      @default(0)
+  hsnSacCode      String?
+  subtotalMinor   Int      @default(0)
+  taxMinor        Int      @default(0)
+  totalMinor      Int      @default(0)
+
+  createdAt DateTime @default(now())
+
+  quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+
+  @@index([quotationId])
+  @@map("quotation_line_items")
+}
+
+// ============================================================================
+// AMC (Annual Maintenance Contracts)
+// ============================================================================
+
+model AMCPlan {
+  id                  String       @id @default(cuid())
+  tenantId            String
+  /// Public slug (lowercased, dash-cased) used in customer URLs.
+  slug                String
+  name                String
+  type                AMCPlanType  @default(STANDARD)
+  description         String?
+  durationMonths      Int          @default(12)
+  includedVisits      Int          @default(2)
+  emergencySupport    Boolean      @default(false)
+  prioritySupport     Boolean      @default(false)
+  /// Discount applied to ad-hoc bookings raised against this plan, in bps.
+  discountBps         Int          @default(0)
+  /// Appliance categories the plan covers (typed as ServiceCategory[]).
+  appliancesCovered   ServiceCategory[]
+  /// Per-renewal price + price for the first sign-up (can differ).
+  priceMinor          Int          @default(0)
+  renewalPriceMinor   Int          @default(0)
+  currency            String       @default("INR")
+  /// Visit cadence in days — used by the cron to space recurring visits.
+  visitCadenceDays    Int          @default(180)
+  isActive            Boolean      @default(true)
+  /// Free-form features bullets for the marketing pages.
+  features            Json         @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  subscriptions AMCSubscription[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, isActive])
+  @@map("amc_plans")
+}
+
+model AMCSubscription {
+  id                  String                @id @default(cuid())
+  tenantId            String
+  number              String                @unique
+  customerId          String
+  planId              String
+  status              AMCSubscriptionStatus @default(PENDING_PAYMENT)
+  startsAt            DateTime
+  endsAt              DateTime
+  cancelledAt         DateTime?
+  pausedAt            DateTime?
+  resumedAt           DateTime?
+  /// Snapshot of the plan price at signup — protects against future price changes.
+  priceMinor          Int
+  renewalPriceMinor   Int
+  /// Auto-renewal — when true, the cron creates a renewal invoice 7 days
+  /// before `endsAt`.
+  autoRenew           Boolean               @default(true)
+  /// How many visits have already been generated as bookings.
+  visitsScheduled     Int                   @default(0)
+  visitsCompleted     Int                   @default(0)
+  /// Appliances covered by this specific subscription (subset of plan).
+  appliancesSnapshot  Json                  @default("[]")
+  /// Free-form metadata (referral source, sales rep, etc.).
+  metadata            Json                  @default("{}")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  customer      Customer             @relation(fields: [customerId], references: [id])
+  plan          AMCPlan              @relation(fields: [planId], references: [id])
+  visits        AMCVisit[]
+  invoices      Invoice[]
+  paymentTransactions PaymentTransaction[]
+  supportTickets SupportTicket[]
+
+  @@index([tenantId, status, endsAt])
+  @@index([customerId, status])
+  @@map("amc_subscriptions")
+}
+
+/// One row per scheduled / completed maintenance visit. Each visit may
+/// optionally materialise into a real Booking once dispatching kicks in.
+model AMCVisit {
+  id              String          @id @default(cuid())
+  tenantId        String
+  subscriptionId  String
+  /// Visit ordinal within the subscription period (1..N).
+  visitNumber     Int
+  status          AMCVisitStatus  @default(SCHEDULED)
+  /// When the visit is supposed to happen (planned window start).
+  scheduledFor    DateTime
+  completedAt     DateTime?
+  missedAt        DateTime?
+  cancelledAt     DateTime?
+  bookingId       String?         @unique
+  /// Computed at booking time — captures the rule used for free-vs-paid.
+  isComplimentary Boolean         @default(true)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscription AMCSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  booking      Booking?        @relation(fields: [bookingId], references: [id])
+
+  @@unique([subscriptionId, visitNumber])
+  @@index([tenantId, status, scheduledFor])
+  @@map("amc_visits")
+}
+
+// ============================================================================
+// TECHNICIAN PAYOUTS + COMMISSIONS
+// ============================================================================
+
+/// Per-technician commission rule. One rule per tech; an optional fallback
+/// rule sits on the tenant (handled in service code).
+model TechnicianCommissionRule {
+  id              String         @id @default(cuid())
+  tenantId        String
+  technicianId    String         @unique
+  type            CommissionType
+  /// FLAT      → amount in minor units per booking.
+  /// PERCENTAGE→ basis points of finalAmountMinor (e.g. 6000 = 60%).
+  /// PER_JOB   → amount in minor units regardless of booking value.
+  valueMinor      Int            @default(0)
+  /// Optional bonus per completed job, on top of the base.
+  bonusMinor      Int            @default(0)
+  /// Penalty deducted for late arrival (per minute, capped).
+  penaltyPerLateMinuteMinor Int  @default(0)
+  /// Minimum payout before approval is required (operational guardrail).
+  minPayoutMinor  Int            @default(0)
+  payoutCycle     PayoutCycle    @default(WEEKLY)
+  /// Day-of-week (0=Mon..6=Sun) when the cycle closes for WEEKLY/BIWEEKLY.
+  cycleClosesOn   Int            @default(6)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@map("technician_commission_rules")
+}
+
+/// One commission row per completed booking. Status flows
+/// ACCRUED → ADJUSTED (manual tweak) → PAID (when payout settles).
+model TechnicianCommission {
+  id              String           @id @default(cuid())
+  tenantId        String
+  technicianId    String
+  bookingId       String           @unique
+  /// Base commission earned for this booking.
+  baseMinor       Int              @default(0)
+  bonusMinor      Int              @default(0)
+  penaltyMinor    Int              @default(0)
+  adjustmentMinor Int              @default(0)
+  /// Net = base + bonus − penalty + adjustment.
+  netMinor        Int              @default(0)
+  currency        String           @default("INR")
+  status          CommissionStatus @default(ACCRUED)
+  /// The payout cycle this commission was settled into (null until paid).
+  payoutId        String?
+  /// Snapshot of the rule used — survives rule changes.
+  ruleSnapshot    Json             @default("{}")
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  technician Technician        @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  booking    Booking           @relation(fields: [bookingId], references: [id])
+  payout     TechnicianPayout? @relation(fields: [payoutId], references: [id])
+
+  @@index([tenantId, status])
+  @@index([technicianId, status])
+  @@index([payoutId])
+  @@map("technician_commissions")
+}
+
+/// Approved payout cycle for a technician. One payout aggregates many
+/// commission rows; admin approval is mandatory before it transitions to
+/// PROCESSING.
+model TechnicianPayout {
+  id              String        @id @default(cuid())
+  tenantId        String
+  technicianId    String
+  /// Human-readable code, e.g. "PAY-2025-W12-T_abc123".
+  code            String        @unique
+  /// Period covered.
+  periodStart     DateTime
+  periodEnd       DateTime
+  jobsCount       Int           @default(0)
+  grossMinor      Int           @default(0)
+  bonusMinor      Int           @default(0)
+  penaltyMinor    Int           @default(0)
+  adjustmentMinor Int           @default(0)
+  netMinor        Int           @default(0)
+  currency        String        @default("INR")
+  status          PayoutStatus  @default(PENDING)
+  /// Optional gateway / bank reference.
+  paymentRef      String?
+  /// Plain-text bank account snapshot — moved to a vault in production.
+  bankDetails     Json?
+  approvedBy      String?
+  approvedAt      DateTime?
+  paidAt          DateTime?
+  failureReason   String?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  technician  Technician             @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  commissions TechnicianCommission[]
+
+  @@unique([technicianId, periodStart, periodEnd])
+  @@index([tenantId, status, periodEnd])
+  @@map("technician_payouts")
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id        String              @id @default(cuid())
+  tenantId  String
+  userId    String?
+  channel   NotificationChannel
+  template  String
+  status    NotificationStatus  @default(QUEUED)
+  payload   Json                @default("{}")
+  recipientPhone String?
+  recipientEmail String?
+  /// Dedup key — unique per tenant + channel when set.
+  idempotencyKey String?
+  /// Correlates enqueue → worker → webhooks in logs/metrics.
+  correlationId  String?
+  retryCount     Int      @default(0)
+  maxRetries     Int      @default(5)
+  nextRetryAt    DateTime?
+  processingStartedAt DateTime?
+  provider       String?
+  /// Provider's message id (Twilio SID, WhatsApp wamid, etc.).
+  providerRef String?
+  providerResponse Json?
+  sentAt    DateTime?
+  deliveredAt DateTime?
+  readAt    DateTime?
+  failureReason String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events NotificationDeliveryEvent[]
+
+  @@unique([tenantId, idempotencyKey, channel])
+  @@index([userId, status])
+  @@index([tenantId, channel, status])
+  @@index([tenantId, status, createdAt])
+  @@index([correlationId])
+  @@index([providerRef])
+  @@map("notifications")
+}
+
+model NotificationDeliveryEvent {
+  id             String             @id @default(cuid())
+  notificationId String
+  status         NotificationStatus
+  provider       String?
+  detail         String?
+  metadata       Json?
+
+  createdAt DateTime @default(now())
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId, createdAt])
+  @@map("notification_delivery_events")
+}
+
+model PushDevice {
+  id         String   @id @default(cuid())
+  tenantId   String
+  userId     String
+  token      String   @unique
+  provider   String   @default("expo")
+  platform   String?
+  deviceId   String?
+  modelName  String?
+  osVersion  String?
+  appVersion String?
+  isActive   Boolean  @default(true)
+  lastSeenAt DateTime @default(now())
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([tenantId, userId])
+  @@map("push_devices")
+}
+
+model NotificationTemplate {
+  id          String              @id @default(cuid())
+  key         String
+  channel     NotificationChannel
+  locale      String              @default("en-IN")
+  subject     String?
+  body        String
+  isActive    Boolean             @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, channel, locale])
+  @@index([channel, locale])
+  @@map("notification_templates")
+}
+
+// ============================================================================
+// AUDIT LOGS
+// ============================================================================
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  tenantId     String
+  actorUserId  String?
+  action       AuditAction
+  /// Resource type, e.g. "Booking", "User", "Invoice".
+  resourceType String
+  resourceId   String?
+  /// Diff or contextual payload.
+  before       Json?
+  after        Json?
+  ipAddress    String?
+  userAgent    String?
+
+  createdAt DateTime @default(now())
+
+  actor User? @relation("AuditActor", fields: [actorUserId], references: [id])
+
+  @@index([tenantId, resourceType, createdAt])
+  @@index([actorUserId, createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// LEAD MANAGEMENT
+// ============================================================================
+
+model Lead {
+  id              String       @id @default(cuid())
+  tenantId        String
+  /// Short human-readable code, e.g. "LD-2025-000123".
+  code            String       @unique
+
+  customerName    String
+  /// E.164 phone — required (every lead must be contactable).
+  phone           String
+  whatsappNumber  String?
+  email           String?
+
+  source          LeadSource   @default(MANUAL)
+  /// Maps to ServiceCategory at conversion time; we keep a free-text field
+  /// so partner forms (e.g. Google Ads landing page) can submit arbitrary
+  /// labels without violating the enum.
+  applianceType   ServiceCategory?
+  applianceBrand  String?
+  issueDescription String?
+
+  addressLine1    String?
+  addressLine2    String?
+  landmark        String?
+  cityId          String?
+  cityLabel       String?
+  pincode         String?
+  geoLatitude     Float?
+  geoLongitude    Float?
+
+  priority        LeadPriority @default(NORMAL)
+  status          LeadStatus   @default(NEW)
+
+  /// Free-form tags for segmentation/filtering. Lower-cased on write.
+  tags            String[]     @default([])
+
+  /// Operations user (call-center / dispatcher) currently owning the lead.
+  assignedUserId  String?
+  assignedAt      DateTime?
+  qualifiedAt     DateTime?
+  contactedAt     DateTime?
+  closedAt        DateTime?
+
+  /// Once converted, this stores the resulting Booking id (1:1).
+  bookingId       String?      @unique
+  convertedAt     DateTime?
+
+  /// Idempotency key for inbound integrations (Ads webhooks, WhatsApp).
+  externalRef     String?
+
+  metadata        Json         @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+  deletedBy String?
+
+  city          City?           @relation(fields: [cityId], references: [id])
+  assignedUser  User?           @relation("LeadAssignee", fields: [assignedUserId], references: [id])
+  notes         LeadNote[]
+  activities    LeadActivity[]
+  booking       Booking?
+
+  @@unique([tenantId, externalRef])
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, cityId, status])
+  @@index([assignedUserId, status])
+  @@index([phone])
+  @@index([tenantId, priority, createdAt])
+  @@map("leads")
+}
+
+model LeadNote {
+  id          String   @id @default(cuid())
+  leadId      String
+  tenantId    String
+  authorUserId String
+  body        String
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author User @relation("LeadNoteAuthor", fields: [authorUserId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@map("lead_notes")
+}
+
+model LeadActivity {
+  id           String       @id @default(cuid())
+  leadId       String
+  tenantId     String
+  type         ActivityType
+  fromStatus   String?
+  toStatus     String?
+  actorUserId  String?
+  message      String?
+  metadata     Json         @default("{}")
+
+  createdAt DateTime @default(now())
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation("LeadActivityActor", fields: [actorUserId], references: [id])
+
+  @@index([leadId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@map("lead_activities")
+}
+
+// ============================================================================
+// DISPATCH ENGINE + LIVE TRACKING
+// ============================================================================
+
+/// Append-only stream of GPS pings. Retention is enforced by a periodic
+/// pruning job (RouteCache + this table together drive the heat-map + history).
+/// We index on `(technicianId, recordedAt)` for time-series scans and store a
+/// composite `(latitude, longitude)` index so dispatch fall-back queries can
+/// run without Redis when the cache is cold.
+model TechnicianLocation {
+  id            String   @id @default(cuid())
+  tenantId      String
+  technicianId  String
+  latitude      Float
+  longitude     Float
+  accuracyM     Float?
+  heading       Float?
+  speedMps      Float?
+  altitudeM     Float?
+  batteryPct    Int?
+  /// Whether the ping was uploaded while the tech app was in background.
+  isBackground  Boolean  @default(false)
+  /// Whether expo-task-manager reported the device offline at capture time.
+  wasOffline    Boolean  @default(false)
+  /// HMAC of (lat,lng,recordedAt,deviceId) signed with the tech's per-device key.
+  /// Empty for ingest paths that don't require signing (e.g. simulator).
+  signature     String?
+  /// Device identifier for spoof / replay detection.
+  deviceId      String?
+  /// Source label — "expo-foreground", "expo-background", "simulator", "tcp".
+  source        String?
+  /// Capture timestamp at the device (best-effort monotonic clock).
+  recordedAt    DateTime
+  /// Server-side receive timestamp — drift between this and recordedAt is the
+  /// transport latency.
+  receivedAt    DateTime @default(now())
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId, recordedAt])
+  @@index([tenantId, recordedAt])
+  @@index([latitude, longitude])
+  @@map("technician_locations")
+}
+
+/// Daily aggregate per technician — accumulated by the SLA monitor / analytics
+/// job. Keeps the dispatcher dashboards O(1) instead of scanning the live
+/// pings + bookings tables for every render.
+model TechnicianAvailability {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  technicianId          String
+  /// UTC date bucket (no time portion).
+  date                  DateTime @db.Date
+
+  onlineMinutes         Int      @default(0)
+  availableMinutes      Int      @default(0)
+  workingMinutes        Int      @default(0)
+  onBreakMinutes        Int      @default(0)
+
+  acceptedJobs          Int      @default(0)
+  rejectedJobs          Int      @default(0)
+  completedJobs         Int      @default(0)
+  cancelledJobs         Int      @default(0)
+
+  /// Average customer rating recorded for jobs completed today.
+  avgRating             Float?
+  /// Average minutes between ASSIGNED → TECHNICIAN_EN_ROUTE today.
+  avgResponseTimeMin    Float?
+  /// Average travel duration (en_route → in_progress).
+  avgTravelTimeMin      Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@unique([technicianId, date])
+  @@index([tenantId, date])
+  @@map("technician_availability")
+}
+
+/// Single shift = one continuous online session. Closed when the technician
+/// goes offline or hasn't been seen for `OFFLINE_TIMEOUT_MS`.
+model TechnicianShift {
+  id            String    @id @default(cuid())
+  tenantId      String
+  technicianId  String
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  durationMin   Int?
+  startedLatitude  Float?
+  startedLongitude Float?
+  endedLatitude    Float?
+  endedLongitude   Float?
+  /// "manual" | "auto_offline_timeout".
+  endReason     String?
+
+  createdAt DateTime @default(now())
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+
+  @@index([technicianId, startedAt])
+  @@index([tenantId, startedAt])
+  @@map("technician_shifts")
+}
+
+/// Append-only record of every assignment decision (auto / manual /
+/// reassign / fallback). Lets ops audit "why this tech for this job".
+model DispatchAssignment {
+  id            String           @id @default(cuid())
+  tenantId      String
+  bookingId     String
+  technicianId  String
+  decision      DispatchDecision
+  /// Total dispatch score at decision time.
+  score         Float?
+  /// Per-factor breakdown (skillMatch / proximity / workload / rating / …).
+  breakdown     Json             @default("{}")
+  /// Distance (km) at decision time.
+  distanceKm    Float?
+  /// ETA (minutes) at decision time.
+  etaMin        Float?
+  /// Free-form reason — required for REASSIGNED / REJECTED_BY_TECHNICIAN.
+  reason        String?
+  /// Reference to previous assignment when this is a reassignment.
+  replacesId    String?
+
+  /// Dispatcher who triggered manual / fallback assignments (null for auto).
+  actorUserId   String?
+
+  createdAt DateTime @default(now())
+
+  technician Technician @relation(fields: [technicianId], references: [id], onDelete: Cascade)
+  replaces   DispatchAssignment? @relation("DispatchReassignment", fields: [replacesId], references: [id])
+  replacedBy DispatchAssignment[] @relation("DispatchReassignment")
+
+  @@index([bookingId, createdAt])
+  @@index([tenantId, decision, createdAt])
+  @@index([technicianId, createdAt])
+  @@map("dispatch_assignments")
+}
+
+/// Operational dispatch alerts — surfaces in the control center until an
+/// operator acknowledges them.
+model DispatchEvent {
+  id            String             @id @default(cuid())
+  tenantId      String
+  cityId        String?
+  kind          DispatchAlertKind
+  severity      String             @default("warning") // "info" | "warning" | "critical"
+  /// FK to the entity that triggered the alert (booking id / technician id).
+  resourceType  String?
+  resourceId    String?
+  technicianId  String?
+  message       String
+  metadata      Json               @default("{}")
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+
+  createdAt DateTime @default(now())
+
+  technician Technician? @relation(fields: [technicianId], references: [id])
+
+  @@index([tenantId, acknowledgedAt, createdAt])
+  @@index([cityId, kind, createdAt])
+  @@map("dispatch_events")
+}
+
+// ============================================================================
+// INVENTORY / ERP — WAREHOUSES, ITEMS, STOCK LEDGER, TRANSFERS, PROCUREMENT,
+// TECHNICIAN INVENTORY, ALERTS
+// ----------------------------------------------------------------------------
+// Design notes:
+//   * `InventoryItem` is the catalogue row (SKU). It is tenant-scoped but
+//     NOT warehouse-scoped — actual quantity-on-hand lives in
+//     `WarehouseStock` so the same SKU can appear in many warehouses with
+//     independent reorder levels.
+//   * `InventoryLedger` is APPEND-ONLY. Every stock movement (purchase
+//     receipt, transfer, technician allocation, booking consumption, manual
+//     adjustment, scrap) generates exactly one row carrying a snapshot of the
+//     warehouse balance after the movement. Audit-grade by design.
+//   * Money is stored in INTEGER minor units (paise). Quantities use Int for
+//     pieces / sets and could be lifted to Decimal in a future migration if
+//     we ever ship divisible units (paint by litre, cable by metre); today
+//     we treat all units as whole-number quantities for simplicity and
+//     concurrency safety.
+//   * Reservations are first-class. `WarehouseStock.reservedQuantity` is
+//     incremented when a booking is created (so a parallel job can't sell
+//     the same part twice) and decremented when the booking is cancelled or
+//     the parts are issued to a technician.
+// ============================================================================
+
+model Warehouse {
+  id              String         @id @default(cuid())
+  tenantId        String
+  code            String
+  name            String
+  kind            WarehouseKind  @default(BRANCH)
+  cityId          String?
+  /// Full street address, used on POs / transfers.
+  addressLine1    String?
+  addressLine2    String?
+  pincode         String?
+  state           String?
+  /// GSTIN of the warehouse — needed for inter-state PO / transfer GST.
+  gstin           String?
+  /// People responsible for stock accuracy. Free-form for now; tighter
+  /// ownership table can be added later.
+  managerUserId   String?
+  isActive        Boolean        @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  zones           WarehouseZone[]
+  stocks          WarehouseStock[]
+  ledger          InventoryLedger[]
+  sourceTransfers StockTransfer[]   @relation("WarehouseTransferSource")
+  destTransfers   StockTransfer[]   @relation("WarehouseTransferDestination")
+  purchaseOrders  PurchaseOrder[]
+  goodsReceipts   GoodsReceipt[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId, isActive])
+  @@index([tenantId, cityId])
+  @@map("warehouses")
+}
+
+model WarehouseZone {
+  id          String   @id @default(cuid())
+  tenantId    String
+  warehouseId String
+  code        String
+  name        String
+  /// Free-form zone hierarchy, e.g. "A.12.3" (rack.shelf.bin).
+  binLabel    String?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  warehouse Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  stocks    WarehouseStock[]
+
+  @@unique([warehouseId, code])
+  @@index([tenantId, warehouseId])
+  @@map("warehouse_zones")
+}
+
+model InventoryItem {
+  id                String            @id @default(cuid())
+  tenantId          String
+  /// Tenant-unique SKU, e.g. "ACR-CAP-35MFD-001".
+  sku               String
+  /// Optional EAN-13 / UPC.
+  barcode           String?
+  /// Internal QR slug — stable identifier we paint onto labels / boxes.
+  qrCode            String            @unique @default(cuid())
+  name              String
+  description       String?
+  type              InventoryItemType @default(SPARE_PART)
+  category          String?
+  brand             String?
+  /// Free-form list of ServiceCategory values this item is compatible with.
+  /// Stored as text to avoid having to migrate the enum-relation table for
+  /// every catalogue change.
+  compatibleApplianceCategories String[]
+  /// Compatible appliance brand names (LG, Voltas, Daikin, …).
+  compatibleBrands  String[]
+  /// Default unit used for stock movements + invoices.
+  unit              InventoryUnit     @default(PIECE)
+
+  /// Standard cost — kept in sync with weighted-average over receipts.
+  costPriceMinor    Int               @default(0)
+  /// Catalogue price billed to customers.
+  sellingPriceMinor Int               @default(0)
+  /// GST rate (in percentage * 100; e.g. 1800 = 18.00%).
+  gstRateBps        Int               @default(1800)
+  /// Default HSN code for invoice generation.
+  hsnCode           String?
+
+  /// Bookkeeping toggles.
+  serialTracking    Boolean           @default(false)
+  batchTracking     Boolean           @default(false)
+  /// Shelf life in days (for consumables / refrigerants); null if perpetual.
+  shelfLifeDays     Int?
+  /// Default warranty extended to the customer when this item is sold.
+  warrantyDays      Int?
+
+  /// Preferred vendor for re-orders; we still allow PO against any vendor.
+  preferredVendorId String?
+  /// Stock thresholds (defaults; per-warehouse overrides live on WarehouseStock).
+  defaultReorderLevel Int             @default(0)
+  defaultReorderQty   Int             @default(0)
+
+  isActive          Boolean           @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  preferredVendor    Vendor?              @relation(fields: [preferredVendorId], references: [id])
+  stocks             WarehouseStock[]
+  ledger             InventoryLedger[]
+  transferItems      StockTransferItem[]
+  poItems            PurchaseOrderItem[]
+  grnItems           GoodsReceiptItem[]
+  technicianStocks   TechnicianInventory[]
+  alerts             InventoryAlert[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId, isActive])
+  @@index([tenantId, type, category])
+  @@index([tenantId, brand])
+  @@index([barcode])
+  @@map("inventory_items")
+}
+
+/// Quantity-on-hand snapshot per (item, warehouse). Updated atomically by
+/// the inventory service whenever the ledger receives a new row. The
+/// snapshot accelerates valuation, low-stock reports and PDP queries that
+/// would otherwise have to fold the entire ledger.
+model WarehouseStock {
+  id                String   @id @default(cuid())
+  tenantId          String
+  warehouseId       String
+  itemId            String
+  zoneId            String?
+  /// Total physical pieces present in the warehouse.
+  quantity          Int      @default(0)
+  /// Reserved against open bookings / transfers / POs not yet fulfilled.
+  reservedQuantity  Int      @default(0)
+  /// Per-warehouse override of `InventoryItem.defaultReorderLevel`.
+  reorderLevel      Int?
+  reorderQty        Int?
+  /// Weighted-average cost (paise) for this (item, warehouse) pair.
+  avgCostMinor      Int      @default(0)
+  /// Last movement timestamp — drives slow-moving / dead-stock alerts.
+  lastMovementAt    DateTime?
+  /// Expiry of the earliest batch present, when batch-tracked.
+  earliestExpiryAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  warehouse Warehouse      @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  item      InventoryItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  zone      WarehouseZone? @relation(fields: [zoneId], references: [id])
+
+  @@unique([warehouseId, itemId])
+  @@index([tenantId, warehouseId])
+  @@index([tenantId, itemId])
+  @@index([tenantId, quantity])
+  @@map("warehouse_stocks")
+}
+
+/// Immutable stock ledger. One row per movement. `runningQuantity` is the
+/// quantity-on-hand AFTER the row was posted. Reads use the cached
+/// snapshot on `WarehouseStock`; this table is the source of truth /
+/// audit trail.
+model InventoryLedger {
+  id              String            @id @default(cuid())
+  tenantId        String
+  itemId          String
+  warehouseId     String
+  /// Positive for inflow movements, negative for outflow. Reservations are
+  /// modelled with `kind = RESERVE / RELEASE_RESERVE` and zero physical
+  /// quantity delta.
+  kind            StockMovementKind
+  quantityDelta   Int
+  /// Snapshot of warehouse on-hand quantity after this movement.
+  runningQuantity Int
+  /// Snapshot of reservations after this movement.
+  runningReserved Int
+  /// Cost per unit at the time of this movement (paise).
+  unitCostMinor   Int               @default(0)
+
+  /// Optional source references — at most one is non-null for a typical row.
+  purchaseOrderId String?
+  goodsReceiptId  String?
+  transferId      String?
+  bookingId       String?
+  invoiceId       String?
+  technicianId    String?
+  technicianAllocationId String?
+  adjustmentReason String?
+
+  /// Free-form note shown on audit / drill-down screens.
+  description     String?
+  /// Caller-supplied idempotency token. We dedupe on (tenantId, externalRef).
+  externalRef     String?
+
+  occurredAt      DateTime          @default(now())
+  createdAt       DateTime          @default(now())
+  createdBy       String?
+
+  item            InventoryItem     @relation(fields: [itemId], references: [id])
+  warehouse       Warehouse         @relation(fields: [warehouseId], references: [id])
+
+  @@unique([tenantId, externalRef])
+  @@index([itemId, occurredAt])
+  @@index([warehouseId, occurredAt])
+  @@index([tenantId, occurredAt])
+  @@index([bookingId])
+  @@index([transferId])
+  @@index([purchaseOrderId])
+  @@map("inventory_ledger")
+}
+
+// ----------------------------------------------------------------------------
+// VENDORS + PROCUREMENT
+// ----------------------------------------------------------------------------
+
+model Vendor {
+  id                  String       @id @default(cuid())
+  tenantId            String
+  code                String
+  companyName         String
+  legalName           String?
+  gstin               String?
+  pan                 String?
+  contactPerson       String?
+  email               String?
+  phone               String?
+  addressLine1        String?
+  addressLine2        String?
+  city                String?
+  state               String?
+  pincode             String?
+  /// Net-30, Net-15 etc. Stored as integer days for simple PO math.
+  paymentTermsDays    Int          @default(0)
+  /// Categories the vendor supplies — text array to match the catalogue.
+  categoriesSupplied  String[]
+  /// 0..5 weighted rating from purchase order completions.
+  rating              Float        @default(0)
+  /// Lifetime spend (denormalised for analytics).
+  lifetimeSpendMinor  Int          @default(0)
+  /// On-time delivery rate (0..1).
+  onTimeRate          Float        @default(1)
+  /// Free-form payment / banking details.
+  bankName            String?
+  bankAccountNumber   String?
+  ifsc                String?
+  notes               String?
+  status              VendorStatus @default(ACTIVE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  preferredItems  InventoryItem[]
+  purchaseOrders  PurchaseOrder[]
+
+  @@unique([tenantId, code])
+  @@unique([tenantId, gstin])
+  @@index([tenantId, status])
+  @@index([tenantId, companyName])
+  @@map("vendors")
+}
+
+model PurchaseOrder {
+  id              String              @id @default(cuid())
+  tenantId        String
+  /// Tenant-unique PO number, e.g. "PO-2025-000123".
+  number          String              @unique
+  vendorId        String
+  warehouseId     String
+  status          PurchaseOrderStatus @default(DRAFT)
+  /// When the buyer expects delivery.
+  expectedAt      DateTime?
+  /// When the PO was approved & released to the vendor.
+  orderedAt       DateTime?
+  /// When all line items have been received.
+  receivedAt      DateTime?
+  /// When the PO was cancelled / closed.
+  closedAt        DateTime?
+
+  subtotalMinor   Int                 @default(0)
+  taxMinor        Int                 @default(0)
+  discountMinor   Int                 @default(0)
+  shippingMinor   Int                 @default(0)
+  totalMinor      Int                 @default(0)
+  currency        String              @default("INR")
+  /// Snapshot of the vendor's payment terms when the PO was raised.
+  paymentTermsDays Int                @default(0)
+  /// Internal notes / cancellation reason.
+  notes           String?
+  /// Approval audit fields.
+  approvedById    String?
+  approvedAt      DateTime?
+  /// PDF URL once rendered.
+  pdfUrl          String?
+  pdfHash         String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  vendor        Vendor             @relation(fields: [vendorId], references: [id])
+  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
+  items         PurchaseOrderItem[]
+  receipts      GoodsReceipt[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, vendorId])
+  @@index([tenantId, warehouseId])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  purchaseOrderId String
+  itemId          String
+  description     String?
+  quantity        Int
+  receivedQty     Int      @default(0)
+  unitCostMinor   Int
+  gstRateBps      Int      @default(1800)
+  taxMinor        Int      @default(0)
+  totalMinor      Int      @default(0)
+  /// Optional vendor SKU mapping when their catalogue differs from ours.
+  vendorSku       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  item          InventoryItem @relation(fields: [itemId], references: [id])
+
+  @@index([purchaseOrderId])
+  @@index([itemId])
+  @@map("purchase_order_items")
+}
+
+model GoodsReceipt {
+  id              String             @id @default(cuid())
+  tenantId        String
+  /// GRN number, tenant-unique, e.g. "GRN-2025-000123".
+  number          String             @unique
+  purchaseOrderId String
+  warehouseId     String
+  status          GoodsReceiptStatus @default(POSTED)
+  receivedAt      DateTime           @default(now())
+  notes           String?
+  /// Optional photo URLs of the received goods.
+  attachments     String[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy String?
+
+  purchaseOrder PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
+  items         GoodsReceiptItem[]
+
+  @@index([tenantId, receivedAt])
+  @@index([purchaseOrderId])
+  @@map("goods_receipts")
+}
+
+model GoodsReceiptItem {
+  id              String   @id @default(cuid())
+  goodsReceiptId  String
+  itemId          String
+  quantity        Int
+  unitCostMinor   Int
+  /// Optional batch / serial detail, persisted as JSON for flexibility.
+  batchNumber     String?
+  serialNumbers   String[]
+  expiryDate      DateTime?
+
+  createdAt DateTime @default(now())
+
+  goodsReceipt GoodsReceipt   @relation(fields: [goodsReceiptId], references: [id], onDelete: Cascade)
+  item         InventoryItem  @relation(fields: [itemId], references: [id])
+
+  @@index([goodsReceiptId])
+  @@index([itemId])
+  @@map("goods_receipt_items")
+}
+
+// ----------------------------------------------------------------------------
+// STOCK TRANSFERS BETWEEN WAREHOUSES
+// ----------------------------------------------------------------------------
+
+model StockTransfer {
+  id              String              @id @default(cuid())
+  tenantId        String
+  /// Tenant-unique transfer number, e.g. "TRN-2025-000123".
+  number          String              @unique
+  sourceWarehouseId String
+  destWarehouseId String
+  status          StockTransferStatus @default(REQUESTED)
+  requestedAt     DateTime            @default(now())
+  approvedAt      DateTime?
+  dispatchedAt    DateTime?
+  receivedAt      DateTime?
+  cancelledAt     DateTime?
+  /// Reason / context for transfer.
+  notes           String?
+  /// Approval audit fields.
+  requestedBy     String?
+  approvedBy      String?
+  receivedBy      String?
+  cancelledBy     String?
+  cancelReason    String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  sourceWarehouse Warehouse           @relation("WarehouseTransferSource", fields: [sourceWarehouseId], references: [id])
+  destWarehouse   Warehouse           @relation("WarehouseTransferDestination", fields: [destWarehouseId], references: [id])
+  items           StockTransferItem[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, sourceWarehouseId])
+  @@index([tenantId, destWarehouseId])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id              String   @id @default(cuid())
+  transferId      String
+  itemId          String
+  /// Requested quantity (locked at REQUESTED time).
+  requestedQty    Int
+  /// Actually dispatched (may be less than requested if stock fell short).
+  dispatchedQty   Int      @default(0)
+  /// Received at destination — possibly less due to damage / shrinkage.
+  receivedQty     Int      @default(0)
+  unitCostMinor   Int      @default(0)
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  item     InventoryItem @relation(fields: [itemId], references: [id])
+
+  @@index([transferId])
+  @@index([itemId])
+  @@map("stock_transfer_items")
+}
+
+// ----------------------------------------------------------------------------
+// TECHNICIAN VAN INVENTORY
+// ----------------------------------------------------------------------------
+
+model TechnicianInventory {
+  id              String                  @id @default(cuid())
+  tenantId        String
+  technicianId    String
+  itemId          String
+  /// The warehouse the parts were drawn from.
+  sourceWarehouseId String
+  /// Optional booking the allocation was issued against (van vs job).
+  bookingId       String?
+  status          TechnicianStockStatus   @default(ALLOCATED)
+  allocatedQty    Int
+  /// Quantity actually consumed on the job (set when the job is closed).
+  usedQty         Int                     @default(0)
+  /// Quantity returned to the warehouse.
+  returnedQty     Int                     @default(0)
+  /// Snapshot of unit cost at allocation — used to charge customer or to
+  /// charge back the technician if missing parts on reconciliation.
+  unitCostMinor   Int                     @default(0)
+
+  allocatedAt     DateTime                @default(now())
+  acknowledgedAt  DateTime?
+  usedAt          DateTime?
+  returnedAt      DateTime?
+  reconciledAt    DateTime?
+  notes           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item            InventoryItem @relation(fields: [itemId], references: [id])
+
+  @@index([tenantId, technicianId, status])
+  @@index([tenantId, bookingId])
+  @@index([itemId])
+  @@map("technician_inventory")
+}
+
+// ----------------------------------------------------------------------------
+// INVENTORY ALERTS
+// ----------------------------------------------------------------------------
+
+model InventoryAlert {
+  id              String                @id @default(cuid())
+  tenantId        String
+  kind            InventoryAlertKind
+  severity        InventoryAlertSeverity @default(WARNING)
+  status          InventoryAlertStatus  @default(OPEN)
+  /// Optional item / warehouse / vendor / transfer references — at least one
+  /// is set depending on alert kind.
+  itemId          String?
+  warehouseId     String?
+  vendorId        String?
+  transferId      String?
+  purchaseOrderId String?
+  technicianId    String?
+  /// Human-friendly summary, denormalised for fast display.
+  title           String
+  /// Numeric thresholds for filtering / sorting.
+  observedValue   Int?
+  thresholdValue  Int?
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  resolvedAt      DateTime?
+  snoozedUntil    DateTime?
+  /// Deduplicates open alerts; raised alerts with the same `dedupeKey` are
+  /// not created twice.
+  dedupeKey       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  item InventoryItem? @relation(fields: [itemId], references: [id])
+
+  @@unique([tenantId, dedupeKey])
+  @@index([tenantId, status, severity])
+  @@index([tenantId, kind, status])
+  @@index([itemId])
+  @@map("inventory_alerts")
+}
+
+/// Cached route results from Google / Mapbox / Haversine. Keyed on a coarse
+/// rounding of origin + destination so we can reuse expensive directions API
+/// calls for nearby co-ordinates.
+model RouteCache {
+  id            String   @id @default(cuid())
+  cacheKey      String   @unique
+  provider      String
+  originLat     Float
+  originLng     Float
+  destLat       Float
+  destLng       Float
+  distanceM     Int
+  durationS     Int
+  /// Traffic-aware duration if the provider supplied it.
+  trafficDurationS Int?
+  /// Encoded polyline for map rendering.
+  polyline      String?
+  /// Auto-expire row.
+  expiresAt     DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([provider, expiresAt])
+  @@map("route_cache")
+}
+
+// ============================================================================
+// OMNICHANNEL SUPPORT / TICKETING / CALL CENTER
+// ----------------------------------------------------------------------------
+// Design philosophy:
+//   * SupportTicket is the case-management surface — what agents act on.
+//   * Conversation is the channel-anchored thread (WhatsApp number, email
+//     thread, web-chat session, phone-call leg, in-app chat) — what
+//     customers see. One ticket typically owns one Conversation, but
+//     merged tickets can pull in several.
+//   * ConversationMessage carries the raw, immutable per-channel payloads
+//     (with provider message IDs for delivery + read receipts).
+//   * TicketMessage is the agent-facing "post on ticket" surface used for
+//     internal notes / system messages / outbound replies that fan out
+//     across channels. It can reference the resulting ConversationMessage
+//     for delivery tracking.
+//   * Calls are first-class objects (CallLog + optional CallRecording) so a
+//     missed call without a customer record still gets a row and can be
+//     followed up.
+//   * SLAProfile + the firstResponseDueAt / resolutionDueAt timestamps on
+//     SupportTicket drive the scheduler-based breach detector and auto-
+//     escalation engine.
+// ============================================================================
+
+enum TicketStatus {
+  OPEN
+  PENDING
+  WAITING_CUSTOMER
+  ON_HOLD
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum TicketSource {
+  WHATSAPP
+  EMAIL
+  PHONE
+  WEB_CHAT
+  IN_APP_CHAT
+  SMS
+  WALK_IN
+  SOCIAL
+  MANUAL
+}
+
+enum TicketAuthorKind {
+  CUSTOMER
+  AGENT
+  SYSTEM
+  BOT
+}
+
+enum TicketActivityType {
+  CREATED
+  STATUS_CHANGED
+  PRIORITY_CHANGED
+  ASSIGNED
+  REASSIGNED
+  ESCALATED
+  DE_ESCALATED
+  NOTE_ADDED
+  REPLY_SENT
+  ATTACHMENT_ADDED
+  TAGS_UPDATED
+  MERGED
+  SPLIT
+  RESOLVED
+  REOPENED
+  CLOSED
+  SLA_BREACH_WARNING
+  SLA_BREACHED
+  CSAT_RECORDED
+}
+
+enum ConversationChannel {
+  WHATSAPP
+  EMAIL
+  PHONE
+  WEB_CHAT
+  IN_APP_CHAT
+  SMS
+  SOCIAL
+}
+
+enum ConversationStatus {
+  OPEN
+  PENDING
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+  ARCHIVED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  QUEUED
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+  NO_ANSWER
+  BUSY
+  FAILED
+  ABANDONED
+  VOICEMAIL
+}
+
+enum CallDisposition {
+  RESOLVED
+  CALLBACK_REQUESTED
+  WRONG_NUMBER
+  SPAM
+  COMPLAINT
+  BOOKING_CREATED
+  FOLLOWUP_NEEDED
+  NOT_INTERESTED
+  TECHNICAL_ISSUE
+  OTHER
+}
+
+enum SlaTargetKind {
+  FIRST_RESPONSE
+  RESOLUTION
+  NEXT_RESPONSE
+}
+
+enum SlaScope {
+  PRIORITY
+  CATEGORY
+  CHANNEL
+}
+
+enum KbArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum KbVisibility {
+  PUBLIC
+  INTERNAL
+  CUSTOMER_AUTHENTICATED
+}
+
+enum CannedResponseScope {
+  GLOBAL
+  TEAM
+  PRIVATE
+}
+
+// ----------------------------------------------------------------------------
+// SUPPORT TICKET
+// ----------------------------------------------------------------------------
+
+model SupportTicket {
+  id                String          @id @default(cuid())
+  tenantId          String
+  /// Short human-readable code, e.g. "TKT-2025-000123".
+  number            String          @unique
+  customerId        String?
+  /// Stable identifier for anonymous web-chat visitors (cookie / device id).
+  anonymousIdentifier String?
+  bookingId         String?
+  amcSubscriptionId String?
+  /// Brief title shown in lists.
+  subject           String
+  /// Optional richer description (markdown allowed).
+  description       String?
+  status            TicketStatus    @default(OPEN)
+  priority          TicketPriority  @default(NORMAL)
+  source            TicketSource    @default(MANUAL)
+  category          String?
+  subcategory       String?
+  tags              String[]
+  /// User.id of the currently-assigned agent.
+  assignedAgentId   String?
+  /// Free-text team slug (e.g. "tier1", "field-ops", "amc-team").
+  assignedTeam      String?
+  slaProfileId      String?
+
+  firstResponseDueAt DateTime?
+  resolutionDueAt    DateTime?
+  firstResponseAt    DateTime?
+  resolvedAt         DateTime?
+  reopenedAt         DateTime?
+  closedAt           DateTime?
+  /// Customer satisfaction 1..5; set by /csat endpoint or in-app rating.
+  satisfactionRating Int?
+  csatComment        String?
+  /// 0 = none, 1 = supervisor, 2 = manager, 3 = head-of-support, ...
+  escalationLevel    Int             @default(0)
+  escalatedAt        DateTime?
+  /// If set, this ticket has been merged into another (target) ticket.
+  mergedIntoId       String?
+  /// True once first-response SLA has been recorded.
+  firstResponseRecorded Boolean      @default(false)
+
+  metadata           Json            @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  customer        Customer?              @relation(fields: [customerId], references: [id])
+  booking         Booking?               @relation(fields: [bookingId], references: [id])
+  amcSubscription AMCSubscription?       @relation(fields: [amcSubscriptionId], references: [id])
+  assignedAgent   User?                  @relation("TicketAssignedAgent", fields: [assignedAgentId], references: [id])
+  slaProfile      SLAProfile?            @relation(fields: [slaProfileId], references: [id])
+  mergedInto      SupportTicket?         @relation("TicketMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom      SupportTicket[]        @relation("TicketMerge")
+  messages        TicketMessage[]
+  attachments     TicketAttachment[]
+  activities      TicketActivity[]
+  conversations   Conversation[]
+  calls           CallLog[]
+
+  @@index([tenantId, status, priority])
+  @@index([tenantId, assignedAgentId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, bookingId])
+  @@index([tenantId, firstResponseDueAt])
+  @@index([tenantId, resolutionDueAt])
+  @@index([tenantId, source, status])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id            String           @id @default(cuid())
+  tenantId      String
+  ticketId      String
+  /// CUSTOMER / AGENT / SYSTEM / BOT.
+  authorKind    TicketAuthorKind
+  /// User.id of the agent or bot user, when applicable.
+  authorUserId  String?
+  /// Free-text body. Markdown allowed.
+  body          String
+  /// Internal notes are hidden from the customer view.
+  isInternal    Boolean          @default(false)
+  /// Channel the message was sent on (NULL for pure internal notes).
+  channel       ConversationChannel?
+  /// Link to the underlying ConversationMessage that delivered this reply.
+  conversationMessageId String?    @unique
+  metadata      Json             @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  ticket             SupportTicket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author             User?                @relation(fields: [authorUserId], references: [id])
+  conversationMessage ConversationMessage? @relation(fields: [conversationMessageId], references: [id])
+  attachments        TicketAttachment[]
+
+  @@index([ticketId, createdAt])
+  @@index([tenantId, authorUserId])
+  @@map("ticket_messages")
+}
+
+model TicketAttachment {
+  id          String   @id @default(cuid())
+  tenantId    String
+  ticketId    String
+  messageId   String?
+  /// MIME-type-friendly classification.
+  kind        String   @default("file")
+  storageKey  String
+  url         String
+  fileName    String?
+  mimeType    String?
+  sizeBytes   Int?
+  uploadedBy  String?
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  ticket  SupportTicket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message TicketMessage? @relation(fields: [messageId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_attachments")
+}
+
+model TicketActivity {
+  id           String              @id @default(cuid())
+  tenantId     String
+  ticketId     String
+  type         TicketActivityType
+  actorUserId  String?
+  fromStatus   TicketStatus?
+  toStatus     TicketStatus?
+  fromPriority TicketPriority?
+  toPriority   TicketPriority?
+  message      String?
+  metadata     Json                @default("{}")
+
+  createdAt DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  actor  User?         @relation(fields: [actorUserId], references: [id])
+
+  @@index([ticketId, createdAt])
+  @@map("ticket_activities")
+}
+
+// ----------------------------------------------------------------------------
+// CONVERSATIONS (omnichannel inbox)
+// ----------------------------------------------------------------------------
+
+model Conversation {
+  id                  String              @id @default(cuid())
+  tenantId            String
+  ticketId            String?
+  channel             ConversationChannel
+  status              ConversationStatus  @default(OPEN)
+  customerId          String?
+  anonymousIdentifier String?
+  /// Stable thread key (e.g. customer phone for WhatsApp, RFC822 message-id
+  /// for email threads, web-chat session id). Used to dedupe inbound rows.
+  externalThreadKey   String?
+  subject             String?
+  assignedAgentId     String?
+  lastMessageAt       DateTime?
+  lastInboundAt       DateTime?
+  lastOutboundAt      DateTime?
+  /// Counts for unread filtering — updated atomically on message create/read.
+  unreadAgentCount    Int                 @default(0)
+  unreadCustomerCount Int                 @default(0)
+  metadata            Json                @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  ticket          SupportTicket?            @relation(fields: [ticketId], references: [id])
+  customer        Customer?                 @relation(fields: [customerId], references: [id])
+  assignedAgent   User?                     @relation("ConversationAssignee", fields: [assignedAgentId], references: [id])
+  messages        ConversationMessage[]
+  participants    ConversationParticipant[]
+
+  @@unique([tenantId, channel, externalThreadKey])
+  @@index([tenantId, status, channel])
+  @@index([tenantId, assignedAgentId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  tenantId       String
+  conversationId String
+  /// AGENT, CUSTOMER, BOT — mirrors TicketAuthorKind for consistency.
+  kind           TicketAuthorKind
+  userId         String?
+  /// Friendly display name (used for anonymous web-chat visitors).
+  displayName    String?
+  joinedAt       DateTime @default(now())
+  leftAt         DateTime?
+  lastReadAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@unique([conversationId, kind, userId])
+  @@index([conversationId])
+  @@index([tenantId, userId])
+  @@map("conversation_participants")
+}
+
+model ConversationMessage {
+  id               String              @id @default(cuid())
+  tenantId         String
+  conversationId   String
+  direction        MessageDirection
+  authorKind       TicketAuthorKind
+  authorUserId     String?
+  /// Plain-text body; HTML / markdown may live in `payload.html`.
+  body             String
+  channel          ConversationChannel
+  /// Provider-specific message id (e.g. WhatsApp wa_id, SES message-id).
+  externalMessageId String?
+  /// Optional Meta-style template name for outbound WhatsApp templates.
+  templateName     String?
+  status           MessageStatus       @default(QUEUED)
+  /// Raw provider payload — kept verbatim for audit + replay.
+  payload          Json                @default("{}")
+  failureReason    String?
+  sentAt           DateTime?
+  deliveredAt      DateTime?
+  readAt           DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  conversation Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author       User?            @relation(fields: [authorUserId], references: [id])
+  ticketMessage TicketMessage?
+
+  @@unique([tenantId, channel, externalMessageId])
+  @@index([conversationId, createdAt])
+  @@index([tenantId, channel, status])
+  @@index([tenantId, sentAt])
+  @@map("conversation_messages")
+}
+
+// ----------------------------------------------------------------------------
+// CALL CENTER
+// ----------------------------------------------------------------------------
+
+model CallLog {
+  id              String          @id @default(cuid())
+  tenantId        String
+  /// Short identifier surfaced in UI (e.g. "CALL-2025-000123").
+  number          String          @unique
+  direction       CallDirection
+  status          CallStatus      @default(QUEUED)
+  customerId      String?
+  /// Phone number captured from the provider even when no Customer row
+  /// exists yet — used for missed-call recovery.
+  fromNumber      String
+  toNumber        String
+  agentUserId     String?
+  ticketId        String?
+  bookingId       String?
+  /// Provider tag — exotel | twilio | knowlarity | manual.
+  provider        String          @default("manual")
+  /// Provider-side call sid / call uuid.
+  externalCallId  String?
+  /// Queue / IVR routing context.
+  queue           String?
+  startedAt       DateTime        @default(now())
+  answeredAt      DateTime?
+  endedAt         DateTime?
+  durationS       Int?
+  disposition     CallDisposition?
+  dispositionNotes String?
+  /// Whether the call resulted in a follow-up booking / ticket etc.
+  followupTicketId String?
+  /// Audio recording url when not stored as a CallRecording row.
+  recordingUrl     String?
+  metadata         Json           @default("{}")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  createdBy String?
+  updatedBy String?
+
+  customer    Customer?      @relation(fields: [customerId], references: [id])
+  agent       User?          @relation("CallAgent", fields: [agentUserId], references: [id])
+  ticket      SupportTicket? @relation(fields: [ticketId], references: [id])
+  booking     Booking?       @relation(fields: [bookingId], references: [id])
+  recordings  CallRecording[]
+
+  @@unique([tenantId, provider, externalCallId])
+  @@index([tenantId, status, direction])
+  @@index([tenantId, agentUserId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, startedAt])
+  @@map("call_logs")
+}
+
+model CallRecording {
+  id          String   @id @default(cuid())
+  tenantId    String
+  callLogId   String
+  storageKey  String
+  url         String
+  durationS   Int?
+  sizeBytes   Int?
+  /// Optional ASR transcript (filled later by an AI job).
+  transcript  String?
+  language    String?
+  createdAt   DateTime @default(now())
+
+  call CallLog @relation(fields: [callLogId], references: [id], onDelete: Cascade)
+
+  @@index([callLogId])
+  @@map("call_recordings")
+}
+
+// ----------------------------------------------------------------------------
+// SLA PROFILES + SCANNERS
+// ----------------------------------------------------------------------------
+
+model SLAProfile {
+  id                       String   @id @default(cuid())
+  tenantId                 String
+  name                     String
+  description              String?
+  /// First-response target in minutes from ticket creation.
+  firstResponseMinutes     Int      @default(30)
+  /// Total resolution target in minutes from ticket creation.
+  resolutionMinutes        Int      @default(480)
+  /// If true, calculate using a 9h-business-day calendar (else 24×7).
+  businessHoursOnly        Boolean  @default(false)
+  /// Priority overrides — {LOW:{firstResponseMin:..., resolutionMin:...}, ...}.
+  priorityOverrides        Json     @default("{}")
+  /// True for tenant's "default" profile that applies when no rules match.
+  isDefault                Boolean  @default(false)
+  isActive                 Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  tickets SupportTicket[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isDefault])
+  @@map("sla_profiles")
+}
+
+// ----------------------------------------------------------------------------
+// KNOWLEDGE BASE
+// ----------------------------------------------------------------------------
+
+model KnowledgeBaseCategory {
+  id          String   @id @default(cuid())
+  tenantId    String
+  parentId    String?
+  slug        String
+  name        String
+  description String?
+  ordering    Int      @default(0)
+  isPublic    Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  parent   KnowledgeBaseCategory?   @relation("KbCategoryTree", fields: [parentId], references: [id])
+  children KnowledgeBaseCategory[]  @relation("KbCategoryTree")
+  articles KnowledgeBaseArticle[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, parentId])
+  @@map("kb_categories")
+}
+
+model KnowledgeBaseArticle {
+  id              String          @id @default(cuid())
+  tenantId        String
+  categoryId      String?
+  slug            String
+  title           String
+  /// Markdown body; rendered server-side for public pages.
+  bodyMarkdown    String
+  excerpt         String?
+  /// DRAFT / PUBLISHED / ARCHIVED.
+  status          KbArticleStatus @default(DRAFT)
+  visibility      KbVisibility    @default(PUBLIC)
+  authorUserId    String?
+  tags            String[]
+  viewCount       Int             @default(0)
+  helpfulCount    Int             @default(0)
+  notHelpfulCount Int             @default(0)
+  publishedAt     DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  category KnowledgeBaseCategory? @relation(fields: [categoryId], references: [id])
+  author   User?                  @relation(fields: [authorUserId], references: [id])
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status, visibility])
+  @@index([tenantId, categoryId, status])
+  @@map("kb_articles")
+}
+
+// ----------------------------------------------------------------------------
+// CANNED RESPONSES
+// ----------------------------------------------------------------------------
+
+model CannedResponse {
+  id          String              @id @default(cuid())
+  tenantId    String
+  /// Stable shortcut, e.g. "greeting", "asking-for-otp", "booking-rescheduled".
+  code        String
+  title       String
+  body        String
+  channels    ConversationChannel[]
+  scope       CannedResponseScope @default(GLOBAL)
+  /// Owner agent for PRIVATE scope, otherwise null.
+  ownerUserId String?
+  team        String?
+  tags        String[]
+  usageCount  Int                 @default(0)
+  isActive    Boolean             @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  owner User? @relation(fields: [ownerUserId], references: [id])
+
+  @@unique([tenantId, code])
+  @@index([tenantId, scope, isActive])
+  @@index([tenantId, ownerUserId])
+  @@map("canned_responses")
+}
+
+// ============================================================================
+// WORKFLOW ORCHESTRATION & AUTOMATION (Phase 2B)
+// ============================================================================
+
+enum WorkflowInstanceStatus {
+  PENDING
+  RUNNING
+  WAITING
+  PAUSED
+  COMPLETED
+  FAILED
+  CANCELLED
+  ESCALATED
+}
+
+enum WorkflowStepExecutionStatus {
+  PENDING
+  RUNNING
+  WAITING
+  COMPLETED
+  FAILED
+  SKIPPED
+  CANCELLED
+}
+
+enum DomainEventRecordStatus {
+  PUBLISHED
+  PROCESSED
+  DEAD
+  REPLAYED
+}
+
+model WorkflowDefinition {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  key          String
+  version      Int      @default(1)
+  name         String
+  description  String?
+  triggerEvent String?
+  definition   Json
+  isActive     Boolean  @default(true)
+  priority     Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instances WorkflowInstance[]
+
+  @@unique([tenantId, key, version])
+  @@index([triggerEvent, isActive])
+  @@map("workflow_definitions")
+}
+
+model WorkflowInstance {
+  id             String                 @id @default(cuid())
+  tenantId       String
+  definitionId   String
+  definitionKey  String
+  definitionVer  Int
+  correlationId  String
+  status         WorkflowInstanceStatus @default(PENDING)
+  context        Json                   @default("{}")
+  resourceType   String?
+  resourceId     String?
+  currentStepKey String?
+  idempotencyKey String?
+  aiSnapshot     Json?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  pausedAt       DateTime?
+  failureReason  String?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  definition WorkflowDefinition      @relation(fields: [definitionId], references: [id])
+  steps      WorkflowStepExecution[]
+  events     WorkflowEvent[]
+  escalations EscalationLog[]
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, status, createdAt])
+  @@index([resourceType, resourceId])
+  @@index([correlationId])
+  @@map("workflow_instances")
+}
+
+model WorkflowStepExecution {
+  id           String                      @id @default(cuid())
+  instanceId   String
+  stepKey      String
+  stepType     String
+  status       WorkflowStepExecutionStatus @default(PENDING)
+  attempt      Int                         @default(0)
+  maxAttempts  Int                         @default(3)
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  output       Json?
+  error        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instance WorkflowInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@unique([instanceId, stepKey])
+  @@index([instanceId, status])
+  @@index([scheduledAt, status])
+  @@map("workflow_step_executions")
+}
+
+model WorkflowEvent {
+  id         String   @id @default(cuid())
+  instanceId String
+  stepKey    String?
+  eventType  String
+  detail     String?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  instance WorkflowInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  @@index([instanceId, createdAt])
+  @@map("workflow_events")
+}
+
+model DomainEventRecord {
+  id         String                  @id @default(cuid())
+  tenantId   String?
+  name       String
+  schemaVer  Int                     @default(1)
+  envelope   Json
+  status     DomainEventRecordStatus @default(PUBLISHED)
+  traceId    String?
+  replayOf   String?
+
+  createdAt  DateTime @default(now())
+  processedAt DateTime?
+
+  @@index([tenantId, name, createdAt])
+  @@index([status, createdAt])
+  @@index([traceId])
+  @@map("domain_event_records")
+}
+
+model AutomationRule {
+  id           String   @id @default(cuid())
+  tenantId     String
+  name         String
+  description  String?
+  triggerEvent String
+  conditions   Json
+  actions      Json
+  priority     Int      @default(0)
+  isActive     Boolean  @default(true)
+  cronExpr     String?
+  timezone     String   @default("Asia/Kolkata")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([tenantId, triggerEvent, isActive, priority])
+  @@map("automation_rules")
+}
+
+model SlaPolicy {
+  id           String   @id @default(cuid())
+  tenantId     String
+  key          String
+  name         String
+  resourceType String
+  thresholds   Json
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  escalations EscalationLog[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId, resourceType, isActive])
+  @@map("sla_policies")
+}
+
+model EscalationLog {
+  id           String   @id @default(cuid())
+  tenantId     String
+  policyId     String?
+  instanceId   String?
+  resourceType String
+  resourceId   String
+  level        Int      @default(1)
+  target       String
+  reason       String
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+
+  policy   SlaPolicy?        @relation(fields: [policyId], references: [id])
+  instance WorkflowInstance? @relation(fields: [instanceId], references: [id])
+
+  @@index([tenantId, resourceType, resourceId])
+  @@index([instanceId])
+  @@map("escalation_logs")
+}
+
+model WorkflowSchedule {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  cronExpr    String
+  timezone    String   @default("Asia/Kolkata")
+  workflowKey String?
+  ruleId      String?
+  payload     Json     @default("{}")
+  isActive    Boolean  @default(true)
+  lastRunAt   DateTime?
+  nextRunAt   DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([tenantId, isActive, nextRunAt])
+  @@map("workflow_schedules")
+}

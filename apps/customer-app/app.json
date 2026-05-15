@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "AC Platform",
+    "slug": "ac-customer",
+    "scheme": "acplatform",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f59db"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.acplatform.customer",
+      "config": { "usesNonExemptEncryption": false },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to surface nearby technicians and live ETA updates while a job is in progress.",
+        "NSCameraUsageDescription": "Take photos of the appliance so the technician can come prepared with the right parts.",
+        "NSPhotoLibraryUsageDescription": "Attach photos of the appliance so the technician can come prepared.",
+        "NSMicrophoneUsageDescription": "Record short voice notes describing the issue for the technician.",
+        "NSFaceIDUsageDescription": "Use Face ID to unlock the app and authorise payments."
+      }
+    },
+    "android": {
+      "package": "com.acplatform.customer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#0f59db"
+      },
+      "permissions": [
+        "POST_NOTIFICATIONS",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT",
+        "VIBRATE"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Attach photos of your appliance so the technician arrives prepared.",
+          "cameraPermission": "Capture photos of the appliance for the technician."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to show nearby technicians and live ETAs."
+        }
+      ],
+      "expo-local-authentication",
+      "expo-screen-capture"
+    ],
+    "experiments": { "typedRoutes": true },
+    "extra": {
+      "router": { "origin": false },
+      "apiUrl": "https://api.acplatform.in",
+      "wsUrl": "https://api.acplatform.in",
+      "whatsappNumber": "+919999999999",
+      "supportPhone": "+919999999999",
+      "supportEmail": "care@acplatform.in"
+    }
+  }
+}

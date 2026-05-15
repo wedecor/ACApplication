@@ -1,0 +1,201 @@
+{
+  "timestamp": "2026-05-15T15:03:51.147Z",
+  "stateMachine": {
+    "transitions": [
+      {
+        "to": "TECHNICIAN_EN_ROUTE",
+        "actor": "technician",
+        "status": 201,
+        "ok": true
+      },
+      {
+        "to": "IN_PROGRESS",
+        "actor": "technician",
+        "status": 201,
+        "ok": true
+      },
+      {
+        "to": "COMPLETED",
+        "actor": "technician",
+        "status": 201,
+        "ok": true
+      }
+    ],
+    "invalid": [
+      {
+        "from": "ASSIGNED",
+        "to": "IN_PROGRESS",
+        "status": 403,
+        "rejected": true
+      }
+    ],
+    "expected": {
+      "CONFIRMED": [
+        "ASSIGNED",
+        "CANCELLED",
+        "RESCHEDULED"
+      ],
+      "ASSIGNED": [
+        "TECHNICIAN_EN_ROUTE",
+        "RESCHEDULED",
+        "CANCELLED",
+        "NO_SHOW"
+      ],
+      "TECHNICIAN_EN_ROUTE": [
+        "IN_PROGRESS",
+        "NO_SHOW",
+        "CANCELLED"
+      ],
+      "IN_PROGRESS": [
+        "WAITING_PARTS",
+        "COMPLETED",
+        "CANCELLED"
+      ]
+    }
+  },
+  "operationalFlow": {
+    "bookingId": "cmp71sah400iy1376ngew23qg",
+    "code": "ACB-2026-000003",
+    "steps": [
+      {
+        "name": "assign-technician",
+        "status": 201,
+        "ok": true
+      }
+    ],
+    "statusAfterAssign": "ASSIGNED",
+    "finalStatus": "COMPLETED",
+    "domainEvents": [
+      "booking.status_changed",
+      "booking.completed",
+      "booking.status_changed",
+      "booking.status_changed",
+      "booking.assigned",
+      "booking.created",
+      "booking.status_changed",
+      "booking.completed",
+      "booking.status_changed",
+      "booking.status_changed",
+      "booking.assigned",
+      "booking.created",
+      "booking.status_changed",
+      "booking.completed",
+      "booking.status_changed",
+      "booking.status_changed",
+      "booking.assigned",
+      "booking.created"
+    ]
+  },
+  "workflows": [
+    {
+      "key": "customer-onboarding",
+      "status": "WAITING",
+      "resourceId": "cmp71sah400iy1376ngew23qg",
+      "stepsExecuted": 2,
+      "stepTotal": 3,
+      "failures": []
+    },
+    {
+      "key": "booking-assignment",
+      "status": "WAITING",
+      "resourceId": "cmp71sah400iy1376ngew23qg",
+      "stepsExecuted": 1,
+      "stepTotal": 2,
+      "failures": []
+    },
+    {
+      "key": "customer-onboarding",
+      "status": "WAITING",
+      "resourceId": "cmp71rutc009p1376hiqg8rad",
+      "stepsExecuted": 2,
+      "stepTotal": 3,
+      "failures": []
+    },
+    {
+      "key": "booking-assignment",
+      "status": "WAITING",
+      "resourceId": "cmp71rutc009p1376hiqg8rad",
+      "stepsExecuted": 1,
+      "stepTotal": 2,
+      "failures": []
+    },
+    {
+      "key": "customer-onboarding",
+      "status": "WAITING",
+      "resourceId": "cmp71qwzl000g1376pujvd85x",
+      "stepsExecuted": 2,
+      "stepTotal": 3,
+      "failures": []
+    },
+    {
+      "key": "booking-assignment",
+      "status": "WAITING",
+      "resourceId": "cmp71qwzl000g1376pujvd85x",
+      "stepsExecuted": 1,
+      "stepTotal": 2,
+      "failures": []
+    }
+  ],
+  "notifications": {
+    "count": 30,
+    "byStatus": {
+      "SENT": 30
+    },
+    "templates": [
+      "booking.completed",
+      "booking.service_started",
+      "booking.technician_arriving",
+      "technician.job_assigned",
+      "booking.technician_assigned",
+      "booking.confirmation"
+    ],
+    "correlationIds": 30
+  },
+  "websocket": {
+    "dispatcher": {
+      "connected": true,
+      "joined": [],
+      "events": []
+    },
+    "technician": {
+      "connected": true,
+      "joined": [],
+      "events": []
+    },
+    "unauthorizedRoom": {
+      "requested": "secret:qa-room",
+      "joined": [],
+      "rejected": true
+    }
+  },
+  "invoicePayment": {
+    "invoiceCreate": {
+      "status": 400
+    }
+  },
+  "queue": {
+    "queueStats": 500,
+    "body": {
+      "success": false,
+      "error": {
+        "code": "INTERNAL",
+        "message": "Internal server error",
+        "statusCode": 500
+      },
+      "requestId": "req-1a"
+    }
+  },
+  "timeline": {
+    "apiCount": 5,
+    "dbCount": 5,
+    "types": [
+      "CREATED",
+      "ASSIGNED",
+      "TECHNICIAN_EN_ROUTE",
+      "STATUS_CHANGED",
+      "COMPLETED"
+    ]
+  },
+  "issues": [],
+  "score": 100
+}

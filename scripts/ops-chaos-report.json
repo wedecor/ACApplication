@@ -1,0 +1,326 @@
+{
+  "timestamp": "2026-05-15T15:15:47.794Z",
+  "issues": [
+    {
+      "severity": "medium",
+      "area": "queue",
+      "detail": "Pause queue returned 500"
+    },
+    {
+      "severity": "medium",
+      "area": "queue",
+      "detail": "Resume queue returned 500"
+    },
+    {
+      "severity": "high",
+      "area": "observability",
+      "detail": "GET /notifications/admin/metrics returns 500"
+    }
+  ],
+  "baseline": {
+    "apiHealth": true,
+    "dashboard": {
+      "queue": {
+        "main": {
+          "name": "notification-dispatch",
+          "waiting": 0,
+          "active": 0,
+          "completed": 110,
+          "failed": 0,
+          "delayed": 0,
+          "paused": false
+        },
+        "dlq": {
+          "name": "notification-dispatch-dlq",
+          "waiting": 0,
+          "active": 0,
+          "completed": 0,
+          "failed": 0,
+          "delayed": 0,
+          "paused": false
+        }
+      },
+      "providers": [
+        {
+          "channel": "PUSH",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:03:52.308Z"
+          }
+        },
+        {
+          "channel": "WHATSAPP",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:14:29.051Z"
+          }
+        },
+        {
+          "channel": "SMS",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:14:29.056Z"
+          }
+        },
+        {
+          "channel": "EMAIL",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:14:29.068Z"
+          }
+        }
+      ],
+      "killSwitch": false,
+      "tenantId": "cmp5rda8f0000edx261i615nw"
+    },
+    "bull": {
+      "notifWait": "0",
+      "notifDelayed": "0",
+      "notifActive": "0",
+      "notifDlq": "0",
+      "workflowDelayed": "4",
+      "workflowWait": "0"
+    },
+    "notificationCounts": {
+      "SENT": 102
+    },
+    "delayedWorkflowSteps": 4
+  },
+  "idempotency": {
+    "note": "Duplicate OTP requests within idempotency window should not create duplicate SENT rows",
+    "otpRowsAdded": 0
+  },
+  "redisRecovery": {
+    "restartOk": true,
+    "pingAfter": "PONG",
+    "apiHealthAfter": true,
+    "downtimeMs": 8994,
+    "bullBefore": {
+      "notifWait": "0",
+      "notifDelayed": "0",
+      "notifActive": "0",
+      "notifDlq": "0",
+      "workflowDelayed": "5",
+      "workflowWait": "0"
+    },
+    "bullAfter": {
+      "notifWait": "0",
+      "notifDelayed": "0",
+      "notifActive": "0",
+      "notifDlq": "0",
+      "workflowDelayed": "5",
+      "workflowWait": "0"
+    },
+    "dashboardAfter": {
+      "queue": {
+        "main": {
+          "name": "notification-dispatch",
+          "waiting": 0,
+          "active": 0,
+          "completed": 116,
+          "failed": 0,
+          "delayed": 0,
+          "paused": false
+        },
+        "dlq": {
+          "name": "notification-dispatch-dlq",
+          "waiting": 0,
+          "active": 0,
+          "completed": 0,
+          "failed": 0,
+          "delayed": 0,
+          "paused": false
+        }
+      },
+      "providers": [
+        {
+          "channel": "WHATSAPP",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:15:50.954Z"
+          }
+        },
+        {
+          "channel": "PUSH",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:03:52.308Z"
+          }
+        },
+        {
+          "channel": "SMS",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:15:50.968Z"
+          }
+        },
+        {
+          "channel": "EMAIL",
+          "provider": "console",
+          "snapshot": {
+            "state": "closed",
+            "failures": 0,
+            "openedAt": null,
+            "halfOpenAt": null,
+            "lastFailureAt": null,
+            "lastSuccessAt": "2026-05-15T15:15:50.968Z"
+          }
+        }
+      ],
+      "killSwitch": false,
+      "tenantId": "cmp5rda8f0000edx261i615nw"
+    },
+    "delayedStepsAfter": [
+      {
+        "stepKey": "check_assigned",
+        "scheduledAt": "2026-05-15T15:24:29.067Z",
+        "instance": "booking-assignment"
+      },
+      {
+        "stepKey": "check_assigned",
+        "scheduledAt": "2026-05-15T15:25:50.967Z",
+        "instance": "booking-assignment"
+      },
+      {
+        "stepKey": "feedback",
+        "scheduledAt": "2026-05-16T15:02:49.241Z",
+        "instance": "customer-onboarding"
+      },
+      {
+        "stepKey": "feedback",
+        "scheduledAt": "2026-05-16T15:03:32.940Z",
+        "instance": "customer-onboarding"
+      },
+      {
+        "stepKey": "feedback",
+        "scheduledAt": "2026-05-16T15:03:53.183Z",
+        "instance": "customer-onboarding"
+      }
+    ],
+    "verdict": "API survived Redis restart; BullMQ keys present"
+  },
+  "workerCrashSimulation": {
+    "pauseStatus": 500,
+    "pauseBody": {
+      "success": false,
+      "error": {
+        "code": "INTERNAL",
+        "message": "Internal server error",
+        "statusCode": 500
+      },
+      "requestId": "req-2s"
+    },
+    "pausedQueue": {
+      "name": "notification-dispatch",
+      "waiting": 0,
+      "active": 0,
+      "completed": 116,
+      "failed": 0,
+      "delayed": 0,
+      "paused": false
+    },
+    "resumeStatus": 500,
+    "resumeBody": {
+      "success": false,
+      "error": {
+        "code": "INTERNAL",
+        "message": "Internal server error",
+        "statusCode": 500
+      },
+      "requestId": "req-2v"
+    },
+    "resumedQueue": {
+      "name": "notification-dispatch",
+      "waiting": 0,
+      "active": 0,
+      "completed": 116,
+      "failed": 0,
+      "delayed": 0,
+      "paused": false
+    },
+    "verdict": "Pause/resume failed or flaky (often transient right after Redis restart)"
+  },
+  "providerFailover": {
+    "simulatedOpen": "notif:circuit:sms:twilio",
+    "note": "SMS_PROVIDER=console in dev — primary path uses console; circuits apply when real providers configured"
+  },
+  "dlq": {
+    "apiJobs": [],
+    "dbDlqCount": 0,
+    "bullDlqLen": "0"
+  },
+  "dataConsistency": {
+    "duplicateIdempotencyKeys": [],
+    "orphanProcessingLocks": 0,
+    "workflowByStatus": {
+      "COMPLETED": 3,
+      "WAITING": 5
+    },
+    "chaosBookingWorkflows": [
+      {
+        "definitionKey": "booking-assignment",
+        "status": "WAITING"
+      }
+    ]
+  },
+  "apiRestart": {
+    "attempted": false,
+    "recovered": false,
+    "pid": "65285",
+    "skipped": "Set CHAOS_KILL_API=1 to run destructive API kill test"
+  },
+  "observability": {
+    "metricsStatus": "error",
+    "metricsSample": "{\"success\":false,\"error\":{\"code\":\"INTERNAL\",\"message\":\"Internal server error\",\"statusCode\":500},\"requestId\":\"req-2z\"}",
+    "metricsHasNotification": false,
+    "correlationSample": {
+      "id": "cmp727pqe00wh1376vedm2bvi",
+      "correlationId": "a294cbd6-7477-4470-a008-598e60396843",
+      "status": "SENT",
+      "retryCount": 0
+    }
+  },
+  "score": 78,
+  "blockers": [
+    {
+      "severity": "high",
+      "area": "observability",
+      "detail": "GET /notifications/admin/metrics returns 500"
+    }
+  ]
+}

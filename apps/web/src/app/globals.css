@@ -1,0 +1,26 @@
+/* App-specific global overrides. Design tokens live in @ac/ui. */
+
+/* Premium homepage — deep navy base & smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Subtle selection accent on marketing pages */
+::selection {
+  background-color: rgb(139 92 246 / 0.35);
+  color: inherit;
+}

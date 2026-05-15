@@ -1,0 +1,51 @@
+{
+  "name": "@ac/config",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Zod-validated, strongly-typed environment + shared constants for AC Platform.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./env": {
+      "types": "./dist/env/index.d.ts",
+      "require": "./dist/env/index.js",
+      "default": "./dist/env/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants/index.d.ts",
+      "require": "./dist/constants/index.js",
+      "default": "./dist/constants/index.js"
+    },
+    "./feature-flags": {
+      "types": "./dist/feature-flags/index.d.ts",
+      "require": "./dist/feature-flags/index.js",
+      "default": "./dist/feature-flags/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "package.json", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@ac/eslint-config": "workspace:*",
+    "@ac/typescript-config": "workspace:*",
+    "@types/node": "^20.16.11",
+    "eslint": "^9.12.0",
+    "typescript": "^5.6.3"
+  }
+}

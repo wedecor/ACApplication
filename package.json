@@ -1,0 +1,61 @@
+{
+  "name": "ac-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Enterprise CRM + Service Operations Platform for Home Appliance Repair",
+  "author": "AC Platform Engineering",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,mdx,yml,yaml}\" --ignore-path .gitignore",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "db:generate": "pnpm --filter @ac/database generate",
+    "db:migrate": "pnpm --filter @ac/database migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @ac/database migrate:deploy",
+    "db:studio": "pnpm --filter @ac/database studio",
+    "db:seed": "pnpm --filter @ac/database seed",
+    "audit:rbac": "node scripts/audit-rbac-routes.mjs && pnpm --filter @ac/database exec tsx ../../scripts/audit-rbac-permissions.ts",
+    "qa:lifecycle": "pnpm --filter @ac/database exec tsx ../../scripts/ops-booking-lifecycle-test.ts",
+    "qa:chaos": "pnpm --filter @ac/database exec tsx ../../scripts/ops-chaos-test.ts",
+    "db:reset": "pnpm --filter @ac/database reset",
+    "prepare": "husky || true",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.9",
+    "@types/node": "^20.16.11",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "turbo": "^2.1.3",
+    "typescript": "^5.6.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,mdx,yml,yaml,css}": [
+      "prettier --write"
+    ]
+  }
+}

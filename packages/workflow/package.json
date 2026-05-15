@@ -1,0 +1,28 @@
+{
+  "name": "@ac/workflow",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Workflow orchestration DSL, rule conditions, and queue contracts.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ac/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@ac/typescript-config": "workspace:*",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "./packages/typescript-config/base.json",
+  "files": [],
+  "references": [
+    { "path": "./apps/api" },
+    { "path": "./apps/web" },
+    { "path": "./apps/admin-crm" },
+    { "path": "./packages/ui" },
+    { "path": "./packages/database" },
+    { "path": "./packages/auth" },
+    { "path": "./packages/types" },
+    { "path": "./packages/config" }
+  ]
+}

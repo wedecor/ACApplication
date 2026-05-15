@@ -1,0 +1,55 @@
+{
+  "name": "@ac/types",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Shared TypeScript types, enums and API contracts for AC Platform.",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./api": {
+      "types": "./dist/api/index.d.ts",
+      "require": "./dist/api/index.js",
+      "default": "./dist/api/index.js"
+    },
+    "./entities": {
+      "types": "./dist/entities/index.d.ts",
+      "require": "./dist/entities/index.js",
+      "default": "./dist/entities/index.js"
+    },
+    "./enums": {
+      "types": "./dist/enums/index.d.ts",
+      "require": "./dist/enums/index.js",
+      "default": "./dist/enums/index.js"
+    },
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "require": "./dist/events/index.js",
+      "default": "./dist/events/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "package.json", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "clean": "rm -rf dist .turbo *.tsbuildinfo",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@ac/eslint-config": "workspace:*",
+    "@ac/typescript-config": "workspace:*",
+    "eslint": "^9.12.0",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,15 @@
+# Default owners — anything not covered below.
+*       @ac-platform/engineering
+
+# Workspace-specific ownership.
+/apps/api/                   @ac-platform/backend
+/apps/web/                   @ac-platform/web
+/apps/admin-crm/             @ac-platform/web
+/apps/technician-app/        @ac-platform/mobile
+/apps/customer-app/          @ac-platform/mobile
+
+/packages/database/          @ac-platform/backend
+/packages/auth/              @ac-platform/backend @ac-platform/security
+/packages/ui/                @ac-platform/design
+/packages/payments/          @ac-platform/backend @ac-platform/finops
+/packages/whatsapp/          @ac-platform/growth
