@@ -30,7 +30,7 @@
     "@ac/eslint-config": "workspace:*",
     "@ac/typescript-config": "workspace:*",
     "@types/node": "^20.16.11",
-    "eslint": "^9.12.0",
+    "eslint": "^10.4.0",
     "typescript": "^5.6.3"
   }
 }
