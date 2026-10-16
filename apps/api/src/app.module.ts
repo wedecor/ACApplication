@@ -34,6 +34,12 @@ import { TechniciansModule } from './modules/technicians/technicians.module';
 import { TrackingModule } from './modules/tracking/tracking.module';
 import { RbacModule } from './modules/rbac/rbac.module';
 import { UsersModule } from './modules/users/users.module';
+import { DataIoModule } from './modules/data-io/data-io.module';
+import { GrowthModule } from './modules/growth/growth.module';
+import { MeModule } from './modules/me/me.module';
+import { ProductivityModule } from './modules/productivity/productivity.module';
+import { RepairModule } from './modules/repair/repair.module';
+import { SalesModule } from './modules/sales/sales.module';
 import { ConfigModule } from './common/config/config.module';
 import { EventsModule } from './common/events/events.module';
 import { LoggerModule } from './common/logger/logger.module';
@@ -103,6 +109,15 @@ import { TracingInterceptor } from './common/interceptors/tracing.interceptor';
     NotificationsModule,
     OrchestrationModule,
     RealtimeModule,
+    // Customer self-service (/me/*) for the customer app.
+    MeModule,
+    // Repair domain: appliances, catalog, job cards, warranty, workshop.
+    RepairModule,
+    // CRM growth / sales / productivity / data import-export.
+    GrowthModule,
+    SalesModule,
+    ProductivityModule,
+    DataIoModule,
     // Public, unauthenticated lead intake for the marketing site / WhatsApp / Ads.
     PublicIntakeModule,
   ],

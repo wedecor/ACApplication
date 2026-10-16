@@ -98,7 +98,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.CONVERSATION_VIEW,
     Permission.KB_VIEW,
   ],
-  [UserRole.CUSTOMER]: [Permission.TICKET_VIEW, Permission.TICKET_CREATE, Permission.KB_VIEW],
+  [UserRole.CUSTOMER]: [Permission.TICKET_VIEW, Permission.TICKET_CREATE, Permission.KB_VIEW, Permission.AMC_SUBSCRIBE, Permission.SELF_SERVICE],
 };
 
 /**

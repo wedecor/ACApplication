@@ -108,6 +108,15 @@ export const ServiceCategory = {
   MICROWAVE: 'MICROWAVE',
   GEYSER: 'GEYSER',
   CHIMNEY: 'CHIMNEY',
+  TELEVISION: 'TELEVISION',
+  WATER_PURIFIER: 'WATER_PURIFIER',
+  DISHWASHER: 'DISHWASHER',
+  AIR_COOLER: 'AIR_COOLER',
+  INVERTER_UPS: 'INVERTER_UPS',
+  CEILING_FAN: 'CEILING_FAN',
+  OVEN: 'OVEN',
+  VACUUM_CLEANER: 'VACUUM_CLEANER',
+  ELECTRICAL_WIRING: 'ELECTRICAL_WIRING',
   OTHER: 'OTHER',
 } as const;
 export type ServiceCategory = (typeof ServiceCategory)[keyof typeof ServiceCategory];
@@ -521,6 +530,36 @@ export const Permission = {
   SLA_VIEW: 'sla:view',
   SLA_MANAGE: 'sla:manage',
   SUPPORT_ANALYTICS_VIEW: 'support_analytics:view',
+  // Customer self-service
+  SELF_SERVICE: 'self:service',
+  // Customer admin
+  CUSTOMER_MERGE: 'customer:merge',
+  // Repair domain
+  APPLIANCE_VIEW: 'appliance:view',
+  APPLIANCE_MANAGE: 'appliance:manage',
+  CATALOG_VIEW: 'catalog:view',
+  CATALOG_MANAGE: 'catalog:manage',
+  JOBCARD_VIEW: 'jobcard:view',
+  JOBCARD_WRITE: 'jobcard:write',
+  WARRANTY_VIEW: 'warranty:view',
+  WARRANTY_MANAGE: 'warranty:manage',
+  WORKSHOP_VIEW: 'workshop:view',
+  WORKSHOP_MANAGE: 'workshop:manage',
+  // Growth
+  MARKETING_VIEW: 'marketing:view',
+  MARKETING_MANAGE: 'marketing:manage',
+  // Sales
+  ACCOUNT_VIEW: 'account:view',
+  ACCOUNT_MANAGE: 'account:manage',
+  OPPORTUNITY_VIEW: 'opportunity:view',
+  OPPORTUNITY_MANAGE: 'opportunity:manage',
+  // Productivity
+  TASK_VIEW: 'task:view',
+  TASK_MANAGE: 'task:manage',
+  CUSTOM_FIELD_MANAGE: 'custom_field:manage',
+  // Data
+  DATA_EXPORT: 'data:export',
+  DATA_IMPORT: 'data:import',
   // Wildcard for super admin
   ALL: '*',
 } as const;
