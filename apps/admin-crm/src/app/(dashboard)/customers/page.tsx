@@ -6,16 +6,18 @@ import * as React from 'react';
 
 import { Pagination } from '@/components/common/pagination';
 import { CustomersTable } from '@/components/customers/customers-table';
+import { NewCustomerButton } from '@/components/customers/new-customer-button';
 import { useCustomers } from '@/hooks/use-customers';
-import type { CustomerListQuery } from '@/lib/api/customers';
+import type { CustomerFilterQuery } from '@/lib/api/customers';
 
 export default function CustomersPage() {
-  const [query, setQuery] = React.useState<CustomerListQuery>({
+  const [query, setQuery] = React.useState<CustomerFilterQuery>({
     page: 1,
     pageSize: 20,
     sort: 'createdAt:desc',
   });
   const [searchDraft, setSearchDraft] = React.useState('');
+  const [tagDraft, setTagDraft] = React.useState('');
 
   const { data, isLoading, isFetching, error } = useCustomers(query);
   const items = data?.items ?? [];
@@ -23,19 +25,27 @@ export default function CustomersPage() {
 
   const applySearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setQuery((q) => ({ ...q, page: 1, search: searchDraft.trim() || undefined }));
+    setQuery((q) => ({
+      ...q,
+      page: 1,
+      search: searchDraft.trim() || undefined,
+      tag: tagDraft.trim().toLowerCase() || undefined,
+    }));
   };
 
   return (
     <div className="space-y-4">
-      <header>
-        <h1 className="text-xl font-semibold tracking-tight">Customers</h1>
-        <p className="text-sm text-muted-foreground">
-          Household accounts with booking history, invoices, and support context.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Customers</h1>
+          <p className="text-sm text-muted-foreground">
+            Household accounts with booking history, invoices, and support context.
+          </p>
+        </div>
+        <NewCustomerButton />
       </header>
 
-      <form onSubmit={applySearch} className="flex max-w-md gap-2">
+      <form onSubmit={applySearch} className="flex max-w-xl gap-2">
         <div className="relative flex-1">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -48,6 +58,13 @@ export default function CustomersPage() {
             className="pl-9"
           />
         </div>
+        <Input
+          value={tagDraft}
+          onChange={(e) => setTagDraft(e.target.value)}
+          placeholder="Tag"
+          className="w-32"
+          aria-label="Filter by tag"
+        />
         <button
           type="submit"
           className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"

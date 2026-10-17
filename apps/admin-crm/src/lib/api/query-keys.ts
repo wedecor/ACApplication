@@ -14,6 +14,43 @@ export const queryKeys = {
     all: ['customers'] as const,
     list: (params: Record<string, unknown>) => ['customers', 'list', params] as const,
     detail: (id: string) => ['customers', 'detail', id] as const,
+    duplicates: (id: string) => ['customers', 'duplicates', id] as const,
+    duplicateCheck: (params: Record<string, unknown>) =>
+      ['customers', 'duplicate-check', params] as const,
+  },
+  growth: {
+    all: ['growth'] as const,
+    coupons: (params: Record<string, unknown>) => ['growth', 'coupons', params] as const,
+    coupon: (id: string) => ['growth', 'coupon', id] as const,
+    redemptions: (id: string, params: Record<string, unknown>) =>
+      ['growth', 'coupon', id, 'redemptions', params] as const,
+    referrals: (params: Record<string, unknown>) => ['growth', 'referrals', params] as const,
+    referralStats: ['growth', 'referrals', 'stats'] as const,
+    segments: (params: Record<string, unknown>) => ['growth', 'segments', params] as const,
+    segment: (id: string) => ['growth', 'segment', id] as const,
+    segmentPreview: (rules: unknown) => ['growth', 'segment-preview', rules] as const,
+    campaigns: (params: Record<string, unknown>) => ['growth', 'campaigns', params] as const,
+    campaign: (id: string) => ['growth', 'campaign', id] as const,
+    nps: (range: { from?: string; to?: string }) => ['growth', 'nps', range] as const,
+    loyalty: (customerId: string) => ['growth', 'loyalty', customerId] as const,
+  },
+  sales: {
+    accounts: (params: Record<string, unknown>) => ['sales', 'accounts', params] as const,
+    accountsAll: ['sales', 'accounts'] as const,
+    account: (id: string) => ['sales', 'account', id] as const,
+    opportunitiesAll: ['sales', 'opportunities'] as const,
+    opportunities: (params: Record<string, unknown>) =>
+      ['sales', 'opportunities', params] as const,
+    pipeline: (params: Record<string, unknown>) => ['sales', 'opportunities', 'pipeline', params] as const,
+  },
+  tasks: {
+    all: ['tasks'] as const,
+    list: (params: Record<string, unknown>) => ['tasks', 'list', params] as const,
+    summary: ['tasks', 'summary'] as const,
+  },
+  customFields: {
+    all: ['custom-fields'] as const,
+    list: (params: Record<string, unknown>) => ['custom-fields', params] as const,
   },
   bookings: {
     all: ['bookings'] as const,

@@ -5,6 +5,7 @@ import { LogOut, Settings } from 'lucide-react';
 
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@ac/ui';
 
+import { CustomFieldsManager } from '@/components/settings/custom-fields-manager';
 import { clearAuthTokens } from '@/lib/api/auth-token';
 
 export default function SettingsPage() {
@@ -16,7 +17,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <section className="mx-auto max-w-lg space-y-6">
+    <section className="mx-auto max-w-3xl space-y-6">
       <header>
         <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
           <Settings className="size-5" />
@@ -40,6 +41,8 @@ export default function SettingsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <CustomFieldsManager />
 
       <Card>
         <CardHeader>

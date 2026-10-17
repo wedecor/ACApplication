@@ -20,7 +20,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import * as React from 'react';
 
-import type { CustomerListItem } from '@/lib/api/customers';
+import type { CustomerDetail, CustomerListItem } from '@/lib/api/customers';
 
 function formatINR(minor: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -64,6 +64,25 @@ export function CustomersTable({ data, isLoading }: Props) {
           ) : (
             <span className="text-muted-foreground">—</span>
           ),
+      },
+      {
+        id: 'tags',
+        header: 'Tags',
+        cell: ({ row }) => {
+          const tags = (row.original as CustomerDetail).tags ?? [];
+          return tags.length ? (
+            <div className="flex flex-wrap gap-1">
+              {tags.slice(0, 3).map((t) => (
+                <Badge key={t} variant="outline">
+                  {t}
+                </Badge>
+              ))}
+              {tags.length > 3 ? <Badge variant="muted">+{tags.length - 3}</Badge> : null}
+            </div>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          );
+        },
       },
       {
         accessorKey: 'totalBookings',

@@ -19,7 +19,8 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ trustProxy: true, logger: false }),
+    // 6 MiB body limit: CSV imports (data-io) accept up to 5 MB of text.
+    new FastifyAdapter({ trustProxy: true, logger: false, bodyLimit: 6 * 1024 * 1024 }),
     { bufferLogs: true, rawBody: true },
   );
 

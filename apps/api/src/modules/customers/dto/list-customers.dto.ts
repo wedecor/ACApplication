@@ -9,6 +9,16 @@ export class ListCustomersDto extends PaginationDto {
   @IsString()
   cityId?: string;
 
+  @ApiPropertyOptional({ description: 'Filter by tag (case-insensitive, stored lower-case).' })
+  @IsOptional()
+  @IsString()
+  tag?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  accountId?: string;
+
   @ApiPropertyOptional({ default: 'createdAt:desc', example: 'createdAt:desc' })
   @IsOptional()
   @IsString()

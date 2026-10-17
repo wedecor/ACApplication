@@ -5,7 +5,10 @@ import { ArrowLeft, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
+import { CustomerCrmPanel, CustomerEditButton } from '@/components/customers/customer-crm-panel';
+import { CustomerAppliancesSection } from '@/components/repair/customer-appliances-section';
 import { useCustomer } from '@/hooks/use-customers';
+import type { CustomerDetail } from '@/lib/api/customers';
 
 function formatINR(minor: number): string {
   return new Intl.NumberFormat('en-IN', {
@@ -47,13 +50,16 @@ export default function CustomerDetailPage() {
         <ArrowLeft className="inline size-4" /> Back to customers
       </Link>
 
-      <header>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
         <h1 className="text-2xl font-semibold tracking-tight">{customer.fullName}</h1>
         <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
           <Phone className="size-3.5" aria-hidden />
           {customer.phone}
           {customer.email ? ` · ${customer.email}` : null}
         </p>
+        </div>
+        <CustomerEditButton customer={customer as CustomerDetail} />
       </header>
 
       <div className="grid gap-4 sm:grid-cols-3">
@@ -86,6 +92,10 @@ export default function CustomerDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      <CustomerCrmPanel customer={customer as CustomerDetail} />
+
+      <CustomerAppliancesSection customerId={customer.id} />
 
       {customer.city ? (
         <Card>

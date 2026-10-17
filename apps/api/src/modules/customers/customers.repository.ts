@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@ac/database';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { ListCustomersDto } from './dto/list-customers.dto';
 
 const CUSTOMER_INCLUDE = {
   city: { select: { id: true, name: true, state: true } },
+  account: { select: { id: true, name: true } },
   _count: { select: { bookings: true, invoices: true } },
 } satisfies Prisma.CustomerInclude;
 
@@ -19,7 +20,7 @@ export class CustomersRepository {
 
   findById(tenantId: string, id: string): Promise<CustomerWithRelations | null> {
     return this.prisma.client.customer.findFirst({
-      where: { id, tenantId, deletedAt: null },
+      where: { id, tenantId, deletedAt: null, mergedIntoId: null },
       include: CUSTOMER_INCLUDE,
     });
   }
@@ -31,7 +32,10 @@ export class CustomersRepository {
     const where: Prisma.CustomerWhereInput = {
       tenantId,
       deletedAt: null,
+      mergedIntoId: null,
       ...(query.cityId ? { cityId: query.cityId } : {}),
+      ...(query.accountId ? { accountId: query.accountId } : {}),
+      ...(query.tag ? { tags: { has: query.tag.trim().toLowerCase() } } : {}),
       ...(query.search
         ? {
             OR: [
