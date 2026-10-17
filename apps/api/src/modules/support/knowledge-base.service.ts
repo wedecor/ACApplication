@@ -180,8 +180,16 @@ export class KnowledgeBaseService {
     return article;
   }
 
+  /** Full article for the agent editor (requireArticle only selects what update logic needs). */
   async readForAgent(actor: AuthPrincipal, id: string): Promise<unknown> {
-    const article = await this.requireArticle(actor.tenantId, id);
+    const article = await this.prisma.client.knowledgeBaseArticle.findFirst({
+      where: { id, tenantId: actor.tenantId, deletedAt: null },
+      include: {
+        category: { select: { id: true, name: true, slug: true } },
+        author: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+    if (!article) throw new NotFoundException('Article not found');
     return article;
   }
 
