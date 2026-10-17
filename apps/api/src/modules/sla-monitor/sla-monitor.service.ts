@@ -123,12 +123,20 @@ export class SlaMonitorService {
             technicianId: tech.id,
             metadata: { etaIso, projectedArrival: new Date(projectedArrival).toISOString() },
           });
-          this.events.publish(DomainEventName.TechnicianDelayed, {
-            technicianId: tech.id as TechnicianId,
-            bookingId: b.id as BookingId,
-            minutesLate,
-            etaIso,
-          });
+          // The cron runs every minute; tell the customer once, then only when the delay grows.
+          const meta = (b.metadata ?? {}) as Record<string, unknown>;
+          if (shouldNotifyDelay(meta['delayNotifiedMinutes'], minutesLate)) {
+            await this.prisma.client.booking.update({
+              where: { id: b.id },
+              data: { metadata: { ...meta, delayNotifiedMinutes: minutesLate } as never },
+            });
+            this.events.publish(DomainEventName.TechnicianDelayed, {
+              technicianId: tech.id as TechnicianId,
+              bookingId: b.id as BookingId,
+              minutesLate,
+              etaIso,
+            });
+          }
         }
       }
     } catch (err) {
@@ -186,4 +194,13 @@ export class SlaMonitorService {
       this.logger.error({ err }, 'maintenance failed');
     }
   }
+}
+
+/** Minutes the projected delay must grow by before the customer is re-notified. */
+export const DELAY_RENOTIFY_STEP_MIN = 15;
+
+/** True the first time a booking is late, then again only when the delay grows by a full step. */
+export function shouldNotifyDelay(lastNotifiedMinutes: unknown, minutesLate: number): boolean {
+  if (typeof lastNotifiedMinutes !== 'number') return true;
+  return minutesLate >= lastNotifiedMinutes + DELAY_RENOTIFY_STEP_MIN;
 }
