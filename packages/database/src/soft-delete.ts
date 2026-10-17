@@ -26,6 +26,26 @@ const SOFT_DELETE_MODELS = new Set<Prisma.ModelName>([
   'AMCPlan',
   'AMCSubscription',
   'TechnicianPayout',
+  // Repair / growth / sales / productivity domain
+  'CustomerAppliance',
+  'ServiceCatalogItem',
+  'FaultCode',
+  'ChecklistTemplate',
+  'JobCard',
+  'WarrantyClaim',
+  'WorkshopJob',
+  'BookingRating',
+  'SavedPaymentMethod',
+  'Coupon',
+  'CouponRedemption',
+  'ReferralCode',
+  'Referral',
+  'CustomerSegment',
+  'Campaign',
+  'Account',
+  'Opportunity',
+  'Task',
+  'CustomFieldDefinition',
 ]);
 
 /**

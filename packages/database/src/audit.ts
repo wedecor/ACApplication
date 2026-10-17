@@ -35,6 +35,20 @@ const AUDITED_MODELS = new Set<Prisma.ModelName>([
   'TechnicianCommissionRule',
   'TechnicianCommission',
   'TechnicianPayout',
+  // Repair / growth / sales / productivity domain (SavedPaymentMethod excluded: gateway tokens)
+  'CustomerAppliance',
+  'ServiceCatalogItem',
+  'JobCard',
+  'WarrantyClaim',
+  'WorkshopJob',
+  'Coupon',
+  'Referral',
+  'LoyaltyLedgerEntry',
+  'Campaign',
+  'Account',
+  'Opportunity',
+  'Task',
+  'CustomFieldDefinition',
 ]);
 
 type Actor = { userId?: string | null; tenantId?: string | null } | null;
