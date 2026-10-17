@@ -13,7 +13,7 @@ export default function CampaignDetailPage() {
         <Link href="/campaigns" className="text-sm text-muted-foreground hover:underline">
           ← Campaigns
         </Link>
-        <h1 className="text-xl font-semibold tracking-tight">Campaign</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Campaign</h1>
       </header>
       <CampaignEditor campaignId={id} />
     </div>

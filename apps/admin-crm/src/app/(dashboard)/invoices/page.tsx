@@ -63,7 +63,7 @@ export default function InvoicesPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Invoices</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Invoices</h1>
           <p className="text-sm text-muted-foreground">
             Issue, send, collect and reconcile invoices across every booking and AMC contract.
           </p>

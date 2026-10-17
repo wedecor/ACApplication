@@ -74,7 +74,7 @@ export default function WorkshopPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Workshop</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Workshop</h1>
           <p className="text-sm text-muted-foreground">
             Pickup/drop and carry-in repairs. Customers are notified on pickup, receipt, approval,
             ready and delivery.

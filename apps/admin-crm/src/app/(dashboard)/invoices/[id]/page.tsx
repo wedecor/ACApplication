@@ -57,7 +57,7 @@ export default function InvoiceDetailPage() {
           >
             <ArrowLeft className="size-3" /> Back to invoices
           </Link>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Invoice {data.number}
             <Badge className="ml-3 align-middle">{data.status}</Badge>
           </h1>

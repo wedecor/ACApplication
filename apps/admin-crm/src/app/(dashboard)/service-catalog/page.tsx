@@ -63,7 +63,7 @@ export default function ServiceCatalogPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Service catalog</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Service catalog</h1>
           <p className="text-sm text-muted-foreground">
             Rate card, fault-code library and technician checklists per appliance category.
           </p>

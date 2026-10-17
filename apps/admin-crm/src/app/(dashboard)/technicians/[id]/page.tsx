@@ -81,7 +81,7 @@ export default function TechnicianDetailPage() {
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight">
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
             {t.fullName}
             <Badge variant="outline" style={{ borderColor: status.fg, color: status.fg, backgroundColor: status.bg }}>
               {t.status.replace(/_/g, ' ')}

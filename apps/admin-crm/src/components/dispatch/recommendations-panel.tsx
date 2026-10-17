@@ -56,7 +56,7 @@ export function RecommendationsPanel({ bookingId }: RecommendationsPanelProps) {
                   {i + 1}
                 </span>
                 <span className="font-semibold">{r.fullName}</span>
-                <Badge variant="outline">{r.status}</Badge>
+                <Badge variant="outline">{r.status.charAt(0) + r.status.slice(1).toLowerCase().replace(/_/g, " ")}</Badge>
               </div>
               <div className="mt-1 flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">

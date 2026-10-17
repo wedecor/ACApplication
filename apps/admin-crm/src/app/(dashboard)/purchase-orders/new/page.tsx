@@ -81,7 +81,7 @@ export default function NewPurchaseOrderPage() {
       </Link>
 
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New purchase order</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New purchase order</h1>
         <p className="text-sm text-muted-foreground">Draft a PO — submit for approval from the detail page.</p>
       </header>
 

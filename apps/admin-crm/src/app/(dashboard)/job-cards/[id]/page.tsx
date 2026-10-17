@@ -40,7 +40,7 @@ export default function JobCardDetailPage() {
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">Job card · {jc.booking?.code}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Job card · {jc.booking?.code}</h1>
             <JobCardStatusBadge status={jc.status} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">

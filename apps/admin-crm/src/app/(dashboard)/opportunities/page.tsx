@@ -85,7 +85,7 @@ export default function OpportunitiesPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Opportunities</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Opportunities</h1>
           <p className="text-sm text-muted-foreground">Sales pipeline for AMC contracts and B2B deals.</p>
         </div>
         <div className="flex gap-2">

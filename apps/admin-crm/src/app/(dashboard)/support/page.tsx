@@ -42,7 +42,7 @@ export default function SupportOverviewPage() {
     <div className="space-y-6">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Support overview</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Support overview</h1>
           <p className="text-sm text-muted-foreground">
             Last 30 days of tickets, responses, SLA performance and call activity.
           </p>

@@ -54,7 +54,7 @@ export default function UsersPage() {
   return (
     <section className="space-y-4">
       <header>
-        <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
           <UserCog className="size-5" />
           Users &amp; Roles
         </h1>

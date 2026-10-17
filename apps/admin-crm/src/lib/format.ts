@@ -96,3 +96,24 @@ export function rangeFromPreset(preset: 'today' | '7d' | '30d' | '90d' | 'mtd' |
   }
   return { from: from.toISOString(), to: to.toISOString() };
 }
+
+/**
+ * Compact operational timestamp for dense lists: "2:30 pm" today,
+ * "Yesterday, 2:30 pm", "18 Oct, 2:30 pm" this year, else with the year.
+ */
+export function formatWhen(value: string | Date | null | undefined, now: Date = new Date()): string {
+  if (!value) return '—';
+  const d = typeof value === 'string' ? new Date(value) : value;
+  const time = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const dayDiff = Math.round((startOf(now) - startOf(d)) / 86_400_000);
+  if (dayDiff === 0) return time;
+  if (dayDiff === 1) return `Yesterday, ${time}`;
+  if (dayDiff === -1) return `Tomorrow, ${time}`;
+  const date = d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    ...(d.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }),
+  });
+  return `${date}, ${time}`;
+}

@@ -54,7 +54,7 @@ export default function PurchaseOrdersPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Purchase orders</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Purchase orders</h1>
           <p className="text-sm text-muted-foreground">
             Draft, approve, dispatch and receive purchase orders against your vendors.
           </p>

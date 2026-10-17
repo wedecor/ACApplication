@@ -102,7 +102,7 @@ export default function NewInventoryItemPage() {
       </Link>
 
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New catalogue item</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New catalogue item</h1>
         <p className="text-sm text-muted-foreground">
           SKU and barcode are auto-generated if left blank. Stock is added via purchase orders or
           adjustments after creation.

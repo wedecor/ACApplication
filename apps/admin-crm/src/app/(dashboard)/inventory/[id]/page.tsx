@@ -58,7 +58,7 @@ export default function InventoryItemDetailPage() {
         <div>
           <div className="flex items-center gap-2">
             <Boxes className="size-5 text-muted-foreground" aria-hidden />
-            <h1 className="text-2xl font-semibold tracking-tight">{item.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{item.name}</h1>
             {item.lowStock ? (
               <Badge variant="destructive" className="gap-1">
                 <AlertTriangle className="size-3" aria-hidden />

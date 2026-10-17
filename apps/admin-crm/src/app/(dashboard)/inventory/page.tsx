@@ -51,7 +51,7 @@ export default function InventoryPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Inventory catalogue</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Inventory catalogue</h1>
           <p className="text-sm text-muted-foreground">
             Track SKUs, stock levels, valuation and reorder points across every warehouse.
           </p>

@@ -16,11 +16,12 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import Link from 'next/link';
 import * as React from 'react';
 
 import type { BookingListItem } from '@/lib/api/bookings';
+import { formatWhen } from '@/lib/format';
+import { categoryLabel } from '@/lib/labels';
 
 import { BookingPaymentBadge, BookingStatusBadge } from './booking-status-badge';
 
@@ -39,6 +40,7 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
       {
         accessorKey: 'code',
         header: 'Code',
+        meta: { hideOnMobile: true },
         cell: ({ row }) => (
           <Link
             href={`/bookings/${row.original.id}`}
@@ -51,10 +53,19 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
       {
         accessorKey: 'customer',
         header: 'Customer',
+        meta: { primary: true },
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.customer.fullName}</span>
-            <span className="text-xs text-muted-foreground">{row.original.customer.phone}</span>
+          <div className="flex min-w-0 flex-col">
+            <Link
+              href={`/bookings/${row.original.id}`}
+              className="truncate font-medium hover:underline max-md:after:absolute max-md:after:inset-0"
+            >
+              {row.original.customer.fullName}
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              {row.original.customer.phone}
+              <span className="md:hidden"> · {row.original.code}</span>
+            </span>
           </div>
         ),
       },
@@ -62,8 +73,8 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
         accessorKey: 'category',
         header: 'Service',
         cell: ({ row }) => (
-          <div className="text-sm capitalize">
-            {row.original.category.replace(/_/g, ' ').toLowerCase()}
+          <div className="text-sm">
+            {categoryLabel(row.original.category)}
             {row.original.serviceType ? (
               <span className="block text-xs text-muted-foreground">{row.original.serviceType}</span>
             ) : null}
@@ -75,7 +86,7 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
         header: 'Scheduled',
         cell: ({ row }) => (
           <div className="text-sm">
-            {format(new Date(row.original.scheduledAt as unknown as string), 'dd MMM, HH:mm')}
+            {formatWhen(row.original.scheduledAt as unknown as string)}
             {row.original.scheduledTimeSlot ? (
               <span className="block text-xs text-muted-foreground">{row.original.scheduledTimeSlot}</span>
             ) : null}
@@ -118,7 +129,7 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
 
   return (
     <div className="overflow-hidden rounded-lg border bg-card">
-      <Table>
+      <Table stackOnMobile>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
             <TableRow key={hg.id}>
@@ -144,7 +155,11 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
             : table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      data-primary={cell.column.columnDef.meta?.primary ? '' : undefined}
+                      className={cell.column.columnDef.meta?.hideOnMobile ? 'max-md:hidden' : undefined}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

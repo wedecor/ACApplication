@@ -66,7 +66,7 @@ export default function NewVendorPage() {
       </Link>
 
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New vendor</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New vendor</h1>
         <p className="text-sm text-muted-foreground">
           Supplier code is auto-generated if not provided.
         </p>

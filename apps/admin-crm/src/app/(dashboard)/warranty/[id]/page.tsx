@@ -47,7 +47,7 @@ export default function WarrantyClaimPage() {
       <BackLink />
       <header>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{claim.number}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{claim.number}</h1>
           <ClaimStatusBadge status={claim.status} />
         </div>
         <p className="mt-1 text-sm text-muted-foreground">

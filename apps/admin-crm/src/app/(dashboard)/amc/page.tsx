@@ -33,7 +33,7 @@ export default function AmcPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">AMC</h1>
+        <h1 className="text-2xl font-bold tracking-tight">AMC</h1>
         <p className="text-sm text-muted-foreground">
           Annual maintenance contracts — plans, subscriptions and renewals.
         </p>

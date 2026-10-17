@@ -28,7 +28,7 @@ export default function WarehousesPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Warehouses</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Warehouses</h1>
           <p className="text-sm text-muted-foreground">
             Multi-location stock — central depots, branch warehouses, vendor-returns + scrap.
           </p>

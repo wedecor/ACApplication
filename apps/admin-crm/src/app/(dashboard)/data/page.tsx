@@ -22,7 +22,7 @@ export default function DataPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Data import &amp; export</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Data import &amp; export</h1>
         <p className="text-sm text-muted-foreground">
           Bulk-load customers, leads and appliances from CSV (validated with a dry run first), and export CRM data as CSV.
         </p>

@@ -73,7 +73,7 @@ export default function TransferDetailPage() {
 
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Transfer {transfer.number}
             <Badge className="ml-2 align-middle" variant={STATUS_VARIANT[transfer.status]}>
               {transfer.status.replace(/_/g, ' ')}

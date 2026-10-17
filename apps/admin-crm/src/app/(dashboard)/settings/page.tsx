@@ -19,7 +19,7 @@ export default function SettingsPage() {
   return (
     <section className="mx-auto max-w-3xl space-y-6">
       <header>
-        <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
           <Settings className="size-5" />
           Settings
         </h1>

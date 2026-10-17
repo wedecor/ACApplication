@@ -73,7 +73,7 @@ export default function NewTransferPage() {
       </Link>
 
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New stock transfer</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New stock transfer</h1>
         <p className="text-sm text-muted-foreground">Request stock movement between warehouses.</p>
       </header>
 

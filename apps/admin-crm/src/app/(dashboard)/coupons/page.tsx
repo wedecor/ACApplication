@@ -57,7 +57,7 @@ export default function CouponsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Coupons</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Coupons</h1>
           <p className="text-sm text-muted-foreground">Discount codes applied to bookings at invoice time.</p>
         </div>
         <Button size="sm" onClick={() => setEditing('new')}>

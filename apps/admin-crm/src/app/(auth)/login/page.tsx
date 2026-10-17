@@ -10,7 +10,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
   Input,
   Label,
 } from '@ac/ui';
@@ -18,6 +17,9 @@ import {
 import { authApi } from '@/lib/api/auth';
 import { setAccessToken, setRefreshToken } from '@/lib/api/auth-token';
 import { setStoredPermissionVersion } from '@/lib/rbac/permissions';
+
+const IS_DEV = process.env.NEXT_PUBLIC_APP_ENV === 'development';
+const DEV_PHONE = '+919876543210';
 
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -32,7 +34,8 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/leads';
 
-  const [phone, setPhone] = useState('+919876543210');
+  const [phone, setPhone] = useState(IS_DEV ? DEV_PHONE : '');
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [otpRequested, setOtpRequested] = useState(false);
   const [otp, setOtp] = useState('');
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -45,6 +48,7 @@ export default function LoginPage() {
     try {
       const res = await authApi.requestOtp(destination);
       setOtpRequested(true);
+      setSentTo(res.sentTo);
       if (res.devCode) {
         setDevCode(res.devCode);
         setOtp(res.devCode);
@@ -78,12 +82,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-muted/40 p-4">
+      <div className="flex items-center gap-2 text-lg font-semibold">
+        <span className="grid size-8 place-items-center rounded-md bg-primary text-primary-foreground">A</span>
+        AC Admin
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <h1 className="text-lg font-semibold leading-none tracking-tight">
+            {otpRequested ? 'Enter your code' : 'Sign in'}
+          </h1>
           <CardDescription>
-            Operations team access. Use seed phone <strong>+919876543210</strong> in local dev.
+            {otpRequested ? (
+              <>We sent a one-time code to {sentTo ?? destination}.</>
+            ) : (
+              <>Operations team access. We&apos;ll text a one-time code to your phone.</>
+            )}
+            {IS_DEV && !otpRequested ? (
+              <span className="mt-1 block">
+                Local dev: seed phone <strong className="font-medium text-foreground">{DEV_PHONE}</strong>
+              </span>
+            ) : null}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,11 +115,11 @@ export default function LoginPage() {
               }}
             >
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
+                <Label htmlFor="phone">Mobile number</Label>
                 <Input
                   id="phone"
                   type="tel"
-                  placeholder="+919876543210"
+                  placeholder="98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
@@ -109,7 +128,7 @@ export default function LoginPage() {
                 />
               </div>
               <Button type="submit" fullWidth disabled={loading}>
-                {loading ? 'Sending…' : 'Send OTP'}
+                {loading ? 'Sending code…' : 'Send code'}
               </Button>
             </form>
           ) : (
@@ -121,11 +140,13 @@ export default function LoginPage() {
               }}
             >
               <div className="space-y-2">
-                <Label htmlFor="otp">Enter OTP</Label>
+                <Label htmlFor="otp">One-time code</Label>
                 <Input
                   id="otp"
                   type="text"
                   inputMode="numeric"
+                  autoComplete="one-time-code"
+                  autoFocus
                   pattern="\d{4,8}"
                   maxLength={8}
                   value={otp}
@@ -134,29 +155,33 @@ export default function LoginPage() {
                 />
                 {devCode ? (
                   <p className="text-xs text-muted-foreground">
-                    Dev mode: OTP <code className="rounded bg-muted px-1">{devCode}</code>
+                    Dev mode: code <code className="rounded bg-muted px-1 font-mono">{devCode}</code> was prefilled.
                   </p>
                 ) : null}
               </div>
               <Button type="submit" fullWidth disabled={loading}>
                 {loading ? 'Verifying…' : 'Verify & continue'}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                fullWidth
-                onClick={() => {
-                  setOtpRequested(false);
-                  setDevCode(null);
-                  setOtp('');
-                }}
-              >
-                Change phone
-              </Button>
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setOtpRequested(false);
+                    setDevCode(null);
+                    setOtp('');
+                  }}
+                >
+                  Change number
+                </Button>
+                <Button type="button" variant="ghost" disabled={loading} onClick={() => void requestOtp()}>
+                  Resend code
+                </Button>
+              </div>
             </form>
           )}
         </CardContent>
       </Card>
-    </div>
+    </main>
   );
 }

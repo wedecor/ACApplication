@@ -95,7 +95,7 @@ export default function TasksPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Tasks</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
           <p className="text-sm text-muted-foreground">Follow-ups linked to leads, customers, bookings, tickets and deals.</p>
         </div>
         <Button onClick={() => setEditing('new')}>

@@ -53,7 +53,7 @@ export default function SegmentsPage() {
           <Link href="/campaigns" className="text-sm text-muted-foreground hover:underline">
             ← Campaigns
           </Link>
-          <h1 className="text-xl font-semibold tracking-tight">Customer segments</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Customer segments</h1>
           <p className="text-sm text-muted-foreground">Rule-based audiences for campaigns.</p>
         </div>
         <Button onClick={() => setEditing('new')}>

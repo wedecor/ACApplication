@@ -51,7 +51,7 @@ export default function VendorDetailPage() {
       <header>
         <div className="flex items-center gap-2">
           <Building2 className="size-5 text-muted-foreground" aria-hidden />
-          <h1 className="text-2xl font-semibold tracking-tight">{vendor.companyName}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{vendor.companyName}</h1>
           <Badge variant="outline">{vendor.status}</Badge>
         </div>
         <p className="mt-1 font-mono text-sm text-muted-foreground">{vendor.code}</p>

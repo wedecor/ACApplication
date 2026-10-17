@@ -45,7 +45,7 @@ export default function ReferralsPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Referrals</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Referrals</h1>
         <p className="text-sm text-muted-foreground">
           Customer-to-customer referrals. Rewards are credited when the referred customer completes their first booking.
         </p>

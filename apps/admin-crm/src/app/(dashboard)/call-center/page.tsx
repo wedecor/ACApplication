@@ -69,7 +69,7 @@ export default function CallCenterPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
             <Phone className="size-5" />
             Call center
           </h1>

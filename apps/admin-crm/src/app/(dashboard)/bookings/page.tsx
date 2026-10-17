@@ -25,7 +25,7 @@ export default function BookingsPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Bookings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
         <p className="text-sm text-muted-foreground">
           Operational view of every job — schedule, assign, dispatch and close out.
         </p>

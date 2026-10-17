@@ -47,7 +47,7 @@ export default function PayoutsPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Payouts</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Payouts</h1>
         <p className="text-sm text-muted-foreground">
           Technician payout cycles — approve, process, and reconcile.
         </p>

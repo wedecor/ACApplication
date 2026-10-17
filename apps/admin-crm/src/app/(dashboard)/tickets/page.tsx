@@ -81,7 +81,7 @@ export default function TicketsPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Tickets</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Tickets</h1>
           <p className="text-sm text-muted-foreground">
             Every support case across all channels, with SLA timers and CSAT.
           </p>

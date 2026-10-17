@@ -74,7 +74,7 @@ export default function PurchaseOrderDetailPage() {
 
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             PO {po.number}
             <Badge className="ml-2 align-middle" variant={STATUS_VARIANT[po.status]}>
               {po.status.replace(/_/g, ' ')}

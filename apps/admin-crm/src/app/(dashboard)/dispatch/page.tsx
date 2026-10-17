@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { ActivityFeed } from '@/components/dispatch/activity-feed';
 import { AlertFeed } from '@/components/dispatch/alert-feed';
@@ -21,14 +21,24 @@ export default function DispatchControlCenterPage() {
   useRealtime({ rooms: ['dispatch:global'] });
 
   const queue = useUnassignedQueue(cityId);
+  const recsRef = useRef<HTMLElement>(null);
+  const selected = queue.data?.find((b) => b.id === selectedBookingId);
+
+  // Below the 3-column layout the recommendations sit under the queue, so bring them into view.
+  const selectBooking = (id: string) => {
+    setSelectedBookingId(id);
+    if (window.matchMedia('(max-width: 1279px)').matches) {
+      requestAnimationFrame(() => recsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">Dispatch Control Center</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Dispatch</h1>
           <p className="text-sm text-muted-foreground">
-            Real-time operational command — unassigned queue, smart recommendations and live alerts.
+            Pick a booking to see ranked technicians, or auto-assign straight from the queue.
           </p>
         </div>
       </header>
@@ -47,17 +57,19 @@ export default function DispatchControlCenterPage() {
             bookings={queue.data ?? []}
             isLoading={queue.isLoading}
             selectedBookingId={selectedBookingId}
-            onSelect={setSelectedBookingId}
+            onSelect={selectBooking}
           />
         </section>
 
-        <section className="flex flex-col gap-3">
+        <section ref={recsRef} className="flex scroll-mt-20 flex-col gap-3">
           <header className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Dispatch recommendations
+              Recommendations
             </h2>
-            {selectedBookingId ? (
-              <code className="rounded bg-muted px-2 py-0.5 text-xs">{selectedBookingId}</code>
+            {selected ? (
+              <span className="truncate text-xs text-muted-foreground">
+                {selected.customer.fullName} · {selected.code}
+              </span>
             ) : null}
           </header>
           <RecommendationsPanel bookingId={selectedBookingId} />

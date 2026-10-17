@@ -15,31 +15,33 @@ export function Pagination({ page, pageSize, total, totalPages, onPageChange }: 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
-      <span className="text-xs text-muted-foreground">
-        {from}-{to} of {total.toLocaleString()}
+    <nav aria-label="Pagination" className="flex items-center justify-between gap-3 py-3">
+      <span className="text-sm text-muted-foreground tabular-nums">
+        {from}–{to} of {total.toLocaleString('en-IN')}
       </span>
       <div className="flex items-center gap-1">
         <Button
-          size="sm"
+          size="icon"
           variant="outline"
+          aria-label="Previous page"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
         >
-          <ChevronLeft className="size-4" />
+          <ChevronLeft aria-hidden />
         </Button>
-        <span className="px-2 text-sm tabular-nums">
-          Page {page} / {totalPages}
+        <span className="px-2 text-sm tabular-nums" aria-current="page">
+          {page} / {Math.max(totalPages, 1)}
         </span>
         <Button
-          size="sm"
+          size="icon"
           variant="outline"
+          aria-label="Next page"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
         >
-          <ChevronRight className="size-4" />
+          <ChevronRight aria-hidden />
         </Button>
       </div>
-    </div>
+    </nav>
   );
 }

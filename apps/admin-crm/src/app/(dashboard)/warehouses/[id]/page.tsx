@@ -67,7 +67,7 @@ export default function WarehouseDetailPage() {
         <div>
           <div className="flex items-center gap-2">
             <WarehouseIcon className="size-5 text-muted-foreground" aria-hidden />
-            <h1 className="text-2xl font-semibold tracking-tight">{warehouse.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{warehouse.name}</h1>
             {warehouse.isActive ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}
           </div>
           <p className="mt-1 font-mono text-sm text-muted-foreground">

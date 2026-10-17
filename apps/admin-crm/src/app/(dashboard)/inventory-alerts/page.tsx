@@ -35,7 +35,7 @@ export default function InventoryAlertsPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Inventory alerts</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Inventory alerts</h1>
           <p className="text-sm text-muted-foreground">
             Low-stock, expiring batches, slow movers, overdue POs and technician mismatches.
           </p>

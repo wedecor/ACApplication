@@ -1,13 +1,13 @@
 'use client';
 
-import { format } from 'date-fns';
-import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, Zap } from 'lucide-react';
 
 import { Badge, Button, Card, Skeleton } from '@ac/ui';
 
 import { useAutoAssign } from '@/hooks/use-dispatch';
 
 import { type UnassignedBooking } from '@/lib/api/dispatch';
+import { formatWhen } from '@/lib/format';
 
 interface UnassignedQueueProps {
   bookings: UnassignedBooking[];
@@ -16,10 +16,9 @@ interface UnassignedQueueProps {
   onSelect(id: string): void;
 }
 
-const PRIORITY_BADGE: Record<UnassignedBooking['priority'], { variant: 'destructive' | 'default' | 'secondary'; label: string }> = {
-  EMERGENCY: { variant: 'destructive', label: 'EMERGENCY' },
-  PRIORITY: { variant: 'default', label: 'PRIORITY' },
-  STANDARD: { variant: 'secondary', label: 'STANDARD' },
+const PRIORITY_BADGE: Partial<Record<UnassignedBooking['priority'], { variant: 'destructive' | 'warning'; label: string }>> = {
+  EMERGENCY: { variant: 'destructive', label: 'Emergency' },
+  PRIORITY: { variant: 'warning', label: 'Priority' },
 };
 
 export function UnassignedQueue({
@@ -43,61 +42,59 @@ export function UnassignedQueue({
   if (bookings.length === 0) {
     return (
       <Card className="flex flex-col items-center justify-center gap-2 p-8 text-center">
-        <Sparkles className="h-6 w-6 text-emerald-500" />
+        <Sparkles className="size-6 text-success-600" aria-hidden />
         <p className="text-sm font-semibold">All clear</p>
-        <p className="text-xs text-muted-foreground">Every booking has a technician assigned.</p>
+        <p className="text-sm text-muted-foreground">Every booking has a technician assigned.</p>
       </Card>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <ul className="flex flex-col gap-2">
       {bookings.map((b) => {
         const active = b.id === selectedBookingId;
         const badge = PRIORITY_BADGE[b.priority];
+        const assigning = auto.isPending && auto.variables === b.id;
         return (
-          <Card
+          <li
             key={b.id}
-            className={`group cursor-pointer p-3 transition ${
-              active ? 'border-foreground/40 ring-2 ring-foreground/20' : 'hover:border-foreground/20'
+            className={`flex items-center gap-2 rounded-lg border bg-card pr-3 transition-colors ${
+              active ? 'border-primary ring-1 ring-primary' : 'hover:border-foreground/20'
             }`}
-            onClick={() => onSelect(b.id)}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-semibold">{b.code}</span>
-                  <Badge variant={badge.variant}>{badge.label}</Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {b.customer.fullName} • {b.customer.phone}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {b.city.name} • {format(new Date(b.scheduledAt), 'EEE d MMM, HH:mm')}
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={auto.isPending && auto.variables === b.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    auto.mutate(b.id);
-                  }}
-                >
-                  {auto.isPending && auto.variables === b.id ? (
-                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                  ) : (
-                    <ArrowRight className="mr-1 h-3 w-3" />
-                  )}
-                  Auto-assign
-                </Button>
-              </div>
-            </div>
-          </Card>
+            <button
+              type="button"
+              aria-pressed={active}
+              onClick={() => onSelect(b.id)}
+              className="min-w-0 flex-1 rounded-lg p-3 text-left"
+            >
+              <span className="flex items-center gap-2">
+                <span className="truncate font-medium">{b.customer.fullName}</span>
+                {badge ? <Badge variant={badge.variant}>{badge.label}</Badge> : null}
+              </span>
+              <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                {formatWhen(b.scheduledAt)} · {b.city.name}
+              </span>
+              <span className="block truncate text-xs text-muted-foreground">{b.code}</span>
+            </button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              disabled={assigning}
+              aria-label={`Auto-assign ${b.code}`}
+              onClick={() => auto.mutate(b.id)}
+            >
+              {assigning ? (
+                <Loader2 className="animate-spin" aria-hidden />
+              ) : (
+                <Zap aria-hidden />
+              )}
+              Auto
+            </Button>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

@@ -22,7 +22,7 @@ export default function CsatPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
           <Star className="size-5" />
           Customer satisfaction
         </h1>

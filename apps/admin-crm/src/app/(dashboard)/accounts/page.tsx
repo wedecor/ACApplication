@@ -37,7 +37,7 @@ export default function AccountsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Accounts</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Accounts</h1>
           <p className="text-sm text-muted-foreground">
             B2B customers — housing societies, offices, retail and builders.
           </p>

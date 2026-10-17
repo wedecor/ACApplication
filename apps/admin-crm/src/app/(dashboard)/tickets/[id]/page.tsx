@@ -108,7 +108,7 @@ export default function TicketDetailPage() {
               <Skeleton className="h-7 w-72" />
             ) : (
               <>
-                <h1 className="text-xl font-semibold tracking-tight">
+                <h1 className="text-2xl font-bold tracking-tight">
                   {t?.subject ?? '—'}
                 </h1>
                 <p className="text-xs text-muted-foreground">

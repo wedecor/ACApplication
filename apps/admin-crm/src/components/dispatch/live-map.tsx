@@ -74,6 +74,19 @@ export function LiveMap({
   const projector = useMemo(() => makeProjector(points, size), [points, size]);
 
   const stats = useMemo(() => groupByStatus(technicians), [technicians]);
+  const reduceMotion = usePrefersReducedMotion();
+
+  // Bookings in the same area overlap at this zoom; merge markers within ~18px into one cluster.
+  const clusters = useMemo(() => {
+    const out: Array<{ x: number; y: number; items: typeof bookings }> = [];
+    for (const b of bookings) {
+      const p = projector({ lat: b.latitude, lng: b.longitude });
+      const hit = out.find((c) => Math.hypot(c.x - p.x, c.y - p.y) < 18);
+      if (hit) hit.items.push(b);
+      else out.push({ x: p.x, y: p.y, items: [b] });
+    }
+    return out;
+  }, [bookings, projector]);
 
   return (
     <div className={className} ref={containerRef}>
@@ -86,33 +99,30 @@ export function LiveMap({
         >
           <GridBackdrop width={size.w} height={size.h} />
 
-          {/* Booking markers — pulse for emergency. */}
-          {bookings.map((b) => {
-            const p = projector({ lat: b.latitude, lng: b.longitude });
+          {/* Booking markers, clustered; a ring pulses when a cluster holds an emergency. */}
+          {clusters.map((c) => {
+            const emergency = c.items.some((b) => b.priority === 'EMERGENCY');
+            const count = c.items.length;
+            const r = count > 1 ? 11 : 7;
             return (
-              <g key={b.id} transform={`translate(${p.x}, ${p.y})`}>
-                <circle
-                  r={b.priority === 'EMERGENCY' ? 9 : 6}
-                  fill="#FB923C"
-                  stroke="#fff"
-                  strokeWidth={2}
-                >
-                  {b.priority === 'EMERGENCY' ? (
-                    <animate
-                      attributeName="r"
-                      values="9;14;9"
-                      dur="1.4s"
-                      repeatCount="indefinite"
-                    />
-                  ) : null}
-                </circle>
-                <text
-                  y={-12}
-                  textAnchor="middle"
-                  className="fill-foreground text-[10px] font-medium"
-                >
-                  {b.code}
-                </text>
+              <g key={c.items[0]!.id} transform={`translate(${c.x}, ${c.y})`}>
+                {emergency && !reduceMotion ? (
+                  <circle r={r} fill="none" stroke="#dc2626" strokeWidth={2} opacity={0.6}>
+                    <animate attributeName="r" values={`${r};${r + 7};${r}`} dur="1.4s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.6;0;0.6" dur="1.4s" repeatCount="indefinite" />
+                  </circle>
+                ) : null}
+                <circle r={r} fill={emergency ? '#dc2626' : '#ea580c'} stroke="#fff" strokeWidth={2} />
+                {count > 1 ? (
+                  <text textAnchor="middle" dy="0.35em" className="fill-white text-[11px] font-semibold">
+                    {count}
+                  </text>
+                ) : null}
+                <title>
+                  {count > 1
+                    ? `${count} unassigned bookings: ${c.items.map((b) => b.code).join(', ')}`
+                    : `Unassigned ${c.items[0]!.code}${emergency ? ' (emergency)' : ''}`}
+                </title>
               </g>
             );
           })}
@@ -127,8 +137,18 @@ export function LiveMap({
               <g
                 key={t.technicianId}
                 transform={`translate(${p.x}, ${p.y})`}
-                className="cursor-pointer transition-transform hover:scale-110"
+                className="cursor-pointer outline-none [&:focus-visible>circle]:stroke-foreground"
+                role="button"
+                tabIndex={0}
+                aria-label={`${t.fullName}, ${palette.label}`}
+                aria-pressed={isSelected}
                 onClick={() => onSelectTechnician?.(t.technicianId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelectTechnician?.(t.technicianId);
+                  }
+                }}
               >
                 {/* Heading triangle, if known. */}
                 {t.heading != null ? (
@@ -145,7 +165,7 @@ export function LiveMap({
                   strokeWidth={3}
                 />
                 {/* Online pulse */}
-                {t.status === 'AVAILABLE' || t.status === 'ONLINE' ? (
+                {(t.status === 'AVAILABLE' || t.status === 'ONLINE') && !reduceMotion ? (
                   <circle r={9} fill={palette.fg} opacity={0.25}>
                     <animate
                       attributeName="r"
@@ -177,7 +197,7 @@ export function LiveMap({
 
 function Legend({ stats }: { stats: Record<TechnicianStatus, number> }) {
   return (
-    <div className="absolute left-3 top-3 flex flex-col gap-1 rounded-md border bg-background/95 p-3 text-xs shadow-sm backdrop-blur">
+    <div className="absolute left-3 top-3 hidden flex-col gap-1 rounded-md border bg-background/95 p-3 text-xs shadow-sm backdrop-blur sm:flex">
       <div className="mb-1 flex items-center gap-1 font-semibold">
         <Wifi className="h-3.5 w-3.5" /> Live status
       </div>
@@ -273,4 +293,16 @@ export function ConnectionPill({ connected }: { connected: boolean }) {
       )}
     </div>
   );
+}
+
+function usePrefersReducedMotion(): boolean {
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduce(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduce(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return reduce;
 }

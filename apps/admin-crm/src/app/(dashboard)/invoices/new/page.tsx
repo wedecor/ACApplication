@@ -103,7 +103,7 @@ export default function NewInvoicePage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New invoice</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New invoice</h1>
         <p className="text-sm text-muted-foreground">
           {bookingId ? `From booking ${bookingId.slice(0, 8)}…` : 'Ad-hoc invoice'}
         </p>

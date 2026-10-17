@@ -51,7 +51,7 @@ export default function KnowledgeBasePage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
             <BookOpen className="size-5" />
             Knowledge base
           </h1>

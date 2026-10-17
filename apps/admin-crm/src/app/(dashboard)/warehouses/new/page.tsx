@@ -73,7 +73,7 @@ export default function NewWarehousePage() {
       </Link>
 
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">New warehouse</h1>
+        <h1 className="text-2xl font-bold tracking-tight">New warehouse</h1>
         <p className="text-sm text-muted-foreground">
           Add a stock location before creating purchase orders or transfers.
         </p>

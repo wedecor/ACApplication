@@ -24,6 +24,7 @@ import Link from 'next/link';
 import * as React from 'react';
 
 import type { LeadListItem } from '@/lib/api/leads';
+import { categoryLabel, leadSourceLabel } from '@/lib/labels';
 
 import { LeadPriorityBadge } from './lead-priority-badge';
 import { LeadStatusBadge } from './lead-status-badge';
@@ -39,6 +40,7 @@ export function LeadsTable({ data, isLoading }: Props) {
       {
         accessorKey: 'code',
         header: 'Code',
+        meta: { hideOnMobile: true },
         cell: ({ row }) => (
           <Link
             href={`/leads/${row.original.id}`}
@@ -51,10 +53,19 @@ export function LeadsTable({ data, isLoading }: Props) {
       {
         accessorKey: 'customerName',
         header: 'Customer',
+        meta: { primary: true },
         cell: ({ row }) => (
-          <div className="flex flex-col">
-            <span className="font-medium">{row.original.customerName}</span>
-            <span className="text-xs text-muted-foreground">{row.original.phone}</span>
+          <div className="flex min-w-0 flex-col">
+            <Link
+              href={`/leads/${row.original.id}`}
+              className="truncate font-medium hover:underline max-md:after:absolute max-md:after:inset-0"
+            >
+              {row.original.customerName}
+            </Link>
+            <span className="text-xs text-muted-foreground">
+              {row.original.phone}
+              <span className="md:hidden"> · {row.original.code}</span>
+            </span>
           </div>
         ),
       },
@@ -62,18 +73,14 @@ export function LeadsTable({ data, isLoading }: Props) {
         accessorKey: 'source',
         header: 'Source',
         cell: ({ row }) => (
-          <Badge variant="outline" className="capitalize">
-            {row.original.source.replace(/_/g, ' ').toLowerCase()}
-          </Badge>
+          <Badge variant="outline">{leadSourceLabel(row.original.source)}</Badge>
         ),
       },
       {
         accessorKey: 'applianceType',
         header: 'Appliance',
         cell: ({ row }) => (
-          <span className="text-sm capitalize">
-            {row.original.applianceType?.replace(/_/g, ' ').toLowerCase() ?? '—'}
-          </span>
+          <span className="text-sm">{categoryLabel(row.original.applianceType)}</span>
         ),
       },
       {
@@ -96,7 +103,7 @@ export function LeadsTable({ data, isLoading }: Props) {
           return (
             <div className="flex items-center gap-2">
               <Avatar className="size-6">
-                <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
               </Avatar>
               <span className="text-sm">
                 {[u.firstName, u.lastName].filter(Boolean).join(' ') || u.email}
@@ -126,7 +133,7 @@ export function LeadsTable({ data, isLoading }: Props) {
 
   return (
     <div className="overflow-hidden rounded-lg border bg-card">
-      <Table>
+      <Table stackOnMobile>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
             <TableRow key={hg.id}>
@@ -152,7 +159,11 @@ export function LeadsTable({ data, isLoading }: Props) {
             : table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      data-primary={cell.column.columnDef.meta?.primary ? '' : undefined}
+                      className={cell.column.columnDef.meta?.hideOnMobile ? 'max-md:hidden' : undefined}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

@@ -28,9 +28,9 @@ export default function LeadsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Leads</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Leads</h1>
           <p className="text-sm text-muted-foreground">
-            Pipeline of incoming customer enquiries — qualify and convert into bookings.
+            Incoming enquiries to qualify and convert into bookings.
           </p>
         </div>
         <CreateLeadModal />

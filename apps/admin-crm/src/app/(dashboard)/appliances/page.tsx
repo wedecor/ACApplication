@@ -46,7 +46,7 @@ export default function AppliancesPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-xl font-semibold tracking-tight">Appliances</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Appliances</h1>
         <p className="text-sm text-muted-foreground">
           Every unit we service, with its warranty windows and full repair history. Register new
           appliances from the customer page.

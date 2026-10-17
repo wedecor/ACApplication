@@ -1,6 +1,7 @@
 'use client';
 
 import { Battery, Clock, Maximize2, Star, Users, X } from 'lucide-react';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { Badge, Button, Card } from '@ac/ui';
@@ -11,6 +12,7 @@ import { useUnassignedQueue } from '@/hooks/use-dispatch';
 import { useRealtime } from '@/hooks/use-realtime';
 import { useAvailability, useLiveMap } from '@/hooks/use-tracking';
 import { type LiveTechnicianSnapshot, type TechnicianStatus } from '@/lib/api/tracking';
+import { formatWhen } from '@/lib/format';
 
 const STATUS_FILTERS: TechnicianStatus[] = [
   'AVAILABLE',
@@ -57,28 +59,32 @@ export default function LiveMapPage() {
     <div
       className={
         fullscreen
-          ? 'fixed inset-0 z-50 flex flex-col gap-3 bg-background p-3'
-          : 'flex h-[calc(100vh-8rem)] flex-col gap-3'
+          ? 'fixed inset-0 z-50 flex flex-col gap-3 overflow-y-auto bg-background p-3'
+          : 'flex flex-col gap-3 lg:h-[calc(100vh-8rem)]'
       }
     >
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Live Map</h1>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight">Live map</h1>
           <p className="text-sm text-muted-foreground">
-            Real-time technician positions, active jobs and unassigned bookings.
+            Where technicians are right now, and bookings still waiting for one.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <KpiPill icon={Users} label="Live techs" value={technicians.length} />
           <KpiPill icon={Clock} label="Unassigned" value={unassigned.length} accent />
-          <Button variant="outline" size="sm" onClick={() => setFullscreen((v) => !v)}>
-            <Maximize2 className="mr-1 h-4 w-4" />
-            {fullscreen ? 'Exit' : 'Fullscreen'}
+          <Button variant="outline" size="sm" onClick={() => setFullscreen((v) => !v)} aria-pressed={fullscreen}>
+            <Maximize2 aria-hidden />
+            {fullscreen ? 'Exit full screen' : 'Full screen'}
           </Button>
         </div>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        role="group"
+        aria-label="Filter technicians by status"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+      >
         {STATUS_FILTERS.map((s) => {
           const palette = STATUS_COLOR[s];
           const active = selectedStatus.includes(s);
@@ -86,12 +92,13 @@ export default function LiveMapPage() {
             <button
               key={s}
               type="button"
+              aria-pressed={active}
               onClick={() =>
                 setSelectedStatus((prev) =>
                   prev.includes(s) ? prev.filter((p) => p !== s) : [...prev, s],
                 )
               }
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
+              className={`flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors ${
                 active
                   ? 'border-foreground/30 bg-foreground/5'
                   : 'border-border bg-muted/30 text-muted-foreground'
@@ -114,9 +121,9 @@ export default function LiveMapPage() {
         })}
       </div>
 
-      <div className="flex flex-1 gap-3 overflow-hidden">
+      <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:overflow-hidden">
         <LiveMap
-          className="flex-1"
+          className="h-[55vh] min-h-[320px] lg:h-auto lg:flex-1"
           technicians={technicians}
           bookings={bookingMarkers}
           selectedTechnicianId={selectedTech}
@@ -147,7 +154,7 @@ function KpiPill({
   return (
     <div
       className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm ${
-        accent ? 'border-amber-200 bg-amber-50 text-amber-900' : 'bg-background'
+        accent ? 'border-warning-500/30 bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-500' : 'bg-background'
       }`}
     >
       <Icon className="h-4 w-4" />
@@ -166,14 +173,14 @@ function TechnicianDetailsPanel({
 }) {
   const palette = STATUS_COLOR[technician.status];
   return (
-    <Card className="flex w-80 flex-col gap-3 p-4">
+    <Card className="flex w-full flex-col gap-3 p-4 lg:w-80">
       <header className="flex items-start justify-between">
         <div>
           <p className="text-xs text-muted-foreground">Technician</p>
           <h2 className="text-lg font-semibold">{technician.fullName}</h2>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
+        <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close technician details" className="-mr-2 -mt-2">
+          <X aria-hidden />
         </Button>
       </header>
       <Badge
@@ -212,11 +219,9 @@ function UnassignedListPanel({
   bookings: Array<{ id: string; code: string; priority: string; scheduledAt: string; customer: { fullName: string } }>;
 }) {
   return (
-    <Card className="flex w-80 flex-col gap-2 p-4">
+    <Card className="flex w-full flex-col gap-2 p-4 lg:w-80">
       <h2 className="text-sm font-semibold">Unassigned queue</h2>
-      <p className="text-xs text-muted-foreground">
-        Click a booking to open dispatch recommendations.
-      </p>
+      <p className="text-sm text-muted-foreground">Tap a booking to see ranked technicians.</p>
       <div className="-mx-2 mt-1 flex flex-col gap-1 overflow-y-auto">
         {bookings.length === 0 ? (
           <p className="rounded-md bg-muted/40 px-2 py-3 text-center text-xs text-muted-foreground">
@@ -224,29 +229,23 @@ function UnassignedListPanel({
           </p>
         ) : (
           bookings.map((b) => (
-            <a
+            <Link
               key={b.id}
               href={`/dispatch?bookingId=${b.id}`}
-              className="rounded-md px-2 py-2 transition hover:bg-muted"
+              className="rounded-md px-2 py-2 transition-colors hover:bg-muted"
             >
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">{b.code}</span>
-                <Badge
-                  variant={
-                    b.priority === 'EMERGENCY'
-                      ? 'destructive'
-                      : b.priority === 'PRIORITY'
-                        ? 'default'
-                        : 'secondary'
-                  }
-                >
-                  {b.priority}
-                </Badge>
+              <div className="flex items-center justify-between gap-2 text-sm">
+                <span className="truncate font-medium">{b.customer.fullName}</span>
+                {b.priority === 'EMERGENCY' ? (
+                  <Badge variant="destructive">Emergency</Badge>
+                ) : b.priority === 'PRIORITY' ? (
+                  <Badge variant="warning">Priority</Badge>
+                ) : null}
               </div>
-              <p className="text-xs text-muted-foreground">
-                {b.customer.fullName} • {new Date(b.scheduledAt).toLocaleString()}
+              <p className="truncate text-sm text-muted-foreground">
+                {formatWhen(b.scheduledAt)} · {b.code}
               </p>
-            </a>
+            </Link>
           ))
         )}
       </div>

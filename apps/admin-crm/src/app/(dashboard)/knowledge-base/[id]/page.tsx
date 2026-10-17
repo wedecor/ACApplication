@@ -93,7 +93,7 @@ export default function KbArticleDetailPage() {
 
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Edit article</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Edit article</h1>
           <p className="text-sm text-muted-foreground">
             {article.category?.name ?? 'Uncategorised'} · Updated {formatDateTime(article.updatedAt)}
           </p>

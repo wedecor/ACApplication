@@ -73,7 +73,7 @@ export default function WarrantyPage() {
     <div className="space-y-4">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Warranty claims</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Warranty claims</h1>
           <p className="text-sm text-muted-foreground">
             Free revisits under our repair guarantee and work billed back to manufacturers.
           </p>
