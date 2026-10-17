@@ -42,7 +42,7 @@ export class FinanceEventsListener {
     });
     if (inv?.amcSubscriptionId) {
       try {
-        await this.amc.onSubscriptionInvoicePaid(inv.amcSubscriptionId);
+        await this.amc.onSubscriptionInvoicePaid(inv.amcSubscriptionId, event.payload.invoiceId);
       } catch (err) {
         this.logger.warn({ err }, 'Failed to activate AMC subscription on invoice paid');
       }

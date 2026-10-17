@@ -140,11 +140,19 @@ export class AmcSubscriptionsService {
     return updated;
   }
 
-  /** Called by InvoicePaid listener when the parent invoice settles. */
-  async onSubscriptionInvoicePaid(subscriptionId: string) {
+  /**
+   * Called by InvoicePaid listener when an invoice linked to the subscription
+   * settles. A PENDING_PAYMENT subscription is activated; an ACTIVE / EXPIRED
+   * one is being renewed, so its term is extended.
+   */
+  async onSubscriptionInvoicePaid(subscriptionId: string, invoiceId?: string) {
     const sub = await this.prisma.client.aMCSubscription.findUnique({ where: { id: subscriptionId } });
     if (!sub) return;
-    if (sub.status === AMCSubscriptionStatus.ACTIVE) return;
+    if (sub.status === AMCSubscriptionStatus.ACTIVE || sub.status === AMCSubscriptionStatus.EXPIRED) {
+      if (invoiceId) await this.applyRenewal(subscriptionId, invoiceId);
+      return;
+    }
+    if (sub.status !== AMCSubscriptionStatus.PENDING_PAYMENT) return;
     await this.prisma.client.aMCSubscription.update({
       where: { id: subscriptionId },
       data: { status: AMCSubscriptionStatus.ACTIVE },
@@ -153,6 +161,69 @@ export class AmcSubscriptionsService {
     this.events.publish(DomainEventName.AmcSubscriptionActivated, {
       subscriptionId,
       customerId: sub.customerId,
+      status: AMCSubscriptionStatus.ACTIVE,
+    } as never);
+  }
+
+  /**
+   * Extends the term by one plan duration from the later of the current end
+   * and now, and schedules the new term's visits. Idempotent per invoice via
+   * `metadata.renewedInvoiceIds`; the initial activation invoice is ignored.
+   */
+  async applyRenewal(subscriptionId: string, invoiceId: string, now = new Date()) {
+    const renewed = await this.prisma.client.$transaction(async (tx) => {
+      // Row lock so a duplicate InvoicePaid can't extend twice.
+      await tx.$queryRaw`SELECT id FROM amc_subscriptions WHERE id = ${subscriptionId} FOR UPDATE`;
+      const sub = await tx.aMCSubscription.findUnique({
+        where: { id: subscriptionId },
+        include: { plan: true, visits: { select: { visitNumber: true } } },
+      });
+      if (!sub) return null;
+      const first = await tx.invoice.findFirst({
+        where: { amcSubscriptionId: subscriptionId },
+        orderBy: { createdAt: 'asc' },
+        select: { id: true },
+      });
+      if (first?.id === invoiceId) return null;
+      const metadata = (sub.metadata ?? {}) as Record<string, unknown>;
+      const done = Array.isArray(metadata['renewedInvoiceIds'])
+        ? (metadata['renewedInvoiceIds'] as string[])
+        : [];
+      if (done.includes(invoiceId)) return null;
+
+      const termStart = sub.endsAt > now ? sub.endsAt : now;
+      const endsAt = addMonths(termStart, sub.plan.durationMonths);
+      const cadenceMs = sub.plan.visitCadenceDays * 86_400_000;
+      const lastNumber = sub.visits.reduce((m, v) => Math.max(m, v.visitNumber), 0);
+      const visits: Prisma.AMCVisitCreateManyInput[] = [];
+      for (let i = 0; i < sub.plan.includedVisits; i += 1) {
+        const scheduledFor = new Date(termStart.getTime() + i * cadenceMs);
+        if (scheduledFor > endsAt) break;
+        visits.push({
+          tenantId: sub.tenantId,
+          subscriptionId: sub.id,
+          visitNumber: lastNumber + i + 1,
+          status: AMCVisitStatus.SCHEDULED,
+          scheduledFor,
+          isComplimentary: true,
+        });
+      }
+      if (visits.length) await tx.aMCVisit.createMany({ data: visits, skipDuplicates: true });
+      await tx.aMCSubscription.update({
+        where: { id: subscriptionId },
+        data: {
+          status: AMCSubscriptionStatus.ACTIVE,
+          endsAt,
+          visitsScheduled: { increment: visits.length },
+          metadata: { ...metadata, renewedInvoiceIds: [...done, invoiceId] } as Prisma.InputJsonValue,
+        },
+      });
+      return { customerId: sub.customerId, endsAt };
+    });
+    if (!renewed) return;
+    this.events.publish(DomainEventName.AmcSubscriptionActivated, {
+      subscriptionId,
+      customerId: renewed.customerId,
       status: AMCSubscriptionStatus.ACTIVE,
     } as never);
   }
