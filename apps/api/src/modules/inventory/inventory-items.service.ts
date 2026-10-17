@@ -148,7 +148,7 @@ export class InventoryItemsService {
       this.prisma.client.inventoryItem.count({ where }),
     ]);
 
-    let enriched = items.map((i) => this.summarise(i));
+    let enriched = items.map((i) => ({ ...i, ...this.summarise(i) }));
     if (dto.lowStockOnly) {
       enriched = enriched.filter((row) => row.lowStock);
     }
