@@ -14,12 +14,14 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { usePayoutAction, usePayouts } from '@/hooks/use-finance';
 import type { PayoutStatus, TechnicianPayout } from '@/lib/api/payouts';
 import { formatDate, formatMinor } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const FILTERS: Array<{ id: PayoutStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -30,11 +32,11 @@ const FILTERS: Array<{ id: PayoutStatus | 'ALL'; label: string }> = [
   { id: 'FAILED', label: 'Failed' },
 ];
 
-const BADGE: Record<PayoutStatus, 'default' | 'destructive' | 'outline' | 'secondary'> = {
-  PENDING: 'secondary',
-  APPROVED: 'secondary',
-  PROCESSING: 'secondary',
-  PAID: 'default',
+const BADGE: Record<PayoutStatus, BadgeVariant> = {
+  PENDING: 'warning',
+  APPROVED: 'info',
+  PROCESSING: 'info',
+  PAID: 'success',
   FAILED: 'destructive',
   CANCELLED: 'outline',
 };
@@ -139,7 +141,7 @@ function PayoutRow({ payout }: { payout: TechnicianPayout }) {
         {formatMinor(payout.netMinor, payout.currency)}
       </TableCell>
       <TableCell>
-        <Badge variant={BADGE[payout.status]}>{payout.status}</Badge>
+        <Badge variant={BADGE[payout.status]}>{humanizeEnum(payout.status)}</Badge>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">

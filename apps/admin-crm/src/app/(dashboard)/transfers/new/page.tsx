@@ -140,8 +140,8 @@ export default function NewTransferPage() {
             {lines.map((line, idx) => (
               <div key={idx} className="grid gap-2 rounded-md border p-3 sm:grid-cols-12">
                 <div className="sm:col-span-8">
-                  <Label className="text-xs">Item</Label>
-                  <select
+                  <Label htmlFor="new-item" className="text-xs">Item</Label>
+                  <select id="new-item"
                     value={line.itemId}
                     onChange={(e) =>
                       setLines((prev) =>
@@ -159,8 +159,8 @@ export default function NewTransferPage() {
                   </select>
                 </div>
                 <div className="sm:col-span-3">
-                  <Label className="text-xs">Qty</Label>
-                  <Input
+                  <Label htmlFor="new-qty" className="text-xs">Qty</Label>
+                  <Input id="new-qty"
                     type="number"
                     min={1}
                     value={line.quantity}

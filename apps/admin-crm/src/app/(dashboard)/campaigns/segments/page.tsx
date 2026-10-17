@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
-import { Plus, RefreshCw, Trash2, Users } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, Users, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -50,9 +50,12 @@ export default function SegmentsPage() {
     <div className="space-y-4">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link href="/campaigns" className="text-sm text-muted-foreground hover:underline">
-            ← Campaigns
-          </Link>
+          <Link
+          href="/campaigns"
+          className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden /> Campaigns
+        </Link>
           <h1 className="text-2xl font-bold tracking-tight">Customer segments</h1>
           <p className="text-sm text-muted-foreground">Rule-based audiences for campaigns.</p>
         </div>

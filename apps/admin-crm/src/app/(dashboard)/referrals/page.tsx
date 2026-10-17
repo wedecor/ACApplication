@@ -25,6 +25,7 @@ import { SimpleModal } from '@/components/common/simple-modal';
 import { useOverrideReferral, useReferrals, useReferralStats } from '@/hooks/use-growth';
 import type { ReferralListQuery, ReferralRow, ReferralStatus } from '@/lib/api/growth';
 import { errorMessage, formatDate, formatINR, minorToRupees, rupeesToMinor } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const STATUSES: ReferralStatus[] = ['PENDING', 'QUALIFIED', 'REWARDED', 'REJECTED'];
 const STATUS_VARIANT: Record<ReferralStatus, 'muted' | 'info' | 'success' | 'destructive'> = {
@@ -63,15 +64,24 @@ export default function ReferralsPage() {
       ) : null}
 
       <form
-        className="flex max-w-xl gap-2"
+        role="search"
+        className="flex max-w-xl flex-wrap gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           setQuery((q) => ({ ...q, page: 1, search: draft.trim() || undefined }));
         }}
       >
-        <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search name, phone or code…" />
+        <Input
+          type="search"
+          aria-label="Search referrals"
+          className="min-w-0 basis-full sm:flex-1 sm:basis-auto"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Name, phone or code"
+        />
         <NativeSelect
-          className="w-40"
+          className="min-w-0 flex-1 sm:w-40 sm:flex-none"
+          aria-label="Referral status"
           value={query.status ?? ''}
           onChange={(e) =>
             setQuery((q) => ({ ...q, page: 1, status: (e.target.value || undefined) as ReferralStatus | undefined }))
@@ -80,7 +90,7 @@ export default function ReferralsPage() {
           <option value="">All statuses</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {humanizeEnum(s)}
             </option>
           ))}
         </NativeSelect>
@@ -121,7 +131,7 @@ export default function ReferralsPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs">{r.code}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge>
+                      <Badge variant={STATUS_VARIANT[r.status]}>{humanizeEnum(r.status)}</Badge>
                       {r.rewardedAt ? (
                         <p className="text-xs text-muted-foreground">{formatDate(r.rewardedAt)}</p>
                       ) : r.qualifiedAt ? (

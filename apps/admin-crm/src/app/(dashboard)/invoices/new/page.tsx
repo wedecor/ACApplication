@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@ac/ui';
 
+import { CustomerPicker } from '@/components/sales/customer-picker';
+import { useCustomer } from '@/hooks/use-customers';
 import { useCreateInvoice } from '@/hooks/use-finance';
 import { formatMinor } from '@/lib/format';
 
@@ -34,6 +36,7 @@ export default function NewInvoicePage() {
   const customerIdFromUrl = sp.get('customerId') ?? '';
 
   const [customerId, setCustomerId] = React.useState(customerIdFromUrl);
+  const { data: selectedCustomer } = useCustomer(customerId || undefined);
   const [lines, setLines] = React.useState<LineItemDraft[]>([blankLine()]);
   const [gstEnabled, setGstEnabled] = React.useState(true);
   const [gstNumber, setGstNumber] = React.useState('');
@@ -115,13 +118,34 @@ export default function NewInvoicePage() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1">
-            <Label htmlFor="customer">Customer ID</Label>
-            <Input
-              id="customer"
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              placeholder="cust_…"
-            />
+            <Label htmlFor="customer-search">Customer</Label>
+            {customerId ? (
+              <div className="flex h-10 items-center justify-between gap-2 rounded-md border bg-muted/40 px-3 text-sm">
+                <span className="min-w-0 truncate">
+                  {selectedCustomer ? (
+                    <>
+                      <span className="font-medium">{selectedCustomer.fullName}</span>{' '}
+                      <span className="text-muted-foreground">{selectedCustomer.phone}</span>
+                    </>
+                  ) : (
+                    'Loading customer…'
+                  )}
+                </span>
+                <button
+                  type="button"
+                  className="shrink-0 text-sm font-medium text-primary hover:underline"
+                  onClick={() => setCustomerId('')}
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <CustomerPicker
+                inputId="customer-search"
+                placeholder="Search by name or phone"
+                onPick={(c) => setCustomerId(c.id)}
+              />
+            )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="due">Due date</Label>
@@ -142,108 +166,114 @@ export default function NewInvoicePage() {
             <Plus className="size-4" /> Add line
           </Button>
         </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="px-3 py-2 text-left">Description</th>
-                <th className="px-3 py-2 text-right">Qty</th>
-                <th className="px-3 py-2 text-right">Unit (₹)</th>
-                <th className="px-3 py-2 text-right">Discount (₹)</th>
-                <th className="px-3 py-2 text-right">GST %</th>
-                <th className="px-3 py-2 text-right">HSN</th>
-                <th className="px-3 py-2 text-right">Total</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {lines.map((line, idx) => {
-                const gross = Math.max(0, line.quantity * line.unitPriceMinor - line.discountMinor);
-                const tax = Math.round((gross * line.taxRateBps) / 10000);
-                return (
-                  <tr key={idx}>
-                    <td className="px-2 py-1.5">
-                      <Input
-                        value={line.description}
-                        onChange={(e) => updateLine(idx, { description: e.target.value })}
-                        placeholder="Service description"
-                      />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Input
-                        type="number"
-                        min={0.01}
-                        step="0.01"
-                        className="w-20 text-right"
-                        value={line.quantity}
-                        onChange={(e) =>
-                          updateLine(idx, { quantity: Number(e.target.value) || 0 })
-                        }
-                      />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Input
-                        type="number"
-                        className="w-28 text-right"
-                        value={(line.unitPriceMinor / 100).toString()}
-                        onChange={(e) =>
-                          updateLine(idx, {
-                            unitPriceMinor: Math.round(Number(e.target.value) * 100),
-                          })
-                        }
-                      />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Input
-                        type="number"
-                        className="w-24 text-right"
-                        value={(line.discountMinor / 100).toString()}
-                        onChange={(e) =>
-                          updateLine(idx, {
-                            discountMinor: Math.round(Number(e.target.value) * 100),
-                          })
-                        }
-                      />
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <select
-                        value={line.taxRateBps}
-                        onChange={(e) =>
-                          updateLine(idx, { taxRateBps: Number(e.target.value) })
-                        }
-                        className="w-20 rounded border bg-background px-2 py-1.5 text-right"
-                      >
-                        <option value={0}>0%</option>
-                        <option value={500}>5%</option>
-                        <option value={1200}>12%</option>
-                        <option value={1800}>18%</option>
-                        <option value={2800}>28%</option>
-                      </select>
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <Input
-                        className="w-24"
-                        value={line.hsnSacCode ?? ''}
-                        onChange={(e) => updateLine(idx, { hsnSacCode: e.target.value })}
-                      />
-                    </td>
-                    <td className="px-3 py-1.5 text-right tabular-nums">
-                      {formatMinor(gross + tax)}
-                    </td>
-                    <td className="px-2 py-1.5">
-                      <button
-                        type="button"
-                        className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-rose-500"
-                        onClick={() => removeLine(idx)}
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <CardContent className="space-y-3">
+          {lines.map((line, idx) => {
+            const gross = Math.max(0, line.quantity * line.unitPriceMinor - line.discountMinor);
+            const tax = Math.round((gross * line.taxRateBps) / 10000);
+            const fid = (name: string) => `line-${idx}-${name}`;
+            return (
+              <fieldset
+                key={idx}
+                className="grid grid-cols-2 gap-3 rounded-lg border p-3 md:grid-cols-[minmax(0,3fr)_repeat(5,minmax(0,1fr))_auto] md:items-end md:border-0 md:p-0"
+              >
+                <legend className="sr-only">Line {idx + 1}</legend>
+                <div className="col-span-2 space-y-1 md:col-span-1">
+                  <Label htmlFor={fid('desc')} className="text-xs text-muted-foreground">
+                    Description
+                  </Label>
+                  <Input
+                    id={fid('desc')}
+                    value={line.description}
+                    onChange={(e) => updateLine(idx, { description: e.target.value })}
+                    placeholder="Service description"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={fid('qty')} className="text-xs text-muted-foreground">
+                    Qty
+                  </Label>
+                  <Input
+                    id={fid('qty')}
+                    type="number"
+                    inputMode="decimal"
+                    min={0.01}
+                    step="0.01"
+                    className="text-right"
+                    value={line.quantity}
+                    onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) || 0 })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={fid('unit')} className="text-xs text-muted-foreground">
+                    Unit price (₹)
+                  </Label>
+                  <Input
+                    id={fid('unit')}
+                    type="number"
+                    inputMode="decimal"
+                    className="text-right"
+                    value={(line.unitPriceMinor / 100).toString()}
+                    onChange={(e) => updateLine(idx, { unitPriceMinor: Math.round(Number(e.target.value) * 100) })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={fid('disc')} className="text-xs text-muted-foreground">
+                    Discount (₹)
+                  </Label>
+                  <Input
+                    id={fid('disc')}
+                    type="number"
+                    inputMode="decimal"
+                    className="text-right"
+                    value={(line.discountMinor / 100).toString()}
+                    onChange={(e) => updateLine(idx, { discountMinor: Math.round(Number(e.target.value) * 100) })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={fid('gst')} className="text-xs text-muted-foreground">
+                    GST
+                  </Label>
+                  <select
+                    id={fid('gst')}
+                    value={line.taxRateBps}
+                    onChange={(e) => updateLine(idx, { taxRateBps: Number(e.target.value) })}
+                    className="h-10 w-full rounded-md border bg-background px-2 text-right text-sm"
+                  >
+                    <option value={0}>0%</option>
+                    <option value={500}>5%</option>
+                    <option value={1200}>12%</option>
+                    <option value={1800}>18%</option>
+                    <option value={2800}>28%</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={fid('hsn')} className="text-xs text-muted-foreground">
+                    HSN / SAC
+                  </Label>
+                  <Input
+                    id={fid('hsn')}
+                    value={line.hsnSacCode ?? ''}
+                    onChange={(e) => updateLine(idx, { hsnSacCode: e.target.value })}
+                  />
+                </div>
+                <div className="col-span-2 flex items-center justify-between gap-2 border-t pt-2 md:col-span-1 md:flex-col md:items-end md:border-0 md:pt-0">
+                  <span className="text-sm">
+                    <span className="text-muted-foreground md:hidden">Line total </span>
+                    <span className="font-medium tabular-nums">{formatMinor(gross + tax)}</span>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label={`Remove line ${idx + 1}`}
+                    className="grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive disabled:opacity-40"
+                    disabled={lines.length === 1}
+                    onClick={() => removeLine(idx)}
+                  >
+                    <Trash2 className="size-4" aria-hidden />
+                  </button>
+                </div>
+              </fieldset>
+            );
+          })}
         </CardContent>
       </Card>
 
@@ -261,12 +291,12 @@ export default function NewInvoicePage() {
           {gstEnabled && (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-1">
-                <Label>Customer GSTIN</Label>
-                <Input value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
+                <Label htmlFor="new-customer-gstin">Customer GSTIN</Label>
+                <Input id="new-customer-gstin" value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label>Place of supply (state code)</Label>
-                <Input
+                <Label htmlFor="new-place-of-supply-state-code">Place of supply (state code)</Label>
+                <Input id="new-place-of-supply-state-code"
                   value={placeOfSupply}
                   onChange={(e) => setPlaceOfSupply(e.target.value)}
                   placeholder="e.g. KA, MH, DL"
@@ -276,8 +306,8 @@ export default function NewInvoicePage() {
           )}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
-              <Label>Notes</Label>
-              <textarea
+              <Label htmlFor="new-notes">Notes</Label>
+              <textarea id="new-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
@@ -285,8 +315,8 @@ export default function NewInvoicePage() {
               />
             </div>
             <div className="space-y-1">
-              <Label>Terms</Label>
-              <textarea
+              <Label htmlFor="new-terms">Terms</Label>
+              <textarea id="new-terms"
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
                 rows={2}

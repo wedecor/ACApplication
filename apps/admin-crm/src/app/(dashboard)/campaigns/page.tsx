@@ -21,6 +21,7 @@ import { CampaignStatusBadge } from '@/components/growth/campaign-status';
 import { useCampaigns, useNpsSummary } from '@/hooks/use-growth';
 import type { CampaignListQuery, CampaignStatus } from '@/lib/api/growth';
 import { errorMessage, formatDateTime } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const STATUSES: CampaignStatus[] = ['DRAFT', 'SCHEDULED', 'RUNNING', 'COMPLETED', 'CANCELLED'];
 
@@ -110,7 +111,7 @@ export default function CampaignsPage() {
                       {c.coupon ? <p className="font-mono text-xs text-muted-foreground">{c.coupon.code}</p> : null}
                     </TableCell>
                     <TableCell>{c.segment?.name ?? <span className="text-muted-foreground">—</span>}</TableCell>
-                    <TableCell className="text-xs">{c.channel}</TableCell>
+                    <TableCell className="text-xs">{humanizeEnum(c.channel)}</TableCell>
                     <TableCell>
                       <CampaignStatusBadge status={c.status} />
                     </TableCell>

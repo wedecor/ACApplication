@@ -11,10 +11,13 @@ export function CustomerPicker({
   onPick,
   excludeIds = [],
   placeholder = 'Search customers by name or phone…',
+  inputId,
 }: {
   onPick: (c: CustomerDetail) => void;
   excludeIds?: string[];
   placeholder?: string;
+  /** Lets a visible <Label htmlFor> point at the search input. */
+  inputId?: string;
 }) {
   const [draft, setDraft] = React.useState('');
   const [search, setSearch] = React.useState('');
@@ -27,7 +30,15 @@ export function CustomerPicker({
 
   return (
     <div className="relative">
-      <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder={placeholder} />
+      <Input
+        id={inputId}
+        type="search"
+        aria-label={inputId ? undefined : 'Search customers'}
+        autoComplete="off"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        placeholder={placeholder}
+      />
       {search ? (
         <div className="absolute z-20 mt-1 w-full rounded-md border bg-popover shadow-md">
           {isFetching && items.length === 0 ? (
@@ -39,7 +50,7 @@ export function CustomerPicker({
               <button
                 key={c.id}
                 type="button"
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-accent"
+                className="block w-full px-3 py-2.5 text-left text-sm hover:bg-muted"
                 onClick={() => {
                   onPick(c);
                   setDraft('');

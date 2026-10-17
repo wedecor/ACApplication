@@ -48,18 +48,27 @@ export default function AccountsPage() {
       </header>
 
       <form
-        className="flex max-w-xl gap-2"
+        role="search"
+        className="flex max-w-xl flex-wrap gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           setQuery((q) => ({ ...q, page: 1, search: draft.trim() || undefined }));
         }}
       >
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search accounts…" className="pl-9" />
+        <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+          <Input
+            type="search"
+            aria-label="Search accounts"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Name, GSTIN or contact"
+            className="pl-9"
+          />
         </div>
         <NativeSelect
-          className="w-48"
+          className="min-w-0 flex-1 sm:w-48 sm:flex-none"
+          aria-label="Account type"
           value={query.type ?? ''}
           onChange={(e) =>
             setQuery((q) => ({ ...q, page: 1, type: (e.target.value || undefined) as AccountType | undefined }))

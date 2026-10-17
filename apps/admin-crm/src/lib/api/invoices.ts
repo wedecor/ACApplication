@@ -1,3 +1,6 @@
+import { env } from '@/env';
+
+import { getAccessToken } from './auth-token';
 import { apiFetch } from './client';
 
 export type InvoiceStatus =
@@ -117,5 +120,25 @@ export const invoicesApi = {
       { method: 'POST', body },
     ),
   duplicate: (id: string) => apiFetch<Invoice>(`/invoices/${id}/duplicate`, { method: 'POST' }),
-  downloadPdfUrl: (id: string) => `/invoices/${id}/download-pdf`,
 };
+
+/**
+ * Render the invoice PDF on the API (POST) and save it in the browser.
+ * The endpoint streams application/pdf, so it can't go through apiFetch's JSON envelope.
+ */
+export async function downloadInvoicePdf(id: string, filename: string): Promise<void> {
+  const token = getAccessToken();
+  const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/v1/invoices/${id}/download-pdf`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  if (!res.ok) throw new Error(res.status === 404 ? 'Invoice not found' : `Couldn't generate the PDF (HTTP ${res.status})`);
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

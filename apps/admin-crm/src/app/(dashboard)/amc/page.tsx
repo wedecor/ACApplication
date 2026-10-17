@@ -14,19 +14,21 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from '@ac/ui';
+  TabsTrigger, type BadgeProps } from '@ac/ui';
 
 import { useAmcPlans, useAmcSubscriptions } from '@/hooks/use-finance';
 import type { AMCSubscriptionStatus, AmcPlan, AmcSubscription } from '@/lib/api/amc';
 import { formatDate, formatMinor } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
-const STATUS_BADGE: Record<AMCSubscriptionStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  ACTIVE: 'default',
-  PAUSED: 'secondary',
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const STATUS_BADGE: Record<AMCSubscriptionStatus, BadgeVariant> = {
+  ACTIVE: 'success',
+  PAUSED: 'muted',
   EXPIRED: 'destructive',
   CANCELLED: 'outline',
-  PENDING_PAYMENT: 'secondary',
+  PENDING_PAYMENT: 'warning',
 };
 
 export default function AmcPage() {
@@ -114,7 +116,7 @@ function SubscriptionCard({ sub }: { sub: AmcSubscription }) {
             <div className="text-sm text-muted-foreground">{sub.number}</div>
             <div className="text-sm font-semibold">{sub.customer?.fullName ?? '—'}</div>
           </div>
-          <Badge variant={STATUS_BADGE[sub.status]}>{sub.status}</Badge>
+          <Badge variant={STATUS_BADGE[sub.status]}>{humanizeEnum(sub.status)}</Badge>
         </div>
         <div className="text-sm">
           Plan <span className="font-medium">{sub.plan?.name ?? sub.planId}</span>
@@ -168,7 +170,7 @@ function PlanCard({ plan }: { plan: AmcPlan }) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{plan.name}</CardTitle>
-          <Badge variant="outline">{plan.type}</Badge>
+          <Badge variant="outline">{humanizeEnum(plan.type)}</Badge>
         </div>
         <CardDescription>{plan.description ?? '—'}</CardDescription>
       </CardHeader>

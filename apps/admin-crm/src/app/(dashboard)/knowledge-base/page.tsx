@@ -23,6 +23,7 @@ import { Pagination } from '@/components/common/pagination';
 import { useKbActions, useKbArticles, useKbCategories } from '@/hooks/use-support';
 import type { KbArticle } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 const STATUS_VARIANT: Record<
   KbArticle['status'],
@@ -129,7 +130,7 @@ export default function KnowledgeBasePage() {
                     </TableCell>
                     <TableCell>{a.category?.name ?? '—'}</TableCell>
                     <TableCell>
-                      <Badge variant={STATUS_VARIANT[a.status]}>{a.status}</Badge>
+                      <Badge variant={STATUS_VARIANT[a.status]}>{humanizeEnum(a.status)}</Badge>
                     </TableCell>
                     <TableCell className="tabular-nums">
                       <span className="inline-flex items-center gap-1">

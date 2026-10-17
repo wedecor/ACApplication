@@ -32,6 +32,7 @@ import {
   useUnlinkAccountCustomer,
 } from '@/hooks/use-sales';
 import { errorMessage, formatDate, formatINR } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function AccountDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -206,11 +207,11 @@ export default function AccountDetailPage() {
                         {b.code}
                       </Link>
                       <p className="text-xs text-muted-foreground">
-                        {b.customerName} · {b.category.replace(/_/g, ' ')} · {formatDate(b.scheduledAt)}
+                        {b.customerName} · {humanizeEnum(b.category)} · {formatDate(b.scheduledAt)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant="secondary">{b.status}</Badge>
+                      <Badge variant="secondary">{humanizeEnum(b.status)}</Badge>
                       {b.finalAmountMinor !== null ? (
                         <p className="text-xs tabular-nums">{formatINR(b.finalAmountMinor)}</p>
                       ) : null}
@@ -238,7 +239,7 @@ export default function AccountDetailPage() {
                         {a.planName} · ends {formatDate(a.endsAt)}
                       </p>
                     </div>
-                    <Badge variant={a.status === 'ACTIVE' ? 'success' : 'muted'}>{a.status}</Badge>
+                    <Badge variant={a.status === 'ACTIVE' ? 'success' : 'muted'}>{humanizeEnum(a.status)}</Badge>
                   </li>
                 ))}
               </ul>
@@ -263,7 +264,7 @@ export default function AccountDetailPage() {
                 <li key={o.id} className="flex justify-between py-2">
                   <span>{o.title}</span>
                   <span className="flex items-center gap-2">
-                    <Badge variant="secondary">{o.stage}</Badge>
+                    <Badge variant="secondary">{humanizeEnum(o.stage)}</Badge>
                     <span className="tabular-nums">{formatINR(o.valueMinor)}</span>
                   </span>
                 </li>

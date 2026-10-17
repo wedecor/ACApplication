@@ -11,6 +11,7 @@ import { usePermissionCatalog, useResetRole, useRoles, useSetRolePermissions } f
 import { apiErrorMessage } from '@/lib/api/error-message';
 import type { RoleView } from '@/lib/api/staff-admin';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
+import { humanizeEnum } from '@/lib/labels';
 
 /**
  * Role ↔ permission matrix. Pick a role, tick permissions grouped by
@@ -179,7 +180,7 @@ export function RolePermissionMatrix() {
                 return (
                   <fieldset key={g.resource} className="rounded-md border p-3">
                     <legend className="flex w-full items-center justify-between px-1 text-xs font-semibold uppercase tracking-wide">
-                      <span>{g.resource.replace(/_/g, ' ')}</span>
+                      <span>{humanizeEnum(g.resource)}</span>
                     </legend>
                     <div className="mb-2 flex items-center justify-between text-[11px] text-muted-foreground">
                       <span>

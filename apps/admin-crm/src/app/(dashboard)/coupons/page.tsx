@@ -66,15 +66,24 @@ export default function CouponsPage() {
       </header>
 
       <form
-        className="flex max-w-xl gap-2"
+        role="search"
+        className="flex max-w-xl flex-wrap gap-2"
         onSubmit={(e) => {
           e.preventDefault();
           setQuery((q) => ({ ...q, page: 1, search: draft.trim() || undefined }));
         }}
       >
-        <Input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search code or description…" />
+        <Input
+          type="search"
+          aria-label="Search coupons"
+          className="min-w-0 basis-full sm:flex-1 sm:basis-auto"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder="Code or description"
+        />
         <NativeSelect
-          className="w-40"
+          className="min-w-0 flex-1 sm:w-40 sm:flex-none"
+          aria-label="Coupon status"
           value={query.isActive === undefined ? '' : String(query.isActive)}
           onChange={(e) =>
             setQuery((q) => ({ ...q, page: 1, isActive: e.target.value === '' ? undefined : e.target.value === 'true' }))

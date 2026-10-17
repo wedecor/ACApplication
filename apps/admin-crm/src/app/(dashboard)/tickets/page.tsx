@@ -15,8 +15,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { Pagination } from '@/components/common/pagination';
 import { useTickets } from '@/hooks/use-support';
@@ -26,6 +25,9 @@ import type {
   TicketSummary,
 } from '@/lib/api/support';
 import { formatDate, formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUSES: Array<{ id: 'ALL' | TicketStatus; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -37,23 +39,17 @@ const STATUSES: Array<{ id: 'ALL' | TicketStatus; label: string }> = [
   { id: 'CLOSED', label: 'Closed' },
 ];
 
-const PRIORITY_VARIANT: Record<
-  TicketPriority,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
+const PRIORITY_VARIANT: Record<TicketPriority, BadgeVariant> = {
   LOW: 'outline',
-  NORMAL: 'secondary',
-  HIGH: 'default',
+  NORMAL: 'muted',
+  HIGH: 'warning',
   URGENT: 'destructive',
 };
 
-const STATUS_VARIANT: Record<
-  TicketStatus,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
-  OPEN: 'default',
-  PENDING: 'secondary',
-  WAITING_CUSTOMER: 'secondary',
+const STATUS_VARIANT: Record<TicketStatus, BadgeVariant> = {
+  OPEN: 'info',
+  PENDING: 'warning',
+  WAITING_CUSTOMER: 'warning',
   ON_HOLD: 'outline',
   ESCALATED: 'destructive',
   RESOLVED: 'outline',
@@ -152,7 +148,7 @@ export default function TicketsPage() {
                     <Badge variant="outline">{t.source.replace('_', ' ')}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={PRIORITY_VARIANT[t.priority]}>{t.priority}</Badge>
+                    <Badge variant={PRIORITY_VARIANT[t.priority]}>{humanizeEnum(t.priority)}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[t.status]}>{t.status.replace('_', ' ')}</Badge>

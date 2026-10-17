@@ -21,6 +21,7 @@ import {
 
 import { useWarehouse, useWarehouseStats } from '@/hooks/use-inventory';
 import { formatMinorCompact } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 interface WarehouseZone {
   id: string;
@@ -77,7 +78,7 @@ export default function WarehouseDetailPage() {
             {warehouse.isActive ? <Badge>Active</Badge> : <Badge variant="outline">Inactive</Badge>}
           </div>
           <p className="mt-1 font-mono text-sm text-muted-foreground">
-            {warehouse.code} · {warehouse.kind.replace(/_/g, ' ')}
+            {warehouse.code} · {humanizeEnum(warehouse.kind)}
           </p>
         </div>
       </header>

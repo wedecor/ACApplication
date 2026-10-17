@@ -15,6 +15,7 @@ import {
 
 import { useVendor } from '@/hooks/use-inventory';
 import { formatMinor, formatPercent } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function VendorDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -58,7 +59,7 @@ export default function VendorDetailPage() {
         <div className="flex items-center gap-2">
           <Building2 className="size-5 text-muted-foreground" aria-hidden />
           <h1 className="text-2xl font-bold tracking-tight">{vendor.companyName}</h1>
-          <Badge variant="outline">{vendor.status}</Badge>
+          <Badge variant="outline">{humanizeEnum(vendor.status)}</Badge>
         </div>
         <p className="mt-1 font-mono text-sm text-muted-foreground">{vendor.code}</p>
       </header>

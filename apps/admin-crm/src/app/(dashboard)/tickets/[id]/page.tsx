@@ -24,8 +24,7 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-} from '@ac/ui';
+  TabsTrigger, type BadgeProps } from '@ac/ui';
 
 import {
   useTicket,
@@ -40,11 +39,14 @@ import type {
   TicketStatus,
 } from '@/lib/api/support';
 import { formatDate, formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
-const PRIORITY_VARIANT: Record<TicketPriority, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const PRIORITY_VARIANT: Record<TicketPriority, BadgeVariant> = {
   LOW: 'outline',
-  NORMAL: 'secondary',
-  HIGH: 'default',
+  NORMAL: 'muted',
+  HIGH: 'warning',
   URGENT: 'destructive',
 };
 
@@ -120,7 +122,7 @@ export default function TicketDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           {t ? (
             <>
-              <Badge variant={PRIORITY_VARIANT[t.priority]}>{t.priority}</Badge>
+              <Badge variant={PRIORITY_VARIANT[t.priority]}>{humanizeEnum(t.priority)}</Badge>
               <Badge>{STATUS_LABEL[t.status]}</Badge>
               {t.escalationLevel > 0 ? (
                 <Badge variant="destructive" className="gap-1">

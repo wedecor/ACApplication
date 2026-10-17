@@ -180,7 +180,7 @@ export function CampaignEditor({ campaignId }: { campaignId?: string }) {
       ) : null}
 
       {campaign && !editable ? (
-        <div className="grid gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <StatCard label="Targeted" value={stats.targeted ?? 0} />
           <StatCard label="Sent" value={stats.sent ?? 0} />
           <StatCard label="Failed" value={stats.failed ?? 0} />

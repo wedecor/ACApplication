@@ -3,7 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Download, FileText, Plus, RotateCcw, Search, Send } from 'lucide-react';
+import { Copy, Download, FileText, Plus, Search, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { useDebounce } from 'use-debounce';
 
 import {
@@ -17,14 +18,16 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { Pagination } from '@/components/common/pagination';
-import { useInvoices } from '@/hooks/use-finance';
+import { useInvoiceAction, useInvoices } from '@/hooks/use-finance';
 import type { Invoice, InvoiceStatus, ListInvoicesParams } from '@/lib/api/invoices';
-import { invoicesApi } from '@/lib/api/invoices';
+import { downloadInvoicePdf } from '@/lib/api/invoices';
 import { formatDate, formatMinor } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUS_FILTERS: Array<{ id: InvoiceStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -37,11 +40,11 @@ const STATUS_FILTERS: Array<{ id: InvoiceStatus | 'ALL'; label: string }> = [
   { id: 'CANCELLED', label: 'Cancelled' },
 ];
 
-const STATUS_BADGE: Record<InvoiceStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const STATUS_BADGE: Record<InvoiceStatus, BadgeVariant> = {
   DRAFT: 'outline',
-  SENT: 'secondary',
-  PARTIALLY_PAID: 'secondary',
-  PAID: 'default',
+  SENT: 'info',
+  PARTIALLY_PAID: 'warning',
+  PAID: 'success',
   OVERDUE: 'destructive',
   REFUNDED: 'destructive',
   CANCELLED: 'outline',
@@ -163,50 +166,90 @@ export default function InvoicesPage() {
 
 function InvoiceRow({ invoice }: { invoice: Invoice }) {
   const router = useRouter();
+  const actions = useInvoiceAction(invoice.id);
+  const [downloading, setDownloading] = React.useState(false);
+
+  const onDownload = async () => {
+    setDownloading(true);
+    try {
+      await downloadInvoicePdf(invoice.id, invoice.number);
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const iconBtn = 'grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50';
+
   return (
-    <TableRow
-      className="cursor-pointer"
-      onClick={() => router.push(`/invoices/${invoice.id}`)}
-    >
-      <TableCell className="font-medium">{invoice.number}</TableCell>
+    <TableRow className="md:cursor-pointer" onClick={() => router.push(`/invoices/${invoice.id}`)}>
+      <TableCell data-primary="" className="font-medium">
+        <Link
+          href={`/invoices/${invoice.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="hover:underline max-md:after:absolute max-md:after:inset-0"
+        >
+          {invoice.number}
+        </Link>
+      </TableCell>
       <TableCell>{invoice.customer?.fullName ?? '—'}</TableCell>
       <TableCell>
-        <Badge variant={STATUS_BADGE[invoice.status]}>{invoice.status}</Badge>
+        <Badge variant={STATUS_BADGE[invoice.status]}>{humanizeEnum(invoice.status)}</Badge>
       </TableCell>
       <TableCell className="text-right tabular-nums">
         {formatMinor(invoice.totalMinor, invoice.currency)}
       </TableCell>
-      <TableCell className="text-right tabular-nums text-rose-600">
+      <TableCell className={`text-right tabular-nums ${invoice.dueAmountMinor > 0 ? 'text-danger-700' : 'text-muted-foreground'}`}>
         {formatMinor(invoice.dueAmountMinor, invoice.currency)}
       </TableCell>
       <TableCell>{formatDate(invoice.dueDate)}</TableCell>
       <TableCell className="text-right">
-        <div
-          className="flex justify-end gap-1"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Link
-            href={invoicesApi.downloadPdfUrl(invoice.id)}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+        <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className={iconBtn}
+            aria-label={`Download ${invoice.number} as PDF`}
             title="Download PDF"
+            disabled={downloading}
+            onClick={() => void onDownload()}
           >
-            <Download className="size-4" />
-          </Link>
-          <button
-            type="button"
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            title="Send"
-          >
-            <Send className="size-4" />
+            <Download className="size-4" aria-hidden />
           </button>
+          {invoice.status === 'DRAFT' ? (
+            <button
+              type="button"
+              className={iconBtn}
+              aria-label={`Send ${invoice.number} to customer`}
+              title="Send to customer"
+              disabled={actions.send.isPending}
+              onClick={() =>
+                actions.send.mutate(undefined, {
+                  onSuccess: () => toast.success(`${invoice.number} sent`),
+                  onError: (err) => toast.error((err as Error).message),
+                })
+              }
+            >
+              <Send className="size-4" aria-hidden />
+            </button>
+          ) : null}
           <button
             type="button"
-            className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            className={iconBtn}
+            aria-label={`Duplicate ${invoice.number}`}
             title="Duplicate"
+            disabled={actions.duplicate.isPending}
+            onClick={() =>
+              actions.duplicate.mutate(undefined, {
+                onSuccess: (copy) => {
+                  toast.success(`Created ${copy.number}`);
+                  router.push(`/invoices/${copy.id}`);
+                },
+                onError: (err) => toast.error((err as Error).message),
+              })
+            }
           >
-            <RotateCcw className="size-4" />
+            <Copy className="size-4" aria-hidden />
           </button>
         </div>
       </TableCell>

@@ -14,14 +14,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
 import { useTransfers } from '@/hooks/use-inventory';
 import { formatDateTime } from '@/lib/format';
 import type { StockTransferStatus } from '@/lib/api/inventory';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUSES: Array<{ id: StockTransferStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -32,12 +33,12 @@ const STATUSES: Array<{ id: StockTransferStatus | 'ALL'; label: string }> = [
   { id: 'CANCELLED', label: 'Cancelled' },
 ];
 
-const STATUS_VARIANT: Record<StockTransferStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const STATUS_VARIANT: Record<StockTransferStatus, BadgeVariant> = {
   DRAFT: 'outline',
-  REQUESTED: 'secondary',
-  APPROVED: 'secondary',
-  IN_TRANSIT: 'secondary',
-  RECEIVED: 'default',
+  REQUESTED: 'warning',
+  APPROVED: 'info',
+  IN_TRANSIT: 'info',
+  RECEIVED: 'success',
   CANCELLED: 'destructive',
   REJECTED: 'destructive',
 };

@@ -19,6 +19,7 @@ import {
 
 import { LoadError } from '@/components/common/load-error';
 import { useWarehouses } from '@/hooks/use-inventory';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function WarehousesPage() {
   const { data, isLoading, error } = useWarehouses({ page: 1, pageSize: 50 });
@@ -87,7 +88,7 @@ export default function WarehousesPage() {
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{wh.kind}</Badge>
+                    <Badge variant="outline">{humanizeEnum(wh.kind)}</Badge>
                   </TableCell>
                   <TableCell>
                     {wh.pincode ? `${wh.state ?? ''} · ${wh.pincode}` : (wh.state ?? '—')}

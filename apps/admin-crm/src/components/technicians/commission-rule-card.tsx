@@ -143,8 +143,8 @@ export function CommissionRuleCard({ technicianId }: { technicianId: string }) {
         ) : (
           <form onSubmit={save} className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Label className="mb-1 block text-xs">Type</Label>
-              <select
+              <Label htmlFor="commission-rule-card-type" className="mb-1 block text-xs">Type</Label>
+              <select id="commission-rule-card-type"
                 className={selectCls}
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value as CommissionType })}
@@ -168,20 +168,20 @@ export function CommissionRuleCard({ technicianId }: { technicianId: string }) {
               />
             </div>
             <div>
-              <Label className="mb-1 block text-xs">Bonus per job (₹)</Label>
-              <Input type="number" min={0} step="0.01" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} />
+              <Label htmlFor="commission-rule-card-bonus-per-job" className="mb-1 block text-xs">Bonus per job (₹)</Label>
+              <Input id="commission-rule-card-bonus-per-job" type="number" min={0} step="0.01" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} />
             </div>
             <div>
-              <Label className="mb-1 block text-xs">Late penalty per minute (₹)</Label>
-              <Input type="number" min={0} step="0.01" value={form.penalty} onChange={(e) => setForm({ ...form, penalty: e.target.value })} />
+              <Label htmlFor="commission-rule-card-late-penalty-per-minute" className="mb-1 block text-xs">Late penalty per minute (₹)</Label>
+              <Input id="commission-rule-card-late-penalty-per-minute" type="number" min={0} step="0.01" value={form.penalty} onChange={(e) => setForm({ ...form, penalty: e.target.value })} />
             </div>
             <div>
-              <Label className="mb-1 block text-xs">Min payout (₹)</Label>
-              <Input type="number" min={0} step="0.01" value={form.minPayout} onChange={(e) => setForm({ ...form, minPayout: e.target.value })} />
+              <Label htmlFor="commission-rule-card-min-payout" className="mb-1 block text-xs">Min payout (₹)</Label>
+              <Input id="commission-rule-card-min-payout" type="number" min={0} step="0.01" value={form.minPayout} onChange={(e) => setForm({ ...form, minPayout: e.target.value })} />
             </div>
             <div>
-              <Label className="mb-1 block text-xs">Payout cycle</Label>
-              <select
+              <Label htmlFor="commission-rule-card-payout-cycle" className="mb-1 block text-xs">Payout cycle</Label>
+              <select id="commission-rule-card-payout-cycle"
                 className={selectCls}
                 value={form.payoutCycle}
                 onChange={(e) => setForm({ ...form, payoutCycle: e.target.value as PayoutCycle })}
@@ -194,8 +194,8 @@ export function CommissionRuleCard({ technicianId }: { technicianId: string }) {
               </select>
             </div>
             <div>
-              <Label className="mb-1 block text-xs">Cycle closes on</Label>
-              <select
+              <Label htmlFor="commission-rule-card-cycle-closes-on" className="mb-1 block text-xs">Cycle closes on</Label>
+              <select id="commission-rule-card-cycle-closes-on"
                 className={selectCls}
                 value={form.cycleClosesOn}
                 onChange={(e) => setForm({ ...form, cycleClosesOn: Number(e.target.value) })}

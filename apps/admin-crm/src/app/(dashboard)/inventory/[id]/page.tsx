@@ -21,6 +21,7 @@ import {
 
 import { useInventoryItem } from '@/hooks/use-inventory';
 import { formatMinor, formatMinorCompact } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function InventoryItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -77,7 +78,7 @@ export default function InventoryItemDetailPage() {
             {item.barcode ? ` · ${item.barcode}` : null}
           </p>
         </div>
-        <Badge variant="outline">{item.type.replace(/_/g, ' ')}</Badge>
+        <Badge variant="outline">{humanizeEnum(item.type)}</Badge>
       </header>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">

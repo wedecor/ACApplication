@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 
 import { useCreateLead } from '@/hooks/use-leads';
 import { type CreateLeadInput } from '@/lib/api/leads';
+import { humanizeEnum } from '@/lib/labels';
 
 const PRIORITIES = Object.values(LeadPriority);
 const SOURCES = Object.values(LeadSource);
@@ -90,7 +91,7 @@ export function CreateLeadModal() {
             <select className="h-10 w-full rounded-md border bg-background px-3 text-sm" {...register('applianceType')}>
               <option value="">—</option>
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>
+                <option key={c} value={c}>{humanizeEnum(c)}</option>
               ))}
             </select>
           </Field>

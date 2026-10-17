@@ -14,8 +14,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { Pagination } from '@/components/common/pagination';
 import {
@@ -27,17 +26,19 @@ import {
 import type { CallStatus, CallSummary } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
 
-const STATUS_VARIANT: Record<CallStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const STATUS_VARIANT: Record<CallStatus, BadgeVariant> = {
   QUEUED: 'outline',
-  RINGING: 'secondary',
-  IN_PROGRESS: 'default',
+  RINGING: 'info',
+  IN_PROGRESS: 'info',
   COMPLETED: 'outline',
   MISSED: 'destructive',
   NO_ANSWER: 'destructive',
   BUSY: 'destructive',
   FAILED: 'destructive',
   ABANDONED: 'destructive',
-  VOICEMAIL: 'secondary',
+  VOICEMAIL: 'muted',
 };
 
 const DAY_MS = 86_400_000;

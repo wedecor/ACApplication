@@ -15,6 +15,7 @@ import {
   type ImportReport,
 } from '@/lib/api/data-io';
 import { errorMessage } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -169,7 +170,7 @@ function ImportReportView({ report }: { report: ImportReport }) {
                 <TableRow key={`${r.row}-${i}`}>
                   <TableCell className="tabular-nums">{r.row}</TableCell>
                   <TableCell>
-                    <Badge variant={r.kind === 'error' ? 'destructive' : 'warning'}>{r.kind}</Badge>
+                    <Badge variant={r.kind === 'error' ? 'destructive' : 'warning'}>{humanizeEnum(r.kind)}</Badge>
                   </TableCell>
                   <TableCell className="font-mono text-xs">{r.field || '—'}</TableCell>
                   <TableCell className="text-sm">{r.message}</TableCell>

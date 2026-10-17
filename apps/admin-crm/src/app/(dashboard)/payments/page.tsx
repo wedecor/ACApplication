@@ -13,13 +13,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { Pagination } from '@/components/common/pagination';
 import { usePaymentHistory } from '@/hooks/use-finance';
 import type { PaymentTransactionStatus } from '@/lib/api/payments';
 import { formatDateTime, formatMinor } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUS_FILTERS: Array<{ id: PaymentTransactionStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -31,11 +33,11 @@ const STATUS_FILTERS: Array<{ id: PaymentTransactionStatus | 'ALL'; label: strin
   { id: 'PARTIALLY_REFUNDED', label: 'Partial refund' },
 ];
 
-const STATUS_BADGE: Record<PaymentTransactionStatus, 'default' | 'destructive' | 'outline' | 'secondary'> = {
+const STATUS_BADGE: Record<PaymentTransactionStatus, BadgeVariant> = {
   CREATED: 'outline',
-  PENDING: 'secondary',
+  PENDING: 'warning',
   AUTHORIZED: 'secondary',
-  CAPTURED: 'default',
+  CAPTURED: 'success',
   FAILED: 'destructive',
   CANCELLED: 'outline',
   REFUNDED: 'destructive',
@@ -120,13 +122,15 @@ export default function PaymentsPage() {
                 : items.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>
-                        <Badge variant="outline">{p.provider.toUpperCase()}</Badge>
+                        <Badge variant="outline">{providerLabel(p.provider)}</Badge>
                       </TableCell>
-                      <TableCell>{p.customer?.fullName ?? '—'}</TableCell>
+                      <TableCell data-primary="" className="font-medium">
+                        {p.customer?.fullName ?? '—'}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_BADGE[p.status]}>{p.status}</Badge>
+                        <Badge variant={STATUS_BADGE[p.status]}>{humanizeEnum(p.status)}</Badge>
                       </TableCell>
-                      <TableCell>{p.method ?? '—'}</TableCell>
+                      <TableCell>{methodLabel(p.method)}</TableCell>
                       <TableCell>{formatDateTime(p.capturedAt)}</TableCell>
                       <TableCell>
                         {p.invoiceId ? (
@@ -134,7 +138,7 @@ export default function PaymentsPage() {
                             href={`/invoices/${p.invoiceId}`}
                             className="text-primary underline-offset-2 hover:underline"
                           >
-                            {p.invoiceId.slice(0, 8)}…
+                            View invoice
                           </Link>
                         ) : (
                           '—'
@@ -161,4 +165,20 @@ export default function PaymentsPage() {
       ) : null}
     </div>
   );
+}
+
+function providerLabel(provider: string): string {
+  const p = provider.toLowerCase();
+  if (p === 'razorpay') return 'Razorpay';
+  if (p === 'stripe') return 'Stripe';
+  if (p === 'manual') return 'Manual';
+  return humanizeEnum(provider);
+}
+
+function methodLabel(method: string | null | undefined): string {
+  if (!method) return '—';
+  const m = method.toUpperCase();
+  if (m === 'UPI' || m === 'NEFT' || m === 'IMPS' || m === 'RTGS') return m;
+  if (m === 'RAZORPAY' || m === 'STRIPE') return 'Online';
+  return humanizeEnum(method);
 }

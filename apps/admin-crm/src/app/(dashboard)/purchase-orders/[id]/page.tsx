@@ -18,23 +18,22 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { usePurchaseOrder, usePurchaseOrderActions } from '@/hooks/use-inventory';
 import { formatDate, formatMinor } from '@/lib/format';
 import type { PurchaseOrderStatus } from '@/lib/api/inventory';
+import { humanizeEnum } from '@/lib/labels';
 
-const STATUS_VARIANT: Record<
-  PurchaseOrderStatus,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const STATUS_VARIANT: Record<PurchaseOrderStatus, BadgeVariant> = {
   DRAFT: 'outline',
   AWAITING_APPROVAL: 'secondary',
-  APPROVED: 'secondary',
+  APPROVED: 'info',
   ORDERED: 'secondary',
   PARTIALLY_RECEIVED: 'secondary',
-  RECEIVED: 'default',
+  RECEIVED: 'success',
   CANCELLED: 'destructive',
   CLOSED: 'outline',
 };
@@ -80,7 +79,7 @@ export default function PurchaseOrderDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight">
             PO {po.number}
             <Badge className="ml-2 align-middle" variant={STATUS_VARIANT[po.status]}>
-              {po.status.replace(/_/g, ' ')}
+              {humanizeEnum(po.status)}
             </Badge>
           </h1>
           <p className="text-sm text-muted-foreground">

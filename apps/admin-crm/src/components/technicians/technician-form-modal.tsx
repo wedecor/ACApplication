@@ -25,6 +25,7 @@ import type {
   Weekday,
   WorkingHours,
 } from '@/lib/api/technicians';
+import { humanizeEnum } from '@/lib/labels';
 
 const WEEKDAYS: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 const DEFAULT_HOURS: Record<Weekday, string> = {
@@ -231,7 +232,7 @@ export function TechnicianFormModal({ open, onOpenChange, technician, onSaved }:
                       on ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'
                     }`}
                   >
-                    {s.replace(/_/g, ' ')}
+                    {humanizeEnum(s)}
                   </button>
                 );
               })}

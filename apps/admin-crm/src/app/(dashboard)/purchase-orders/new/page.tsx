@@ -150,8 +150,8 @@ export default function NewPurchaseOrderPage() {
             {lines.map((line, idx) => (
               <div key={idx} className="grid gap-2 rounded-md border p-3 sm:grid-cols-12">
                 <div className="sm:col-span-5">
-                  <Label className="text-xs">Item</Label>
-                  <select
+                  <Label htmlFor="new-item" className="text-xs">Item</Label>
+                  <select id="new-item"
                     value={line.itemId}
                     onChange={(e) =>
                       setLines((prev) =>
@@ -169,8 +169,8 @@ export default function NewPurchaseOrderPage() {
                   </select>
                 </div>
                 <div className="sm:col-span-2">
-                  <Label className="text-xs">Qty</Label>
-                  <Input
+                  <Label htmlFor="new-qty" className="text-xs">Qty</Label>
+                  <Input id="new-qty"
                     type="number"
                     min={1}
                     value={line.quantity}
@@ -183,8 +183,8 @@ export default function NewPurchaseOrderPage() {
                   />
                 </div>
                 <div className="sm:col-span-3">
-                  <Label className="text-xs">Unit cost (₹)</Label>
-                  <Input
+                  <Label htmlFor="new-unit-cost" className="text-xs">Unit cost (₹)</Label>
+                  <Input id="new-unit-cost"
                     type="number"
                     min={0}
                     step="0.01"

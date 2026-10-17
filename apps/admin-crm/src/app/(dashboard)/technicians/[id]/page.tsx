@@ -294,7 +294,7 @@ function JobsCard({ technicianId }: { technicianId: string }) {
                   <TableCell className="text-xs">{formatDateTime(b.scheduledAt)}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-[10px]">
-                      {b.status.replace(/_/g, ' ')}
+                      {humanizeEnum(b.status)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right text-sm tabular-nums">

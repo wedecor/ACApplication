@@ -1,6 +1,7 @@
 import { Badge } from '@ac/ui';
 
 import type { CampaignStatus } from '@/lib/api/growth';
+import { humanizeEnum } from '@/lib/labels';
 
 const VARIANT: Record<CampaignStatus, 'muted' | 'info' | 'warning' | 'success' | 'destructive'> = {
   DRAFT: 'muted',
@@ -11,5 +12,5 @@ const VARIANT: Record<CampaignStatus, 'muted' | 'info' | 'warning' | 'success' |
 };
 
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
-  return <Badge variant={VARIANT[status] ?? 'muted'}>{status}</Badge>;
+  return <Badge variant={VARIANT[status] ?? 'muted'}>{humanizeEnum(status)}</Badge>;
 }

@@ -18,6 +18,7 @@ import {
 } from '@/hooks/use-sales';
 import { type Opportunity, type OpportunityStage, OPPORTUNITY_STAGES } from '@/lib/api/sales';
 import { errorMessage, formatDate, formatINR, rupeesToMinor } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const OPEN_FLOW: OpportunityStage[] = ['NEW', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON'];
 
@@ -115,7 +116,14 @@ export default function OpportunitiesPage() {
           setSearch(searchDraft.trim());
         }}
       >
-        <Input value={searchDraft} onChange={(e) => setSearchDraft(e.target.value)} placeholder="Search opportunities…" />
+        <Input
+          type="search"
+          aria-label="Search opportunities"
+          className="min-w-0 flex-1"
+          value={searchDraft}
+          onChange={(e) => setSearchDraft(e.target.value)}
+          placeholder="Search opportunities"
+        />
         <Button type="submit" variant="secondary">
           Search
         </Button>
@@ -126,14 +134,14 @@ export default function OpportunitiesPage() {
       ) : isLoading ? (
         <Skeleton className="h-96 w-full" />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {OPPORTUNITY_STAGES.map((stage) => {
             const items = byStage.get(stage) ?? [];
             const summary = pipeline?.stages.find((s) => s.stage === stage);
             return (
-              <div key={stage} className={`w-72 shrink-0 rounded-lg border border-t-4 bg-muted/30 ${STAGE_TONE[stage]}`}>
+              <div key={stage} className={`w-[85vw] max-w-72 shrink-0 snap-start rounded-lg border border-t-4 bg-muted/30 sm:w-72 ${STAGE_TONE[stage]}`}>
                 <div className="flex items-baseline justify-between px-3 py-2">
-                  <span className="text-sm font-semibold">{stage}</span>
+                  <span className="text-sm font-semibold">{humanizeEnum(stage)}</span>
                   <span className="text-xs text-muted-foreground">
                     {summary?.count ?? items.length} · {formatINR(summary?.valueMinor ?? items.reduce((a, o) => a + o.valueMinor, 0))}
                   </span>
@@ -188,11 +196,21 @@ function OpportunityCard({
         <div className="flex items-start justify-between gap-2">
           <p className="font-medium leading-tight">{o.title}</p>
           <div className="flex shrink-0">
-            <button type="button" onClick={onEdit} aria-label="Edit" className="p-1 text-muted-foreground hover:text-foreground">
-              <Pencil className="size-3.5" />
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-label={`Edit ${o.title}`}
+              className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <Pencil className="size-4" aria-hidden />
             </button>
-            <button type="button" onClick={onDelete} aria-label="Delete" className="p-1 text-muted-foreground hover:text-destructive">
-              <Trash2 className="size-3.5" />
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Delete ${o.title}`}
+              className="grid size-9 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive"
+            >
+              <Trash2 className="size-4" aria-hidden />
             </button>
           </div>
         </div>
@@ -225,19 +243,19 @@ function OpportunityCard({
         ) : null}
         <div className="flex items-center gap-1 border-t pt-2">
           {closed ? (
-            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => onMove('NEGOTIATION')}>
+            <Button size="sm" variant="ghost" className="h-9 px-3" onClick={() => onMove('NEGOTIATION')}>
               Reopen
             </Button>
           ) : (
             <>
-              <Button size="sm" variant="ghost" className="h-7 px-2" disabled={!prev} onClick={() => prev && onMove(prev)} aria-label="Previous stage">
+              <Button size="sm" variant="ghost" className="size-9 p-0" disabled={!prev} onClick={() => prev && onMove(prev)} aria-label="Previous stage">
                 <ChevronLeft className="size-4" />
               </Button>
-              <Button size="sm" variant="ghost" className="h-7 px-2" disabled={!next} onClick={() => next && onMove(next)} aria-label="Next stage">
+              <Button size="sm" variant="ghost" className="size-9 p-0" disabled={!next} onClick={() => next && onMove(next)} aria-label="Next stage">
                 <ChevronRight className="size-4" />
               </Button>
               <NativeSelect
-                className="h-7 flex-1 px-1 text-xs"
+                className="h-9 min-w-0 flex-1 px-2 text-sm"
                 value=""
                 onChange={(e) => e.target.value && onMove(e.target.value as OpportunityStage)}
                 aria-label="Move to stage"

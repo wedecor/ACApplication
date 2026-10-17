@@ -46,6 +46,7 @@ import { apiErrorMessage } from '@/lib/api/error-message';
 import type { StaffUser, StaffUserListQuery } from '@/lib/api/staff-admin';
 import { formatDateTime } from '@/lib/format';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function UsersPage() {
   const { permissions } = readSessionClaims();
@@ -243,7 +244,7 @@ function UsersTab() {
                         ) : u.status === 'SUSPENDED' ? (
                           <Badge variant="destructive">Deactivated</Badge>
                         ) : (
-                          <Badge variant="muted">{u.status}</Badge>
+                          <Badge variant="muted">{humanizeEnum(u.status)}</Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">

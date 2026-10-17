@@ -28,8 +28,9 @@ import {
 import { toast } from 'sonner';
 
 import { useInvoice, useInvoiceAction } from '@/hooks/use-finance';
-import { invoicesApi } from '@/lib/api/invoices';
+import { downloadInvoicePdf } from '@/lib/api/invoices';
 import { formatDate, formatDateTime, formatMinor } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function InvoiceDetailPage() {
   const params = useParams<{ id: string }>();
@@ -59,24 +60,30 @@ export default function InvoiceDetailPage() {
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">
             Invoice {data.number}
-            <Badge className="ml-3 align-middle">{data.status}</Badge>
+            <Badge className="ml-3 align-middle">{humanizeEnum(data.status)}</Badge>
           </h1>
           <p className="text-sm text-muted-foreground">
             {data.customer?.fullName} •{' '}
-            {data.bookingId ? `Booking ${data.bookingId.slice(0, 8)}…` : 'Ad-hoc invoice'}
+            {data.bookingId ? (
+              <Link href={`/bookings/${data.bookingId}`} className="text-primary hover:underline">
+                View booking
+              </Link>
+            ) : (
+              'Ad-hoc invoice'
+            )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href={invoicesApi.downloadPdfUrl(id)}
-            target="_blank"
-            rel="noreferrer"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              void downloadInvoicePdf(id, data.number).catch((err: Error) => toast.error(err.message))
+            }
           >
-            <Button variant="outline" size="sm">
-              <Download className="size-4" />
-              PDF
-            </Button>
-          </Link>
+            <Download aria-hidden />
+            Download PDF
+          </Button>
           {data.status === 'DRAFT' && (
             <Button
               size="sm"
@@ -132,7 +139,11 @@ export default function InvoiceDetailPage() {
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Stat label="Total" value={formatMinor(data.totalMinor, data.currency)} />
         <Stat label="Paid" value={formatMinor(data.amountPaidMinor, data.currency)} tone="positive" />
-        <Stat label="Due" value={formatMinor(data.dueAmountMinor, data.currency)} tone="negative" />
+        <Stat
+          label="Due"
+          value={formatMinor(data.dueAmountMinor, data.currency)}
+          tone={data.dueAmountMinor > 0 ? 'negative' : undefined}
+        />
         <Stat label="Refunded" value={formatMinor(data.amountRefundedMinor, data.currency)} />
       </section>
 
@@ -145,65 +156,36 @@ export default function InvoiceDetailPage() {
 
         <TabsContent value="items">
           <Card>
-            <CardContent className="overflow-x-auto p-0">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Description</th>
-                    <th className="px-4 py-2 text-right">Qty</th>
-                    <th className="px-4 py-2 text-right">Unit</th>
-                    <th className="px-4 py-2 text-right">Discount</th>
-                    <th className="px-4 py-2 text-right">Tax</th>
-                    <th className="px-4 py-2 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {data.lineItems.map((li) => (
-                    <tr key={li.id}>
-                      <td className="px-4 py-2">{li.description}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{li.quantity}</td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {formatMinor(li.unitPriceMinor, data.currency)}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {formatMinor(li.discountMinor, data.currency)}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {formatMinor(li.taxMinor, data.currency)} ({li.taxRateBps / 100}%)
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums font-medium">
-                        {formatMinor(li.totalMinor, data.currency)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot className="border-t bg-muted/40">
-                  <tr>
-                    <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-sm text-muted-foreground">Subtotal</span>
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {formatMinor(data.subtotalMinor, data.currency)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-sm text-muted-foreground">Tax</span>
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums">
-                      {formatMinor(data.taxMinor, data.currency)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-sm text-muted-foreground">Total</span>
-                    </td>
-                    <td className="px-4 py-2 text-right tabular-nums font-semibold">
-                      {formatMinor(data.totalMinor, data.currency)}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+            <CardContent className="p-0">
+              <ul className="divide-y">
+                {data.lineItems.map((li) => (
+                  <li key={li.id} className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium">{li.description}</p>
+                      <p className="text-muted-foreground tabular-nums">
+                        {li.quantity} × {formatMinor(li.unitPriceMinor, data.currency)}
+                        {li.discountMinor ? ` · −${formatMinor(li.discountMinor, data.currency)}` : ''}
+                        {` · GST ${li.taxRateBps / 100}% ${formatMinor(li.taxMinor, data.currency)}`}
+                      </p>
+                    </div>
+                    <p className="shrink-0 font-medium tabular-nums">{formatMinor(li.totalMinor, data.currency)}</p>
+                  </li>
+                ))}
+              </ul>
+              <dl className="space-y-1 border-t bg-muted/40 px-4 py-3 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">Subtotal</dt>
+                  <dd className="tabular-nums">{formatMinor(data.subtotalMinor, data.currency)}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground">Tax</dt>
+                  <dd className="tabular-nums">{formatMinor(data.taxMinor, data.currency)}</dd>
+                </div>
+                <div className="flex justify-between gap-4 font-semibold">
+                  <dt>Total</dt>
+                  <dd className="tabular-nums">{formatMinor(data.totalMinor, data.currency)}</dd>
+                </div>
+              </dl>
             </CardContent>
           </Card>
         </TabsContent>
@@ -230,7 +212,7 @@ export default function InvoiceDetailPage() {
                         <td className="px-2 py-2">{formatDateTime(p.capturedAt)}</td>
                         <td className="px-2 py-2">{p.method}</td>
                         <td className="px-2 py-2">
-                          <Badge variant="outline">{p.status}</Badge>
+                          <Badge variant="outline">{humanizeEnum(p.status)}</Badge>
                         </td>
                         <td className="px-2 py-2 text-right tabular-nums">
                           {formatMinor(p.amountMinor, data.currency)}

@@ -19,6 +19,7 @@ import {
 
 import { useKbActions, useKbArticle } from '@/hooks/use-support';
 import { formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 export default function KbArticleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -101,7 +102,7 @@ export default function KbArticleDetailPage() {
             {article.category?.name ?? 'Uncategorised'} · Updated {formatDateTime(article.updatedAt)}
           </p>
         </div>
-        <Badge>{status}</Badge>
+        <Badge>{humanizeEnum(status)}</Badge>
       </header>
 
       <Card>

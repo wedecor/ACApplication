@@ -9,6 +9,7 @@ import { Field, NativeSelect } from '@/components/common/form-field';
 import { useSegmentRulesPreview } from '@/hooks/use-growth';
 import type { AmcStatusRule, SegmentRules } from '@/lib/api/growth';
 import { errorMessage, splitTags } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const CATEGORIES = Object.values(ServiceCategory);
 
@@ -141,7 +142,7 @@ export function SegmentBuilder({
                   }
                   className={`rounded-full border px-2.5 py-1 text-xs ${on ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                 >
-                  {c.replace(/_/g, ' ')}
+                  {humanizeEnum(c)}
                 </button>
               );
             })}

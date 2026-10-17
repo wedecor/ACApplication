@@ -14,14 +14,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
 import { usePurchaseOrders } from '@/hooks/use-inventory';
 import { formatDate, formatMinor } from '@/lib/format';
 import type { PurchaseOrderStatus } from '@/lib/api/inventory';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUSES: Array<{ id: PurchaseOrderStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -34,13 +35,13 @@ const STATUSES: Array<{ id: PurchaseOrderStatus | 'ALL'; label: string }> = [
   { id: 'CANCELLED', label: 'Cancelled' },
 ];
 
-const STATUS_VARIANT: Record<PurchaseOrderStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const STATUS_VARIANT: Record<PurchaseOrderStatus, BadgeVariant> = {
   DRAFT: 'outline',
   AWAITING_APPROVAL: 'secondary',
-  APPROVED: 'secondary',
+  APPROVED: 'info',
   ORDERED: 'secondary',
   PARTIALLY_RECEIVED: 'secondary',
-  RECEIVED: 'default',
+  RECEIVED: 'success',
   CANCELLED: 'destructive',
   CLOSED: 'outline',
 };

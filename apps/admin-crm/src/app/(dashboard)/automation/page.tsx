@@ -17,8 +17,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import {
   useCancelWorkflow,
@@ -30,6 +29,9 @@ import {
 } from '@/hooks/use-orchestration';
 import type { WorkflowInstanceStatus } from '@/lib/api/orchestration';
 import { formatDate } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUS_FILTERS: Array<{ id: WorkflowInstanceStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -41,17 +43,14 @@ const STATUS_FILTERS: Array<{ id: WorkflowInstanceStatus | 'ALL'; label: string 
   { id: 'ESCALATED', label: 'Escalated' },
 ];
 
-const STATUS_BADGE: Record<
-  WorkflowInstanceStatus,
-  'default' | 'destructive' | 'outline' | 'secondary'
-> = {
-  PENDING: 'secondary',
+const STATUS_BADGE: Record<WorkflowInstanceStatus, BadgeVariant> = {
+  PENDING: 'warning',
   RUNNING: 'outline',
   WAITING: 'outline',
-  PAUSED: 'secondary',
-  COMPLETED: 'default',
+  PAUSED: 'muted',
+  COMPLETED: 'success',
   FAILED: 'destructive',
-  CANCELLED: 'secondary',
+  CANCELLED: 'muted',
   ESCALATED: 'destructive',
 };
 
@@ -149,7 +148,7 @@ export default function AutomationPage() {
                     >
                       <TableCell className="font-medium">{row.definitionKey}</TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_BADGE[row.status]}>{row.status}</Badge>
+                        <Badge variant={STATUS_BADGE[row.status]}>{humanizeEnum(row.status)}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {row.currentStepKey ?? '—'}

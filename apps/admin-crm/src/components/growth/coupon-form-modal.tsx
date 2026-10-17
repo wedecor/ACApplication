@@ -10,6 +10,7 @@ import { SimpleModal } from '@/components/common/simple-modal';
 import { useSaveCoupon } from '@/hooks/use-growth';
 import type { Coupon, CouponDiscountType, CouponInput } from '@/lib/api/growth';
 import { errorMessage, minorToRupees, rupeesToMinor } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const CATEGORIES = Object.values(ServiceCategory);
 
@@ -171,7 +172,7 @@ export function CouponFormModal({
                   }
                   className={`rounded-full border px-2.5 py-1 text-xs ${on ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                 >
-                  {c.replace(/_/g, ' ')}
+                  {humanizeEnum(c)}
                 </button>
               );
             })}

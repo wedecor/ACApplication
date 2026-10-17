@@ -18,8 +18,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import {
   useDlqJobs,
@@ -31,6 +30,9 @@ import {
 } from '@/hooks/use-notifications';
 import type { NotificationLogStatus } from '@/lib/api/notifications';
 import { formatDate } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
+
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
 const STATUS_FILTERS: Array<{ id: NotificationLogStatus | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -42,15 +44,12 @@ const STATUS_FILTERS: Array<{ id: NotificationLogStatus | 'ALL'; label: string }
   { id: 'DLQ', label: 'DLQ' },
 ];
 
-const STATUS_BADGE: Record<
-  NotificationLogStatus,
-  'default' | 'destructive' | 'outline' | 'secondary'
-> = {
-  QUEUED: 'secondary',
+const STATUS_BADGE: Record<NotificationLogStatus, BadgeVariant> = {
+  QUEUED: 'warning',
   PROCESSING: 'outline',
   RETRYING: 'outline',
-  SENT: 'default',
-  DELIVERED: 'default',
+  SENT: 'info',
+  DELIVERED: 'success',
   READ: 'outline',
   FAILED: 'destructive',
   DLQ: 'destructive',
@@ -187,10 +186,10 @@ export default function NotificationsPage() {
                       <TableCell className="text-xs text-muted-foreground">
                         {formatDate(row.createdAt)}
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{row.channel}</TableCell>
+                      <TableCell className="font-mono text-xs">{humanizeEnum(row.channel)}</TableCell>
                       <TableCell className="max-w-[140px] truncate text-sm">{row.template}</TableCell>
                       <TableCell>
-                        <Badge variant={STATUS_BADGE[row.status]}>{row.status}</Badge>
+                        <Badge variant={STATUS_BADGE[row.status]}>{humanizeEnum(row.status)}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         {(row.status === 'FAILED' || row.status === 'DLQ') && (

@@ -18,22 +18,21 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { useTransfer, useTransferActions } from '@/hooks/use-inventory';
 import { formatDate } from '@/lib/format';
 import type { StockTransferStatus } from '@/lib/api/inventory';
+import { humanizeEnum } from '@/lib/labels';
 
-const STATUS_VARIANT: Record<
-  StockTransferStatus,
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const STATUS_VARIANT: Record<StockTransferStatus, BadgeVariant> = {
   DRAFT: 'outline',
-  REQUESTED: 'secondary',
-  APPROVED: 'secondary',
-  IN_TRANSIT: 'secondary',
-  RECEIVED: 'default',
+  REQUESTED: 'warning',
+  APPROVED: 'info',
+  IN_TRANSIT: 'info',
+  RECEIVED: 'success',
   CANCELLED: 'destructive',
   REJECTED: 'destructive',
 };
@@ -79,7 +78,7 @@ export default function TransferDetailPage() {
           <h1 className="text-2xl font-bold tracking-tight">
             Transfer {transfer.number}
             <Badge className="ml-2 align-middle" variant={STATUS_VARIANT[transfer.status]}>
-              {transfer.status.replace(/_/g, ' ')}
+              {humanizeEnum(transfer.status)}
             </Badge>
           </h1>
           <p className="text-sm text-muted-foreground">

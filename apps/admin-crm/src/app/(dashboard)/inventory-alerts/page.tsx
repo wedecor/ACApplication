@@ -13,15 +13,17 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { useAlertActions, useInventoryAlerts } from '@/hooks/use-inventory';
 import { formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
-const SEVERITY_VARIANT: Record<'INFO' | 'WARNING' | 'CRITICAL', 'default' | 'secondary' | 'destructive'> = {
-  INFO: 'default',
-  WARNING: 'secondary',
+type BadgeVariant = NonNullable<BadgeProps['variant']>;
+
+const SEVERITY_VARIANT: Record<'INFO' | 'WARNING' | 'CRITICAL', BadgeVariant> = {
+  INFO: 'info',
+  WARNING: 'warning',
   CRITICAL: 'destructive',
 };
 
@@ -95,10 +97,10 @@ export default function InventoryAlertsPage() {
               items.map((a) => (
                 <TableRow key={a.id}>
                   <TableCell>
-                    <Badge variant={SEVERITY_VARIANT[a.severity]}>{a.severity}</Badge>
+                    <Badge variant={SEVERITY_VARIANT[a.severity]}>{humanizeEnum(a.severity)}</Badge>
                   </TableCell>
                   <TableCell className="text-xs">
-                    <Badge variant="outline">{a.kind.replace(/_/g, ' ')}</Badge>
+                    <Badge variant="outline">{humanizeEnum(a.kind)}</Badge>
                   </TableCell>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">

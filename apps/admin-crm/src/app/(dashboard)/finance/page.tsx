@@ -38,9 +38,9 @@ import { formatMinor, formatMinorCompact, formatPercent, rangeFromPreset } from 
 
 const PRESETS = [
   { id: 'today', label: 'Today' },
-  { id: '7d', label: '7 D' },
-  { id: '30d', label: '30 D' },
-  { id: '90d', label: '90 D' },
+  { id: '7d', label: '7D' },
+  { id: '30d', label: '30D' },
+  { id: '90d', label: '90D' },
   { id: 'mtd', label: 'MTD' },
   { id: 'qtd', label: 'QTD' },
   { id: 'ytd', label: 'YTD' },
@@ -90,13 +90,14 @@ export default function FinancePage() {
             Revenue, collections, GST and payout health across the platform.
           </p>
         </div>
-        <div className="flex gap-1 rounded-md border bg-muted/50 p-1">
+        <div role="group" aria-label="Date range" className="flex max-w-full gap-1 overflow-x-auto rounded-md border bg-muted/50 p-1">
           {PRESETS.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => setPreset(p.id)}
-              className={`rounded-sm px-3 py-1 text-xs font-medium transition ${
+              aria-pressed={preset === p.id}
+              className={`h-9 shrink-0 whitespace-nowrap rounded-sm px-3 text-sm font-medium transition-colors ${
                 preset === p.id
                   ? 'bg-background text-foreground shadow'
                   : 'text-muted-foreground hover:bg-background/60'

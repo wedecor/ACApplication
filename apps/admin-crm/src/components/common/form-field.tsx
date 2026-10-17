@@ -16,12 +16,35 @@ export function Field({
   className?: string;
   children: React.ReactNode;
 }) {
+  const autoId = React.useId();
+  // Link the label (and hint/error text) to a single form control child.
+  const child = React.Children.count(children) === 1 && React.isValidElement(children) ? children : null;
+  const childProps = (child?.props ?? {}) as { id?: string; 'aria-describedby'?: string };
+  const controlId = childProps.id ?? autoId;
+  const describedBy = error ? `${controlId}-error` : hint ? `${controlId}-hint` : undefined;
+  const control = child
+    ? React.cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+        id: controlId,
+        'aria-describedby': [childProps['aria-describedby'], describedBy].filter(Boolean).join(' ') || undefined,
+        ...(error ? { 'aria-invalid': true } : {}),
+      })
+    : children;
   return (
     <div className={className}>
-      <Label className="mb-1 block text-xs">{label}</Label>
-      {children}
-      {hint && !error ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
-      {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
+      <Label htmlFor={child ? controlId : undefined} className="mb-1 block text-sm">
+        {label}
+      </Label>
+      {control}
+      {hint && !error ? (
+        <p id={`${controlId}-hint`} className="mt-1 text-xs text-muted-foreground">
+          {hint}
+        </p>
+      ) : null}
+      {error ? (
+        <p id={`${controlId}-error`} className="mt-1 text-xs text-destructive">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

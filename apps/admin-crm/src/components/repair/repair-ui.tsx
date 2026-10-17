@@ -1,8 +1,10 @@
 'use client';
 
 import type { Permission } from '@ac/types';
-import { Badge, cn, Label } from '@ac/ui';
+import { Badge, cn } from '@ac/ui';
 import * as React from 'react';
+
+import { Field as SharedField } from '@/components/common/form-field';
 
 import { ApiClientError } from '@/lib/api/client';
 import {
@@ -59,27 +61,24 @@ export const Textarea = React.forwardRef<
 ));
 Textarea.displayName = 'Textarea';
 
+/** Thin alias of the shared Field so repair forms get the same label/hint wiring. */
 export function Field({
   label,
-  htmlFor,
   hint,
   children,
   className,
 }: {
   label: string;
+  /** Kept for call-site compatibility; the shared Field links the label to its child control. */
   htmlFor?: string;
   hint?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <div className={cn('space-y-1.5', className)}>
-      <Label htmlFor={htmlFor} className="text-xs font-medium">
-        {label}
-      </Label>
+    <SharedField label={label} hint={hint} className={className}>
       {children}
-      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
-    </div>
+    </SharedField>
   );
 }
 
@@ -97,7 +96,7 @@ const CLAIM_VARIANT: Record<WarrantyClaimStatus, BadgeVariant> = {
   OPEN: 'warning',
   APPROVED: 'info',
   REJECTED: 'destructive',
-  SUBMITTED_TO_OEM: 'secondary',
+  SUBMITTED_TO_OEM: 'info',
   SETTLED: 'success',
   CLOSED: 'muted',
 };
@@ -108,14 +107,14 @@ export function ClaimStatusBadge({ status }: { status: WarrantyClaimStatus }) {
 
 const WORKSHOP_VARIANT: Record<WorkshopStatus, BadgeVariant> = {
   PICKUP_SCHEDULED: 'muted',
-  PICKED_UP: 'secondary',
-  RECEIVED_AT_WORKSHOP: 'secondary',
+  PICKED_UP: 'info',
+  RECEIVED_AT_WORKSHOP: 'info',
   DIAGNOSING: 'info',
   AWAITING_APPROVAL: 'warning',
   REPAIRING: 'info',
   READY_FOR_DELIVERY: 'success',
   OUT_FOR_DELIVERY: 'success',
-  DELIVERED: 'default',
+  DELIVERED: 'success',
   CANCELLED: 'destructive',
 };
 
