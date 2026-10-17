@@ -35,7 +35,14 @@
         "NEXT_PUBLIC_*",
         "API_URL",
         "SENTRY_DSN",
-        "NEXT_PUBLIC_SENTRY_DSN"
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "REFERRAL_REWARD_MINOR",
+        "REFERRAL_REWARD_POINTS",
+        "LOYALTY_POINTS_PER_100",
+        "REVIEW_REQUEST_DELAY_MINUTES",
+        "REVIEW_REQUEST_CHANNEL",
+        "GOOGLE_REVIEW_URL",
+        "GROWTH_SCHEDULER_DISABLED"
       ]
     },
     "dev": {

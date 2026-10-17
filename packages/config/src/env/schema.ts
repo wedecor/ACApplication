@@ -66,6 +66,14 @@ export const serverEnvSchema = z.object({
   S3_BUCKET: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
+  /** Public base URL objects are served from (CDN / MinIO public bucket). Defaults to endpoint/bucket. */
+  S3_PUBLIC_URL: optionalUrlSchema,
+  /** Path-style addressing (`endpoint/bucket/key`) — required for MinIO. */
+  S3_FORCE_PATH_STYLE: booleanSchema.default(true),
+  /** Max size accepted for presigned direct uploads, bytes. */
+  UPLOAD_MAX_BYTES: z.coerce.number().int().min(1024).default(10 * 1024 * 1024),
+  /** Lifetime of presigned upload / download URLs, seconds. */
+  UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(7 * 24 * 3600).default(900),
 
   // Email (SMTP)
   SMTP_HOST: z.string().optional(),
@@ -128,6 +136,12 @@ export const serverEnvSchema = z.object({
   // Stripe (international fallback)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // Payment reconciliation cron (PaymentsReconcileScheduler)
+  PAYMENTS_RECONCILE_ENABLED: booleanSchema.default(true),
+  /** Txns untouched in CREATED/PENDING/AUTHORIZED for longer than this are re-checked with the provider. */
+  PAYMENTS_RECONCILE_STALE_MINUTES: z.coerce.number().int().min(1).default(15),
+  PAYMENTS_RECONCILE_BATCH_SIZE: z.coerce.number().int().min(1).max(1000).default(100),
 
   // Rate limiting
   RATE_LIMIT_GLOBAL_RPS: z.coerce.number().int().min(1).default(100),
