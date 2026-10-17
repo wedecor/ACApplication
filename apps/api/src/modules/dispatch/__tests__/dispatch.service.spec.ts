@@ -115,6 +115,36 @@ describe('DispatchService.recommend', () => {
     expect(prisma.client.dispatchAssignment.deleteMany).toHaveBeenCalled();
     expect(prisma.client.dispatchAssignment.createMany).toHaveBeenCalled();
   });
+
+  it('does not crash when a candidate technician is missing from the re-read (falls back to candidate row)', async () => {
+    const { service, prisma } = buildService({
+      candidates: [
+        {
+          technician: {
+            id: 'tech_gone',
+            lastLatitude: 12.97,
+            lastLongitude: 77.6,
+            fullName: 'Candidate Row Name',
+            status: 'AVAILABLE',
+            rating: 4.2,
+          } as never,
+          score: 70,
+          distanceKm: 3,
+          activeJobs: 1,
+          breakdown: { skillMatch: 40, proximity: 10, workload: 10, rating: 10 },
+        },
+      ],
+    });
+    (prisma.client.technician.findMany as jest.Mock).mockResolvedValueOnce([]);
+    const out = await service.recommend({ userId: 'u', tenantId: 't' } as never, 'bk_1');
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      technicianId: 'tech_gone',
+      fullName: 'Candidate Row Name',
+      status: 'AVAILABLE',
+      rating: 4.2,
+    });
+  });
 });
 
 describe('DispatchService.autoAssign', () => {

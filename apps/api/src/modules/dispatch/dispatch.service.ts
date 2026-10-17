@@ -515,7 +515,15 @@ export class DispatchService {
 
     const out: DispatchRecommendation[] = [];
     for (const c of candidates) {
-      const tech = techMap.get(c.technician.id)!;
+      // The re-read can miss a technician (soft-deleted / deactivated between
+      // `findCandidates` and here). Fall back to the row the candidate already
+      // carries instead of dereferencing undefined.
+      const fresh = techMap.get(c.technician.id);
+      const tech = {
+        fullName: fresh?.fullName ?? c.technician.fullName ?? '',
+        status: fresh?.status ?? c.technician.status ?? 'UNKNOWN',
+        rating: fresh?.rating ?? c.technician.rating ?? 0,
+      };
       let etaMin: number | null = null;
       let trafficEtaMin: number | null = null;
       let etaScore = 0;
