@@ -1,17 +1,62 @@
+'use client';
+
 import * as React from 'react';
 
 import { cn } from '../lib/cn';
 
-export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
-      <table
-        ref={ref}
-        className={cn('w-full caption-bottom text-sm', className)}
-        {...props}
-      />
-    </div>
-  ),
+export interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  /**
+   * Below `md`, render each row as a stacked card: the header is visually
+   * hidden and every cell is labelled with its column heading (copied from
+   * `<th>` automatically). Mark the title cell with `data-primary`; hide a
+   * cell on phones with `className="max-md:hidden"`.
+   */
+  stackOnMobile?: boolean;
+}
+
+/** Copy each column's header text onto its body cells as `data-label`. */
+function useColumnLabels(ref: React.RefObject<HTMLTableElement>, enabled: boolean) {
+  React.useEffect(() => {
+    const table = ref.current;
+    if (!enabled || !table) return;
+    const apply = () => {
+      const headers: string[] = [];
+      table.querySelectorAll('thead tr:last-child th').forEach((th) => {
+        const span = Number(th.getAttribute('colspan') ?? 1);
+        const text = (th.textContent ?? '').trim();
+        for (let i = 0; i < span; i += 1) headers.push(text);
+      });
+      table.querySelectorAll('tbody tr').forEach((tr) => {
+        let col = 0;
+        Array.from(tr.children).forEach((cell) => {
+          const label = headers[col] ?? '';
+          if (cell.getAttribute('data-label') !== label) cell.setAttribute('data-label', label);
+          col += Number(cell.getAttribute('colspan') ?? 1);
+        });
+      });
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(table, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [ref, enabled]);
+}
+
+export const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, stackOnMobile = false, ...props }, forwardedRef) => {
+    const innerRef = React.useRef<HTMLTableElement>(null);
+    React.useImperativeHandle(forwardedRef, () => innerRef.current as HTMLTableElement);
+    useColumnLabels(innerRef, stackOnMobile);
+    return (
+      <div className={cn('relative w-full', stackOnMobile ? 'md:overflow-auto' : 'overflow-auto')}>
+        <table
+          ref={innerRef}
+          className={cn('w-full caption-bottom text-sm', stackOnMobile && 'table-stack', className)}
+          {...props}
+        />
+      </div>
+    );
+  },
 );
 Table.displayName = 'Table';
 

@@ -20,13 +20,15 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* 5.3:1 on --muted, 5.9:1 on --background */
+    --muted-foreground: 215.4 16.3% 42%;
 
     --accent: 25 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* 4.8:1 against white button text */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -81,5 +83,77 @@
   }
   :focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+/*
+ * <Table stackOnMobile>: rows become stacked label/value cards below md.
+ * Labels come from data-label (set by the Table component from <th> text).
+ */
+@layer components {
+  @media (max-width: 767px) {
+    .table-stack thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .table-stack,
+    .table-stack tbody {
+      display: block;
+    }
+    .table-stack tbody tr {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.875rem 1rem;
+    }
+    .table-stack tbody td {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0;
+      min-width: 0;
+      text-align: right;
+    }
+    .table-stack tbody td::before {
+      content: attr(data-label);
+      flex-shrink: 0;
+      text-align: left;
+      font-size: 0.8125rem;
+      color: hsl(var(--muted-foreground));
+    }
+    .table-stack tbody td[data-label='']::before,
+    .table-stack tbody td[data-primary]::before,
+    .table-stack tbody tr:not(:has(td[data-primary])) td:first-child::before {
+      content: none;
+    }
+    .table-stack tbody td[data-label=''] {
+      justify-content: flex-start;
+      text-align: left;
+    }
+    .table-stack tbody td[data-primary],
+    .table-stack tbody tr:not(:has(td[data-primary])) td:first-child {
+      order: -1;
+      display: block;
+      text-align: left;
+      font-weight: 500;
+      padding-bottom: 0.25rem;
+    }
+    .table-stack tbody td:empty,
+    .table-stack tbody td[colspan] {
+      text-align: left;
+    }
+    .table-stack tbody td:empty,
+    .table-stack tbody td.max-md\:hidden {
+      display: none;
+    }
+    /* Lets a cell link use after:absolute after:inset-0 to make the whole card tappable. */
+    .table-stack tbody tr {
+      position: relative;
+    }
   }
 }
