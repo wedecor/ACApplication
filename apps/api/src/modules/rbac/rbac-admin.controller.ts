@@ -1,9 +1,9 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
-import type { AuthPrincipal } from '@ac/auth';
 import { RbacService } from './rbac.service';
 
 @ApiTags('admin')

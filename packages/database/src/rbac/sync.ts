@@ -79,6 +79,11 @@ export async function syncPermissionsFromSeed(
     });
     stats.rolesSynced += 1;
 
+    // Roles an admin customised via /v1/admin/roles have isSystem=false —
+    // the tenant owns their permission set, so the registry must not revert
+    // it. SUPER_ADMIN is immutable in the API and therefore always reconciled.
+    if (!role.isSystem && roleKey !== 'SUPER_ADMIN') continue;
+
     const desiredKeys = [...new Set(ROLE_PERMISSIONS[roleKey])];
     const permRows = await prisma.permission.findMany({
       where: { key: { in: desiredKeys } },
@@ -199,6 +204,8 @@ export async function auditRbacConsistency(
         });
         continue;
       }
+      // Tenant-customised roles (isSystem=false) intentionally diverge from the registry.
+      if (!role.isSystem && roleKey !== 'SUPER_ADMIN') continue;
 
       const desired = new Set(ROLE_PERMISSIONS[roleKey]);
       const actual = new Set(role.permissions.map((rp) => rp.permission.key));

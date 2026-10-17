@@ -1,8 +1,8 @@
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import type { LoadedServerEnv } from '@ac/config';
 import type { RbacConsistencyReport, RbacHealthReport } from '@ac/auth';
 import { assertRegistryValid, validateRegistry } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
 import { auditRbacConsistency, syncAllTenantRbac, syncPermissionsFromSeed } from '@ac/database';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { PrismaService } from '../../common/prisma/prisma.service';
