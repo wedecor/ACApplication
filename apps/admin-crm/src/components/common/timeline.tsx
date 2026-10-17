@@ -1,6 +1,5 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@ac/ui';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Activity as ActivityIcon,
@@ -15,6 +14,8 @@ import {
   Wrench,
   XCircle,
 } from 'lucide-react';
+
+import { humanizeEnum } from '@/lib/labels';
 
 interface TimelineEntry {
   id: string;
@@ -57,50 +58,42 @@ const ICONS: Record<string, typeof Circle> = {
 
 export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   if (entries.length === 0) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        No activity yet.
-      </p>
-    );
+    return <p className="py-8 text-center text-sm text-muted-foreground">No activity yet.</p>;
   }
 
   return (
-    <ol className="space-y-3">
+    <ol className="relative space-y-5 before:absolute before:bottom-2 before:left-4 before:top-2 before:w-px before:bg-border">
       {entries.map((entry) => {
         const Icon = ICONS[entry.type] ?? Circle;
         const actorName = entry.actor
           ? [entry.actor.firstName, entry.actor.lastName].filter(Boolean).join(' ') || 'System'
           : 'System';
+        const at = new Date(entry.createdAt);
         return (
-          <li key={entry.id} className="flex gap-3 rounded-md border bg-card p-3">
-            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-              <Icon className="size-4 text-muted-foreground" />
+          <li key={entry.id} className="relative flex gap-3">
+            <div className="z-10 flex size-8 shrink-0 items-center justify-center rounded-full border bg-card">
+              <Icon className="size-4 text-muted-foreground" aria-hidden />
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">
-                  {labelForType(entry.type)}
-                </span>
-                {entry.fromStatus && entry.toStatus ? (
-                  <span className="text-xs text-muted-foreground">
-                    {entry.fromStatus} → {entry.toStatus}
-                  </span>
-                ) : null}
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
-                </span>
+            <div className="min-w-0 flex-1 pt-1">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-sm font-medium">{labelForType(entry.type)}</span>
+                <time
+                  dateTime={at.toISOString()}
+                  title={at.toLocaleString('en-IN')}
+                  className="shrink-0 text-xs text-muted-foreground"
+                >
+                  {formatDistanceToNow(at, { addSuffix: true })}
+                </time>
               </div>
-              {entry.message ? (
-                <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{entry.message}</p>
+              {entry.fromStatus && entry.toStatus ? (
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {humanizeEnum(entry.fromStatus)} → <span className="text-foreground">{humanizeEnum(entry.toStatus)}</span>
+                </p>
               ) : null}
-              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                <Avatar className="size-5">
-                  <AvatarFallback className="text-[9px]">
-                    {actorName.split(' ').map((s) => s[0]).join('').slice(0, 2).toUpperCase() || '?'}
-                  </AvatarFallback>
-                </Avatar>
-                <span>{actorName}</span>
-              </div>
+              {entry.message ? (
+                <p className="mt-0.5 line-clamp-3 text-sm text-muted-foreground">{entry.message}</p>
+              ) : null}
+              <p className="mt-1 text-xs text-muted-foreground">{actorName}</p>
             </div>
           </li>
         );
@@ -109,9 +102,8 @@ export function Timeline({ entries }: { entries: TimelineEntry[] }) {
   );
 }
 
+const ACRONYMS = /\b(Otp|Sla|Amc|Gst)\b/g;
+
 function labelForType(type: string): string {
-  return type
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/^./, (c) => c.toUpperCase());
+  return humanizeEnum(type).replace(ACRONYMS, (m) => m.toUpperCase());
 }

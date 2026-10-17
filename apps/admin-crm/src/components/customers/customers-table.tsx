@@ -41,11 +41,12 @@ export function CustomersTable({ data, isLoading }: Props) {
       {
         accessorKey: 'fullName',
         header: 'Customer',
+        meta: { primary: true },
         cell: ({ row }) => (
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <Link
               href={`/customers/${row.original.id}`}
-              className="font-medium text-primary hover:underline"
+              className="truncate font-medium text-primary hover:underline max-md:text-foreground max-md:after:absolute max-md:after:inset-0"
             >
               {row.original.fullName}
             </Link>
@@ -131,7 +132,7 @@ export function CustomersTable({ data, isLoading }: Props) {
 
   return (
     <div className="rounded-lg border">
-      <Table>
+      <Table stackOnMobile>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
             <TableRow key={hg.id}>
@@ -149,7 +150,7 @@ export function CustomersTable({ data, isLoading }: Props) {
           {table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
+                <TableCell key={cell.id} data-primary={cell.column.columnDef.meta?.primary ? '' : undefined}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}

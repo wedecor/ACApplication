@@ -155,7 +155,7 @@ function ImportReportView({ report }: { report: ImportReport }) {
       </div>
       {rows.length > 0 ? (
         <div className="max-h-96 overflow-auto rounded-lg border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-20">Row</TableHead>

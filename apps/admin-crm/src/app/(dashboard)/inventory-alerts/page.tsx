@@ -60,7 +60,7 @@ export default function InventoryAlertsPage() {
       </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Severity</TableHead>

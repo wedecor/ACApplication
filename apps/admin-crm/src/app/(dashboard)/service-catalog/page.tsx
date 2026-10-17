@@ -123,7 +123,7 @@ function CatalogTab({ category, canManage }: { category?: ServiceCategory; canMa
         </div>
       ) : null}
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>
@@ -154,12 +154,12 @@ function CatalogTab({ category, canManage }: { category?: ServiceCategory; canMa
               items.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-mono text-xs">{c.code}</TableCell>
-                  <TableCell className="font-medium">{c.name}</TableCell>
+                  <TableCell data-primary="" className="font-medium">{c.name}</TableCell>
                   <TableCell className="text-sm">{humanize(c.category)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatMinor(c.basePriceMinor)}</TableCell>
                   <TableCell className="text-right tabular-nums">{formatMinor(c.visitChargeMinor)}</TableCell>
                   <TableCell className="text-right tabular-nums">{c.estimatedMinutes}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.repairWarrantyDays} d</TableCell>
+                  <TableCell className="text-right tabular-nums">{c.repairWarrantyDays ? `${c.repairWarrantyDays} days` : 'None'}</TableCell>
                   <TableCell>
                     <Badge variant={c.isActive ? 'success' : 'muted'}>{c.isActive ? 'Active' : 'Inactive'}</Badge>
                   </TableCell>
@@ -327,7 +327,7 @@ function FaultCodesTab({ category, canManage }: { category?: ServiceCategory; ca
         ) : null}
       </div>
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>
@@ -355,7 +355,7 @@ function FaultCodesTab({ category, canManage }: { category?: ServiceCategory; ca
               items.map((f) => (
                 <TableRow key={f.id}>
                   <TableCell className="font-mono text-xs">{f.code}</TableCell>
-                  <TableCell className="font-medium">{f.title}</TableCell>
+                  <TableCell data-primary="" className="font-medium">{f.title}</TableCell>
                   <TableCell className="text-sm">{humanize(f.category)}</TableCell>
                   <TableCell className="text-sm">{f.brand ?? 'All brands'}</TableCell>
                   <TableCell className="max-w-sm text-xs text-muted-foreground">{f.suggestedFix ?? '—'}</TableCell>

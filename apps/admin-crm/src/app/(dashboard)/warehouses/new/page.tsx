@@ -66,10 +66,9 @@ export default function NewWarehousePage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href="/warehouses"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to warehouses
+        <ArrowLeft className="size-4" aria-hidden /> Warehouses
       </Link>
 
       <header>

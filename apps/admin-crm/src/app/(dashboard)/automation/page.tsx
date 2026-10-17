@@ -77,7 +77,7 @@ export default function AutomationPage() {
       </header>
 
       {analytics ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard title="Active workflows" value={String(analytics.total)} sub="Last 7 days" />
           <MetricCard
             title="Success rate"
@@ -130,7 +130,7 @@ export default function AutomationPage() {
                 description="Instances appear when domain events trigger automation."
               />
             ) : (
-              <Table>
+              <Table stackOnMobile>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Definition</TableHead>

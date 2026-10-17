@@ -54,9 +54,9 @@ export const TextArea = React.forwardRef<
 
 export function StatCard({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+    <div className="min-w-0 rounded-lg border bg-card p-3 sm:p-4">
+      <p className="truncate text-sm text-muted-foreground">{label}</p>
+      <p className="mt-0.5 truncate text-xl font-semibold tabular-nums sm:text-2xl">{value}</p>
       {hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   );

@@ -46,7 +46,7 @@ export default function DispatchControlCenterPage() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_1.4fr_1fr]">
         <section className="flex flex-col gap-3">
           <header className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-sm font-semibold text-muted-foreground">
               Unassigned queue
             </h2>
             <span className="text-xs text-muted-foreground">
@@ -63,7 +63,7 @@ export default function DispatchControlCenterPage() {
 
         <section ref={recsRef} className="flex scroll-mt-20 flex-col gap-3">
           <header className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-sm font-semibold text-muted-foreground">
               Recommendations
             </h2>
             {selected ? (
@@ -77,7 +77,7 @@ export default function DispatchControlCenterPage() {
 
         <section className="flex flex-col gap-3">
           <AvailabilityCard cityId={cityId} />
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="text-sm font-semibold text-muted-foreground">
             Active alerts
           </h2>
           <AlertFeed cityId={cityId} />

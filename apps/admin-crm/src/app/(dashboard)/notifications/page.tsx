@@ -79,7 +79,7 @@ export default function NotificationsPage() {
       </header>
 
       {dashboard ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Queue waiting"
             value={String(dashboard.queue.main.waiting)}
@@ -167,7 +167,7 @@ export default function NotificationsPage() {
             />
           ) : (
             <div className="rounded-lg border">
-              <Table>
+              <Table stackOnMobile>
                 <TableHeader>
                   <TableRow>
                     <TableHead>When</TableHead>

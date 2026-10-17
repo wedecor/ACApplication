@@ -47,9 +47,12 @@ export default function WarehouseDetailPage() {
   if (error || !warehouse) {
     return (
       <div className="space-y-4">
-        <Link href="/warehouses" className="text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="inline size-4" /> Back to warehouses
-        </Link>
+        <Link
+        href="/warehouses"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Warehouses
+      </Link>
         <p className="text-sm text-destructive">
           {error ? (error as Error).message : 'Warehouse not found'}
         </p>
@@ -59,8 +62,11 @@ export default function WarehouseDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/warehouses" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to warehouses
+      <Link
+        href="/warehouses"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Warehouses
       </Link>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -77,7 +83,7 @@ export default function WarehouseDetailPage() {
       </header>
 
       {stats ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="SKUs" value={String(stats.skuCount)} />
           <Stat label="On hand" value={String(stats.totalQuantity)} />
           <Stat label="Reserved" value={String(stats.totalReserved)} />
@@ -108,7 +114,7 @@ export default function WarehouseDetailPage() {
           {zones.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">No zones configured yet.</p>
           ) : (
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Code</TableHead>

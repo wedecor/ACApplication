@@ -32,9 +32,12 @@ export default function VendorDetailPage() {
   if (error || !vendor) {
     return (
       <div className="space-y-4">
-        <Link href="/vendors" className="text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="inline size-4" /> Back to vendors
-        </Link>
+        <Link
+        href="/vendors"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Vendors
+      </Link>
         <p className="text-sm text-destructive">
           {error ? (error as Error).message : 'Vendor not found'}
         </p>
@@ -44,8 +47,11 @@ export default function VendorDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/vendors" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to vendors
+      <Link
+        href="/vendors"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Vendors
       </Link>
 
       <header>

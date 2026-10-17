@@ -91,8 +91,8 @@ export default function ApplianceDetailPage() {
         ) : null}
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="order-2 min-w-0 space-y-6 lg:order-1 lg:col-span-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Service history</CardTitle>
@@ -146,7 +146,7 @@ export default function ApplianceDetailPage() {
           ) : null}
         </div>
 
-        <aside className="space-y-6">
+        <aside className="order-1 space-y-6 lg:order-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Warranty & coverage</CardTitle>
@@ -226,8 +226,11 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 
 function BackLink() {
   return (
-    <Link href="/appliances" className="text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="inline size-4" /> Back to appliances
-    </Link>
+    <Link
+        href="/appliances"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Appliances
+      </Link>
   );
 }

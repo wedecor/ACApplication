@@ -53,7 +53,7 @@ export default function CsatPage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
           Agent productivity
         </h2>
         {productivity.isLoading ? (
@@ -104,7 +104,7 @@ function Card({
 }) {
   return (
     <div className="rounded-md border bg-card p-4">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       {loading ? (
         <Skeleton className="mt-2 h-7 w-24" />
       ) : (

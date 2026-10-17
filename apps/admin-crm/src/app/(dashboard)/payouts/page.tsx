@@ -90,7 +90,7 @@ export default function PayoutsPage() {
         />
       ) : (
         <div className="rounded-lg border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Code</TableHead>

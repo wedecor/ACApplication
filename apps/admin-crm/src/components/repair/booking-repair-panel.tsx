@@ -326,9 +326,9 @@ function WorkshopCard({ booking }: { booking: BookingRepairInfo }) {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <span className="text-xs uppercase text-muted-foreground">{label}</span>
-      <span className="text-right">{children}</span>
+    <div className="flex items-baseline justify-between gap-4">
+      <span className="shrink-0 text-muted-foreground">{label}</span>
+      <span className="min-w-0 break-words text-right">{children}</span>
     </div>
   );
 }

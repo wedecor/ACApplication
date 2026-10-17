@@ -4,8 +4,19 @@
  */
 
 /** "WAITING_PARTS" → "Waiting parts" (fallback for enums without a curated label). */
+const SPECIAL: Record<string, string> = {
+  ON_SITE: 'On-site',
+  PICKUP_DROP: 'Pickup & drop',
+  CARRY_IN: 'Carry-in',
+  OEM_CLAIM: 'OEM claim',
+  SUBMITTED_TO_OEM: 'Submitted to OEM',
+  NO_SHOW: 'No-show',
+  TECHNICIAN_EN_ROUTE: 'Technician en route',
+};
+
 export function humanizeEnum(value: string | null | undefined): string {
   if (!value) return '—';
+  if (SPECIAL[value]) return SPECIAL[value];
   const s = value.replace(/_/g, ' ').toLowerCase();
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

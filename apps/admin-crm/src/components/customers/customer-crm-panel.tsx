@@ -79,7 +79,7 @@ export function CustomerCrmPanel({ customer }: { customer: CustomerDetail }) {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Preferred language</p>
-                <span>{customer.preferredLanguage ?? 'en'}</span>
+                <span>{languageName(customer.preferredLanguage)}</span>
               </div>
             </div>
             {fieldKeys.length > 0 ? (
@@ -152,15 +152,23 @@ function LoyaltyCard({ customer }: { customer: CustomerDetail }) {
           ))}
         </ul>
         {canManage ? (
-          <form onSubmit={onAdjust} className="flex gap-2 border-t pt-3">
+          <form onSubmit={onAdjust} className="flex flex-wrap items-end gap-2 border-t pt-3">
             <Input
               className="w-24"
               type="number"
+              inputMode="numeric"
+              aria-label="Points to add (negative to deduct)"
               placeholder="±pts"
               value={points}
               onChange={(e) => setPoints(e.target.value)}
             />
-            <Input placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+            <Input
+              className="min-w-0 flex-1"
+              aria-label="Reason for adjustment"
+              placeholder="Reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
             <Button type="submit" size="sm" disabled={adjust.isPending}>
               Adjust
             </Button>
@@ -169,4 +177,21 @@ function LoyaltyCard({ customer }: { customer: CustomerDetail }) {
       </CardContent>
     </Card>
   );
+}
+
+const LANGUAGES: Record<string, string> = {
+  en: 'English',
+  hi: 'Hindi',
+  kn: 'Kannada',
+  ta: 'Tamil',
+  te: 'Telugu',
+  mr: 'Marathi',
+  ml: 'Malayalam',
+  bn: 'Bengali',
+  gu: 'Gujarati',
+};
+
+function languageName(code: string | null | undefined): string {
+  const c = code ?? 'en';
+  return LANGUAGES[c] ?? c.toUpperCase();
 }

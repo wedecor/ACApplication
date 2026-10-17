@@ -64,7 +64,7 @@ export default function InventoryPage() {
         </Button>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <KpiCard
           label="Catalogue SKUs"
           value={data?.meta.total?.toLocaleString() ?? '—'}
@@ -128,7 +128,7 @@ export default function InventoryPage() {
       </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Item</TableHead>
@@ -221,7 +221,7 @@ function KpiCard({
 }) {
   return (
     <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{label}</span>
         {icon}
       </div>

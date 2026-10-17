@@ -128,7 +128,7 @@ export default function SlaPage() {
         />
       ) : (
         <div className="rounded-md border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>

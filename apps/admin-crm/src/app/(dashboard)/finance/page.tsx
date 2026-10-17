@@ -286,7 +286,7 @@ export default function FinancePage() {
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-xs uppercase text-muted-foreground">
+                <thead className="text-sm text-muted-foreground">
                   <tr>
                     <th className="px-2 py-2 text-left">Customer</th>
                     <th className="px-2 py-2 text-right">Invoiced</th>
@@ -367,7 +367,7 @@ function KpiCard({
   return (
     <Card>
       <CardContent className="flex flex-col gap-1 p-4">
-        <div className="flex items-center justify-between text-xs uppercase text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{label}</span>
           {icon}
         </div>
@@ -385,7 +385,7 @@ function SubKpi({ label, value }: { label: string; value: string }) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-1 p-4">
-        <span className="text-xs uppercase text-muted-foreground">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
         <span className="text-lg font-semibold tracking-tight">{value}</span>
       </CardContent>
     </Card>

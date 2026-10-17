@@ -66,10 +66,9 @@ export default function NewTransferPage() {
     <section className="mx-auto max-w-3xl space-y-6">
       <Link
         href="/transfers"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to transfers
+        <ArrowLeft className="size-4" aria-hidden /> Transfers
       </Link>
 
       <header>

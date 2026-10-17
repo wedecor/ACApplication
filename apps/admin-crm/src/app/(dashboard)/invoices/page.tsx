@@ -119,7 +119,7 @@ export default function InvoicesPage() {
         />
       ) : (
         <div className="rounded-lg border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Number</TableHead>

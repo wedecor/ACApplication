@@ -52,7 +52,7 @@ export default function ReferralsPage() {
       </header>
 
       {stats ? (
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="Total" value={stats.total} />
           <StatCard label="Pending" value={stats.pending} />
           <StatCard label="Qualified" value={stats.qualified} />
@@ -98,7 +98,7 @@ export default function ReferralsPage() {
       ) : (
         <>
           <div className="rounded-lg border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Referrer</TableHead>

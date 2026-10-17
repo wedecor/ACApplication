@@ -50,7 +50,7 @@ export function RescheduleForm({ id, current }: { id: string; current: string })
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-xs uppercase text-muted-foreground">{label}</span>
+      <span className="mb-1 block text-sm text-muted-foreground">{label}</span>
       {children}
     </label>
   );

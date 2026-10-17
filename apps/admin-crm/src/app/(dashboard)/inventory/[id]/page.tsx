@@ -38,9 +38,12 @@ export default function InventoryItemDetailPage() {
   if (error || !item) {
     return (
       <div className="space-y-4">
-        <Link href="/inventory" className="text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="inline size-4" /> Back to catalogue
-        </Link>
+        <Link
+        href="/inventory"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Catalogue
+      </Link>
         <p className="text-sm text-destructive">
           {error ? (error as Error).message : 'Item not found'}
         </p>
@@ -50,8 +53,11 @@ export default function InventoryItemDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/inventory" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to catalogue
+      <Link
+        href="/inventory"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Catalogue
       </Link>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -74,7 +80,7 @@ export default function InventoryItemDetailPage() {
         <Badge variant="outline">{item.type.replace(/_/g, ' ')}</Badge>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="On hand" value={String(item.totalQuantity ?? 0)} />
         <Stat label="Reserved" value={String(item.totalReserved ?? 0)} />
         <Stat label="Available" value={String(item.available ?? 0)} />
@@ -128,7 +134,7 @@ export default function InventoryItemDetailPage() {
               quantity.
             </p>
           ) : (
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Warehouse</TableHead>
@@ -165,7 +171,7 @@ export default function InventoryItemDetailPage() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border bg-card p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
     </div>
   );

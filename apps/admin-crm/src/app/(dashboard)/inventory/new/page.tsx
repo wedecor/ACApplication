@@ -95,10 +95,9 @@ export default function NewInventoryItemPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href="/inventory"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to catalogue
+        <ArrowLeft className="size-4" aria-hidden /> Catalogue
       </Link>
 
       <header>

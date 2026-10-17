@@ -98,7 +98,7 @@ export default function CouponsPage() {
       ) : (
         <>
           <div className="rounded-lg border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Code</TableHead>
@@ -188,7 +188,7 @@ function RedemptionsModal({ coupon, onClose }: { coupon: Coupon | null; onClose:
         <p className="text-sm text-muted-foreground">No redemptions yet.</p>
       ) : (
         <>
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>

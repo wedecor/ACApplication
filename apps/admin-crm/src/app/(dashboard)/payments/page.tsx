@@ -94,7 +94,7 @@ export default function PaymentsPage() {
         />
       ) : (
         <div className="rounded-lg border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Provider</TableHead>

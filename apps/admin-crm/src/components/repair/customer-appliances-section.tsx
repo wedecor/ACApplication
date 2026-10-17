@@ -11,7 +11,7 @@ import { humanize } from '@/lib/api/repair';
 import { formatDate } from '@/lib/format';
 
 import { ApplianceFormModal } from './appliance-form-modal';
-import { useCan } from './repair-ui';
+import { useCan, WarrantyBadge } from './repair-ui';
 
 /** Self-contained "Appliances" card for the customer detail page. */
 export function CustomerAppliancesSection({ customerId }: { customerId: string }) {
@@ -43,11 +43,14 @@ export function CustomerAppliancesSection({ customerId }: { customerId: string }
         ) : (
           <ul className="divide-y">
             {items.map((a) => (
-              <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                <div>
-                  <Link href={`/appliances/${a.id}`} className="font-medium hover:underline">
+              <li key={a.id} className="relative space-y-1 py-3 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Link href={`/appliances/${a.id}`} className="font-medium hover:underline after:absolute after:inset-0">
                     {a.brand} {a.modelNumber ?? ''}
                   </Link>
+                  <WarrantyBadge manufacturerUntil={a.manufacturerWarrantyUntil} extendedUntil={a.extendedWarrantyUntil} />
+                </div>
+                <div>
                   <div className="text-xs text-muted-foreground">
                     {humanize(a.category)}
                     {a.capacity ? ` · ${a.capacity}` : ''}
@@ -55,9 +58,10 @@ export function CustomerAppliancesSection({ customerId }: { customerId: string }
                     {a.serialNumber ? ` · S/N ${a.serialNumber}` : ''}
                   </div>
                 </div>
-                <div className="text-right text-xs text-muted-foreground">
-                  <div>Last serviced {formatDate(a.lastServicedAt)}</div>
-                  <div>{a._count?.bookings ?? 0} bookings</div>
+                <div className="text-xs text-muted-foreground">
+                  {a.lastServicedAt ? `Last serviced ${formatDate(a.lastServicedAt)}` : 'Never serviced'}
+                  {' · '}
+                  {a._count?.bookings ?? 0} {(a._count?.bookings ?? 0) === 1 ? 'booking' : 'bookings'}
                 </div>
               </li>
             ))}

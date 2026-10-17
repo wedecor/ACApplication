@@ -53,9 +53,9 @@ export default function InvoiceDetailPage() {
         <div className="space-y-1">
           <Link
             href="/invoices"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-3" /> Back to invoices
+            <ArrowLeft className="size-4" aria-hidden /> Invoices
           </Link>
           <h1 className="text-2xl font-bold tracking-tight">
             Invoice {data.number}
@@ -180,7 +180,7 @@ export default function InvoiceDetailPage() {
                 <tfoot className="border-t bg-muted/40">
                   <tr>
                     <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-xs uppercase text-muted-foreground">Subtotal</span>
+                      <span className="text-sm text-muted-foreground">Subtotal</span>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums">
                       {formatMinor(data.subtotalMinor, data.currency)}
@@ -188,7 +188,7 @@ export default function InvoiceDetailPage() {
                   </tr>
                   <tr>
                     <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-xs uppercase text-muted-foreground">Tax</span>
+                      <span className="text-sm text-muted-foreground">Tax</span>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums">
                       {formatMinor(data.taxMinor, data.currency)}
@@ -196,7 +196,7 @@ export default function InvoiceDetailPage() {
                   </tr>
                   <tr>
                     <td className="px-4 py-2 text-right" colSpan={5}>
-                      <span className="text-xs uppercase text-muted-foreground">Total</span>
+                      <span className="text-sm text-muted-foreground">Total</span>
                     </td>
                     <td className="px-4 py-2 text-right tabular-nums font-semibold">
                       {formatMinor(data.totalMinor, data.currency)}
@@ -216,7 +216,7 @@ export default function InvoiceDetailPage() {
             <CardContent>
               {data.payments && data.payments.length > 0 ? (
                 <table className="w-full text-sm">
-                  <thead className="text-xs uppercase text-muted-foreground">
+                  <thead className="text-sm text-muted-foreground">
                     <tr>
                       <th className="px-2 py-2 text-left">Captured at</th>
                       <th className="px-2 py-2 text-left">Method</th>
@@ -279,7 +279,7 @@ function Stat({
   return (
     <Card>
       <CardContent className="space-y-1 p-4">
-        <span className="text-xs uppercase text-muted-foreground">{label}</span>
+        <span className="text-sm text-muted-foreground">{label}</span>
         <div
           className={`text-lg font-semibold tabular-nums ${
             tone === 'positive'
@@ -299,7 +299,7 @@ function Stat({
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <div className="text-xs uppercase text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       <div className="text-sm">{value}</div>
     </div>
   );

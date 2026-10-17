@@ -59,10 +59,9 @@ export default function NewVendorPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         href="/vendors"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden />
-        Back to vendors
+        <ArrowLeft className="size-4" aria-hidden /> Vendors
       </Link>
 
       <header>

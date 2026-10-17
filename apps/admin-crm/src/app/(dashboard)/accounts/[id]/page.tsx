@@ -47,9 +47,12 @@ export default function AccountDetailPage() {
   if (error || !account) {
     return (
       <div className="space-y-2">
-        <Link href="/accounts" className="text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="inline size-4" /> Back to accounts
-        </Link>
+        <Link
+        href="/accounts"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Accounts
+      </Link>
         <p className="text-sm text-destructive">{errorMessage(error, 'Account not found')}</p>
       </div>
     );
@@ -88,8 +91,11 @@ export default function AccountDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/accounts" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to accounts
+      <Link
+        href="/accounts"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Accounts
       </Link>
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -119,7 +125,7 @@ export default function AccountDetailPage() {
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Customers" value={s.customerCount} />
         <StatCard label="Bookings" value={s.bookingCount} />
         <StatCard label="Completed" value={s.completedBookingCount} />
@@ -149,7 +155,7 @@ export default function AccountDetailPage() {
           {account.customers.length === 0 ? (
             <p className="text-sm text-muted-foreground">No customers linked yet.</p>
           ) : (
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

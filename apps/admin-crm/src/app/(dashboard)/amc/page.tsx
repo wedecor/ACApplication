@@ -111,7 +111,7 @@ function SubscriptionCard({ sub }: { sub: AmcSubscription }) {
       <CardContent className="space-y-2 p-4">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-xs uppercase text-muted-foreground">{sub.number}</div>
+            <div className="text-sm text-muted-foreground">{sub.number}</div>
             <div className="text-sm font-semibold">{sub.customer?.fullName ?? '—'}</div>
           </div>
           <Badge variant={STATUS_BADGE[sub.status]}>{sub.status}</Badge>

@@ -122,7 +122,7 @@ export default function WarrantyPage() {
       {error ? <LoadError label="warranty claims" message={(error).message} /> : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Claim</TableHead>

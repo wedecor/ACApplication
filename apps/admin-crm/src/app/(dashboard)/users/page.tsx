@@ -187,7 +187,7 @@ function UsersTab() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>

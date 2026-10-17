@@ -137,7 +137,7 @@ export default function CannedResponsesPage() {
         <EmptyState title="No canned responses" description="Create one to speed up replies." />
       ) : (
         <div className="rounded-md border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Code</TableHead>

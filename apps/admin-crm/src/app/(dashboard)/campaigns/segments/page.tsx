@@ -69,7 +69,7 @@ export default function SegmentsPage() {
         <EmptyState icon={Users} title="No segments" description="Create a segment to target a campaign." />
       ) : (
         <div className="rounded-lg border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>

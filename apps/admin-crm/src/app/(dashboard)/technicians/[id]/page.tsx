@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
-import { ArrowLeft, ExternalLink, Pencil, Phone, Power, Star } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Pencil, Power, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import * as React from 'react';
@@ -28,9 +28,11 @@ import { CommissionRuleCard } from '@/components/technicians/commission-rule-car
 import { DeactivateTechnicianDialog } from '@/components/technicians/deactivate-technician-dialog';
 import { TechnicianFormModal } from '@/components/technicians/technician-form-modal';
 import { useReactivateTechnician, useTechnician, useTechnicianBookings } from '@/hooks/use-technicians';
+import { ContactButtons } from '@/components/common/contact-buttons';
 import { apiErrorMessage } from '@/lib/api/error-message';
 import type { TechnicianDetail, Weekday } from '@/lib/api/technicians';
 import { formatDate, formatDateTime, formatMinor } from '@/lib/format';
+import { categoryLabel, humanizeEnum } from '@/lib/labels';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 
 const WEEKDAYS: Weekday[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -80,56 +82,64 @@ export default function TechnicianDetailPage() {
       <BackLink />
 
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight">
-            {t.fullName}
+        <div className="min-w-0 space-y-2">
+          <h1 className="text-2xl font-bold tracking-tight">{t.fullName}</h1>
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" style={{ borderColor: status.fg, color: status.fg, backgroundColor: status.bg }}>
-              {t.status.replace(/_/g, ' ')}
+              {humanizeEnum(t.status)}
             </Badge>
             {suspended ? <Badge variant="destructive">Deactivated</Badge> : <Badge variant="success">Active</Badge>}
-          </h1>
-          <p className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-mono">{t.employeeCode}</span>·
-            <Phone className="size-3.5" aria-hidden />
-            {t.phone}
-            {t.user.email ? ` · ${t.user.email}` : null} · {t.city.name}, {t.city.state}
-          </p>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            <p>
+              {t.employeeCode} · {t.city.name}, {t.city.state}
+            </p>
+            <p className="break-all">
+              {t.phone}
+              {t.user.email ? ` · ${t.user.email}` : null}
+            </p>
+          </div>
+          <ContactButtons phone={t.phone} />
         </div>
         {canWrite ? (
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setEditOpen(true)}>
-              <Pencil className="size-4" /> Edit
+              <Pencil aria-hidden /> Edit
             </Button>
             {suspended ? (
               <Button variant="outline" disabled={reactivate.isPending} onClick={() => void onReactivate()}>
                 Reactivate
               </Button>
             ) : (
-              <Button variant="destructive" onClick={() => setDeactivateOpen(true)}>
-                <Power className="size-4" /> Deactivate
+              <Button
+                variant="outline"
+                className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setDeactivateOpen(true)}
+              >
+                <Power aria-hidden /> Deactivate
               </Button>
             )}
           </div>
         ) : null}
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <Stat label="Rating" value={t.stats.rating.toFixed(2)} sub={`${t.stats.ratingCount} reviews`} />
-        <Stat label="Total jobs" value={t.stats.totalJobs} />
+        <Stat label="Lifetime jobs" value={t.stats.totalJobs} />
         <Stat label="Completed" value={t.stats.completedJobs} />
         <Stat label="Open bookings" value={t.stats.openBookings} />
         <Stat label="Completion" value={`${Math.round(t.stats.completionRate * 100)}%`} />
         <Stat label="Acceptance" value={`${Math.round(t.stats.acceptanceRate * 100)}%`} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <ProfileCard t={t} />
         <WorkingHoursCard t={t} />
         <CommissionRuleCard technicianId={t.id} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
           <JobsCard technicianId={t.id} />
         </div>
         <RatingsCard t={t} />
@@ -146,9 +156,12 @@ export default function TechnicianDetailPage() {
 
 function BackLink() {
   return (
-    <Link href="/technicians" className="text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="inline size-4" /> Back to technicians
-    </Link>
+    <Link
+        href="/technicians"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Technicians
+      </Link>
   );
 }
 
@@ -158,7 +171,7 @@ function Stat({ label, value, sub }: { label: string; value: React.ReactNode; su
       <CardContent className="py-3">
         <p className="text-xs text-muted-foreground">{label}</p>
         <p className="text-2xl font-bold tabular-nums">{value}</p>
-        {sub ? <p className="text-[11px] text-muted-foreground">{sub}</p> : null}
+        {sub ? <p className="text-xs text-muted-foreground">{sub}</p> : null}
       </CardContent>
     </Card>
   );
@@ -175,8 +188,8 @@ function ProfileCard({ t }: { t: TechnicianDetail }) {
           <p className="mb-1 text-xs text-muted-foreground">Skills</p>
           <div className="flex flex-wrap gap-1">
             {t.skills.map((s) => (
-              <Badge key={s} variant="muted" className="text-[10px]">
-                {s.replace(/_/g, ' ')}
+              <Badge key={s} variant="muted">
+                {categoryLabel(s)}
               </Badge>
             ))}
           </div>
@@ -197,7 +210,7 @@ function ProfileCard({ t }: { t: TechnicianDetail }) {
               {t.documents.map((d, i) => (
                 <li key={i} className="flex items-center justify-between gap-2 text-xs">
                   <a href={d.url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 hover:underline">
-                    {d.label || d.type}
+                    {d.label || humanizeEnum(d.type)}
                     <ExternalLink className="size-3" aria-hidden />
                   </a>
                   {d.verified ? <Badge variant="success">Verified</Badge> : <Badge variant="outline">Unverified</Badge>}
@@ -224,7 +237,7 @@ function WorkingHoursCard({ t }: { t: TechnicianDetail }) {
             return (
               <Row
                 key={d}
-                label={d.toUpperCase()}
+                label={d.charAt(0).toUpperCase() + d.slice(1)}
                 value={windows.length ? windows.map(([a, b]) => `${a}–${b}`).join(', ') : 'Off'}
               />
             );
@@ -245,7 +258,7 @@ function JobsCard({ technicianId }: { technicianId: string }) {
         <CardTitle className="text-base">Jobs</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Booking</TableHead>

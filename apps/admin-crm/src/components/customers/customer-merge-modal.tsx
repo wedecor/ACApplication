@@ -57,12 +57,12 @@ export function CustomerMergeModal({
       <div className="space-y-4 text-sm">
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3">
-            <p className="text-xs uppercase text-muted-foreground">Duplicate (removed)</p>
+            <p className="text-sm text-muted-foreground">Duplicate (removed)</p>
             <p className="font-medium">{duplicate.fullName}</p>
             <p className="text-muted-foreground">{duplicate.phone}</p>
           </div>
           <div className="rounded-md border border-success-500/40 bg-success-500/5 p-3">
-            <p className="text-xs uppercase text-muted-foreground">Survivor (kept)</p>
+            <p className="text-sm text-muted-foreground">Survivor (kept)</p>
             <p className="font-medium">{survivor.fullName}</p>
             <p className="text-muted-foreground">{survivor.phone}</p>
           </div>

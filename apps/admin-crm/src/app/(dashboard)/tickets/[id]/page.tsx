@@ -92,10 +92,9 @@ export default function TicketDetailPage() {
     <div className="space-y-4">
       <Link
         href="/tickets"
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-3" />
-        Back to tickets
+        <ArrowLeft className="size-4" aria-hidden /> Tickets
       </Link>
 
       <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -297,7 +296,7 @@ export default function TicketDetailPage() {
         {/* Sidebar: customer context */}
         <aside className="col-span-12 space-y-3 lg:col-span-4">
           <section className="rounded-md border bg-card p-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-sm font-semibold text-muted-foreground">
               Ticket meta
             </h2>
             <dl className="mt-2 space-y-1 text-sm">
@@ -380,7 +379,7 @@ function CustomerContextCard({
   } | null;
   return (
     <section className="rounded-md border bg-card p-3">
-      <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="text-sm font-semibold text-muted-foreground">
         Customer
       </h2>
       {cust ? (
@@ -414,7 +413,7 @@ function CustomerContextCard({
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-md border bg-card p-2">
-      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>
   );

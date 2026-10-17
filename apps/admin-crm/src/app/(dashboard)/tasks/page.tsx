@@ -35,6 +35,7 @@ import {
   type TaskStatus,
 } from '@/lib/api/tasks';
 import { errorMessage, formatDateTime, isoToLocalInput, localInputToIso } from '@/lib/crm-format';
+import { humanizeEnum } from '@/lib/labels';
 
 const PRIORITY_VARIANT: Record<TaskPriority, 'muted' | 'info' | 'warning' | 'destructive'> = {
   LOW: 'muted',
@@ -104,7 +105,7 @@ export default function TasksPage() {
       </header>
 
       {summary ? (
-        <div className="grid gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard label="My open" value={summary.mineOpen} />
           <StatCard label="Due today" value={summary.dueToday} />
           <StatCard label="Overdue" value={summary.overdue} />
@@ -113,42 +114,52 @@ export default function TasksPage() {
       ) : null}
 
       <div className="flex flex-wrap items-center gap-2">
+        <form
+          role="search"
+          className="flex w-full gap-2 sm:order-last sm:w-auto"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setQuery((q) => ({ ...q, page: 1, search: draft.trim() || undefined }));
+          }}
+        >
+          <Input
+            type="search"
+            aria-label="Search tasks"
+            className="min-w-0 flex-1 sm:w-56"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="Search tasks"
+          />
+          <Button type="submit" variant="secondary">
+            Search
+          </Button>
+        </form>
         <div className="flex gap-1 rounded-lg border p-1">
           {tab('mine', 'My tasks')}
           {tab('all', 'All tasks')}
         </div>
         <NativeSelect
           className="w-40"
+          aria-label="Status"
           value={query.status ?? ''}
           onChange={(e) => setQuery((q) => ({ ...q, page: 1, status: (e.target.value || undefined) as TaskStatus | undefined }))}
         >
           <option value="">Any status</option>
           {TASK_STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s.replace('_', ' ')}
+              {humanizeEnum(s)}
             </option>
           ))}
         </NativeSelect>
-        <label className="flex items-center gap-1.5 text-sm">
+        <label className="flex h-10 items-center gap-2 text-sm">
           <input
+            className="size-4 accent-primary"
             type="checkbox"
             checked={Boolean(query.overdue)}
             onChange={(e) => setQuery((q) => ({ ...q, page: 1, overdue: e.target.checked || undefined }))}
           />
           Overdue only
         </label>
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setQuery((q) => ({ ...q, page: 1, search: draft.trim() || undefined }));
-          }}
-        >
-          <Input className="w-56" value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Search tasks…" />
-          <Button type="submit" variant="secondary">
-            Search
-          </Button>
-        </form>
       </div>
 
       {error ? (
@@ -160,7 +171,7 @@ export default function TasksPage() {
       ) : (
         <>
           <div className="rounded-lg border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
@@ -183,7 +194,7 @@ export default function TasksPage() {
                         {t.description ? <p className="line-clamp-1 text-xs text-muted-foreground">{t.description}</p> : null}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={PRIORITY_VARIANT[t.priority]}>{t.priority}</Badge>
+                        <Badge variant={PRIORITY_VARIANT[t.priority]}>{humanizeEnum(t.priority)}</Badge>
                       </TableCell>
                       <TableCell className="text-xs">
                         {t.dueAt ? formatDateTime(t.dueAt) : '—'}
@@ -201,17 +212,17 @@ export default function TasksPage() {
                         {t.entityType && t.entityId ? (
                           route ? (
                             <Link href={`${route}/${t.entityId}`} className="text-primary hover:underline">
-                              {t.entityType}
+                              {humanizeEnum(t.entityType)}
                             </Link>
                           ) : (
-                            t.entityType
+                            humanizeEnum(t.entityType)
                           )
                         ) : (
                           '—'
                         )}
                       </TableCell>
                       <TableCell className="text-xs">{assigneeName(t)}</TableCell>
-                      <TableCell className="text-xs">{t.status.replace('_', ' ')}</TableCell>
+                      <TableCell className="text-sm">{humanizeEnum(t.status)}</TableCell>
                       <TableCell className="whitespace-nowrap text-right">
                         {isOpen(t) ? (
                           <Button

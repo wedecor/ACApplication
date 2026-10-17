@@ -173,7 +173,7 @@ export function CustomerFormModal({
 
         {defs.length > 0 ? (
           <div className="space-y-2 border-t pt-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-sm font-medium text-muted-foreground">
               Custom fields
             </p>
             <CustomFieldInputs

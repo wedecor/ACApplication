@@ -28,7 +28,6 @@ import {
   Field,
   Textarea,
   useCan,
-  WorkshopStatusBadge,
 } from '@/components/repair/repair-ui';
 import { useTransitionWorkshopJob, useWorkshopJobs } from '@/hooks/use-repair';
 import { humanize, type WorkshopJob, type WorkshopStatus } from '@/lib/api/repair';
@@ -107,11 +106,11 @@ export default function WorkshopPage() {
           description="Bookings with pickup & drop or carry-in service mode appear here automatically."
         />
       ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
           {statuses.map((status) => {
             const jobs = byStatus.get(status) ?? [];
             return (
-              <section key={status} className="w-72 shrink-0 rounded-lg border bg-muted/30 p-2">
+              <section key={status} className="w-[85vw] max-w-72 shrink-0 snap-start rounded-lg border bg-muted/30 p-2 sm:w-72">
                 <h2 className="mb-2 flex items-center justify-between px-1 text-xs font-semibold uppercase text-muted-foreground">
                   {humanize(status)}
                   <span className="tabular-nums">{jobs.length}</span>
@@ -157,14 +156,11 @@ function JobCardItem({
   return (
     <Card ref={ref} className={cn(focused && 'ring-2 ring-primary')}>
       <CardContent className="space-y-2 p-3 text-sm">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <div className="font-mono text-xs text-muted-foreground">{job.number}</div>
-            <Link href={`/bookings/${job.booking.id}`} className="font-medium hover:underline">
-              {job.booking.customer.fullName}
-            </Link>
-          </div>
-          <WorkshopStatusBadge status={job.status} />
+        <div className="min-w-0">
+          <Link href={`/bookings/${job.booking.id}`} className="font-medium hover:underline">
+            {job.booking.customer.fullName}
+          </Link>
+          <div className="text-xs text-muted-foreground">{job.number}</div>
         </div>
         <div className="text-xs text-muted-foreground">
           {job.booking.appliance

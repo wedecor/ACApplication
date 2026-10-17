@@ -196,7 +196,7 @@ function Kpi({
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex items-center justify-between text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{label}</span>
           {icon ? <span className="text-muted-foreground/70">{icon}</span> : null}
         </div>
@@ -216,7 +216,7 @@ function Kpi({
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       <div className="text-lg font-semibold tabular-nums">{value}</div>
     </div>
   );

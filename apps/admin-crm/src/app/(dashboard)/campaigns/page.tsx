@@ -54,7 +54,7 @@ export default function CampaignsPage() {
       </header>
 
       {nps ? (
-        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="NPS" value={nps.total ? nps.score : '—'} hint={`${nps.total} responses`} />
           <StatCard label="Promoters" value={nps.promoters} />
           <StatCard label="Passives" value={nps.passives} />
@@ -89,7 +89,7 @@ export default function CampaignsPage() {
       ) : (
         <>
           <div className="rounded-lg border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

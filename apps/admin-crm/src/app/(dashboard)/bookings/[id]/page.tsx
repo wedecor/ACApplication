@@ -6,18 +6,17 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Separator,
   Skeleton,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@ac/ui';
-import { format } from 'date-fns';
-import { ArrowLeft, MapPin, Phone, User as UserIcon, Wrench } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
+import { ContactButtons } from '@/components/common/contact-buttons';
 import { Timeline } from '@/components/common/timeline';
 import {
   BookingPaymentBadge,
@@ -29,6 +28,8 @@ import { RescheduleForm } from '@/components/bookings/reschedule-form';
 import { BookingRepairPanel } from '@/components/repair/booking-repair-panel';
 import { useBooking, useBookingActivities } from '@/hooks/use-bookings';
 import { useRealtime } from '@/hooks/use-realtime';
+import { formatWhen } from '@/lib/format';
+import { categoryLabel } from '@/lib/labels';
 
 function formatINR(minor: number | null | undefined): string {
   if (minor == null) return '—';
@@ -56,8 +57,11 @@ export default function BookingDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/bookings" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to bookings
+      <Link
+        href="/bookings"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Bookings
       </Link>
 
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -69,18 +73,17 @@ export default function BookingDetailsPage() {
             <BookingStatusBadge status={booking.status as BookingStatus} />
             <BookingPaymentBadge status={booking.paymentStatus as BookingPaymentStatus} />
           </div>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">{booking.code}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{booking.code}</p>
         </div>
         <BookingStatusActions id={booking.id} current={booking.status as BookingStatus} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="order-2 space-y-6 lg:order-1 lg:col-span-2">
           <Tabs defaultValue="timeline">
             <TabsList>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
               <TabsTrigger value="actions">Actions</TabsTrigger>
-              <TabsTrigger value="details">Details</TabsTrigger>
             </TabsList>
             <TabsContent value="timeline" className="mt-4">
               <Timeline entries={activities as never} />
@@ -108,100 +111,114 @@ export default function BookingDetailsPage() {
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="details" className="mt-4 space-y-3">
-              <DetailRow label="Issue">{booking.issueDescription ?? '—'}</DetailRow>
-              <DetailRow label="Appliance">
-                {[booking.applianceType, booking.applianceBrand].filter(Boolean).join(' · ') || '—'}
-              </DetailRow>
-              <DetailRow label="Service type">{booking.serviceType ?? '—'}</DetailRow>
-              <DetailRow label="Address">
-                {[booking.address?.line1, booking.address?.line2, booking.address?.pincode].filter(Boolean).join(', ') || '—'}
-              </DetailRow>
-              {booking.lead ? (
-                <DetailRow label="Source lead">
-                  <Link href={`/leads/${booking.lead.id}`} className="text-primary hover:underline">
-                    {booking.lead.code}
-                  </Link>
-                </DetailRow>
-              ) : null}
-            </TabsContent>
           </Tabs>
         </div>
 
-        <aside className="space-y-6">
-          <BookingRepairPanel booking={booking} />
+        <aside className="order-1 space-y-4 lg:order-2">
           <Card>
-            <CardHeader>
-              <CardTitle>Schedule</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Job</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div>
-                {format(new Date(booking.scheduledAt as unknown as string), 'EEE, dd MMM yyyy · HH:mm')}
-              </div>
-              {booking.scheduledTimeSlot ? (
-                <div className="text-xs text-muted-foreground">{booking.scheduledTimeSlot}</div>
-              ) : null}
+            <CardContent className="space-y-3 text-sm">
+              <p className="whitespace-pre-line break-words">{booking.issueDescription || 'No issue described.'}</p>
+              <dl className="space-y-2">
+                <Row label="Service">
+                  {[categoryLabel(booking.category), booking.serviceType].filter(Boolean).join(' · ')}
+                </Row>
+                {booking.applianceType || booking.applianceBrand ? (
+                  <Row label="Appliance">
+                    {[booking.applianceBrand, booking.applianceType].filter(Boolean).join(' ')}
+                  </Row>
+                ) : null}
+                <Row label="When">
+                  {formatWhen(booking.scheduledAt as unknown as string)}
+                  {booking.scheduledTimeSlot ? (
+                    <span className="block text-xs text-muted-foreground">Slot {booking.scheduledTimeSlot}</span>
+                  ) : null}
+                </Row>
+                <Row label="Address">
+                  {[booking.address?.line1, booking.address?.line2, booking.city.name, booking.address?.pincode]
+                    .filter(Boolean)
+                    .join(', ') || '—'}
+                </Row>
+                {booking.lead ? (
+                  <Row label="Source lead">
+                    <Link href={`/leads/${booking.lead.id}`} className="text-primary hover:underline">
+                      {booking.lead.code}
+                    </Link>
+                  </Row>
+                ) : null}
+              </dl>
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Customer</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Customer</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row icon={<UserIcon className="size-4" />} value={booking.customer.fullName} />
-              <Row icon={<Phone className="size-4" />} value={booking.customer.phone} />
-              <Row icon={<MapPin className="size-4" />} value={booking.city.name} />
+            <CardContent className="space-y-3 text-sm">
+              <dl className="space-y-2">
+                <Row label="Name">
+                  <Link href={`/customers/${booking.customer.id}`} className="hover:underline">
+                    {booking.customer.fullName}
+                  </Link>
+                </Row>
+                <Row label="Phone">{booking.customer.phone}</Row>
+              </dl>
+              <ContactButtons phone={booking.customer.phone} />
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Technician</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Technician</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-3 text-sm">
               {booking.technician ? (
                 <>
-                  <Row icon={<Wrench className="size-4" />} value={booking.technician.fullName} />
-                  <Row icon={<Phone className="size-4" />} value={booking.technician.phone} />
+                  <dl className="space-y-2">
+                    <Row label="Name">{booking.technician.fullName}</Row>
+                    <Row label="Phone">{booking.technician.phone}</Row>
+                  </dl>
+                  <ContactButtons phone={booking.technician.phone} />
                 </>
               ) : (
-                <p className="text-xs text-muted-foreground">Not assigned yet</p>
+                <p className="text-muted-foreground">
+                  Not assigned yet.{' '}
+                  <Link href={`/dispatch?bookingId=${booking.id}`} className="font-medium text-primary hover:underline">
+                    Find a technician
+                  </Link>
+                </p>
               )}
             </CardContent>
           </Card>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Pricing</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Pricing</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row label="Estimate" value={formatINR(booking.estimatedAmount?.amountMinor ?? 0)} />
-              <Separator />
-              <Row
-                label="Final"
-                value={formatINR(booking.finalAmount?.amountMinor ?? null)}
-              />
+            <CardContent className="text-sm">
+              <dl className="space-y-2">
+                <Row label="Estimate">{formatINR(booking.estimatedAmount?.amountMinor ?? 0)}</Row>
+                <Row label="Final">
+                  {booking.finalAmount?.amountMinor != null ? formatINR(booking.finalAmount.amountMinor) : 'Not set'}
+                </Row>
+              </dl>
             </CardContent>
           </Card>
+
+          <BookingRepairPanel booking={booking} />
         </aside>
       </div>
     </div>
   );
 }
 
-function Row({ icon, label, value }: { icon?: React.ReactNode; label?: string; value: React.ReactNode }) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      {icon}
-      {label ? <span className="text-xs uppercase text-muted-foreground">{label}</span> : null}
-      <span className="ml-auto">{value}</span>
-    </div>
-  );
-}
-
-function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-3 gap-3 rounded-md border bg-card p-3 text-sm">
-      <span className="col-span-1 text-xs uppercase text-muted-foreground">{label}</span>
-      <span className="col-span-2">{children}</span>
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="min-w-0 break-words text-right">{children}</dd>
     </div>
   );
 }

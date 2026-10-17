@@ -1,6 +1,6 @@
 'use client';
 
-import { EmptyState, Input } from '@ac/ui';
+import { Button, EmptyState, Input } from '@ac/ui';
 import { Search, Users } from 'lucide-react';
 import * as React from 'react';
 
@@ -45,16 +45,18 @@ export default function CustomersPage() {
         <NewCustomerButton />
       </header>
 
-      <form onSubmit={applySearch} className="flex max-w-xl gap-2">
-        <div className="relative flex-1">
+      <form onSubmit={applySearch} role="search" className="flex max-w-xl flex-wrap gap-2">
+        <div className="relative min-w-0 basis-full sm:flex-1 sm:basis-auto">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <Input
+            type="search"
+            aria-label="Search customers"
             value={searchDraft}
             onChange={(e) => setSearchDraft(e.target.value)}
-            placeholder="Search name, phone, email…"
+            placeholder="Name, phone or email"
             className="pl-9"
           />
         </div>
@@ -62,15 +64,10 @@ export default function CustomersPage() {
           value={tagDraft}
           onChange={(e) => setTagDraft(e.target.value)}
           placeholder="Tag"
-          className="w-32"
+          className="min-w-0 flex-1 sm:w-32 sm:flex-none"
           aria-label="Filter by tag"
         />
-        <button
-          type="submit"
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          Search
-        </button>
+        <Button type="submit">Search</Button>
       </form>
 
       {error ? (

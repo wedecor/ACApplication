@@ -210,7 +210,7 @@ function Answer({ item, value }: { item: ChecklistItem; value: unknown }) {
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      <span className="text-xs uppercase text-muted-foreground">{label}</span>
+      <span className="text-sm text-muted-foreground">{label}</span>
       <div className="col-span-2">{children}</div>
     </div>
   );
@@ -227,9 +227,12 @@ function Kv({ label, children }: { label: string; children: React.ReactNode }) {
 
 function BackLink() {
   return (
-    <Link href="/job-cards" className="text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="inline size-4" /> Back to job cards
-    </Link>
+    <Link
+        href="/job-cards"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Job cards
+      </Link>
   );
 }
 

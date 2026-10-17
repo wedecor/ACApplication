@@ -99,7 +99,7 @@ export default function OpportunitiesPage() {
       </header>
 
       {pipeline ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Open deals" value={pipeline.openCount} />
           <StatCard label="Open value" value={formatINR(pipeline.openValueMinor)} />
           <StatCard label="Weighted forecast" value={formatINR(pipeline.weightedForecastMinor)} />

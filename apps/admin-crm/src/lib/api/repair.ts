@@ -1,5 +1,7 @@
 import type { ServiceCategory } from '@ac/types';
 
+import { categoryLabel } from '@/lib/labels';
+
 import { apiFetch, type PaginatedResponse } from './client';
 
 // ---------------------------------------------------------------------------
@@ -64,13 +66,9 @@ export const SERVICE_CATEGORIES: ServiceCategory[] = [
   'OTHER',
 ] as ServiceCategory[];
 
+/** Enum → UI label; appliance categories get curated names, everything else sentence case. */
 export function humanize(value: string | null | undefined): string {
-  if (!value) return '—';
-  return value
-    .toLowerCase()
-    .split('_')
-    .map((w) => (w ? w[0]!.toUpperCase() + w.slice(1) : w))
-    .join(' ');
+  return categoryLabel(value);
 }
 
 // ---------------------------------------------------------------------------

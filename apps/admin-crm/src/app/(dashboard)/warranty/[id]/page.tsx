@@ -257,7 +257,7 @@ function ClaimActions({ claim }: { claim: WarrantyClaim }) {
 function Kv({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-3 gap-3">
-      <span className="text-xs uppercase text-muted-foreground">{label}</span>
+      <span className="text-sm text-muted-foreground">{label}</span>
       <span className="col-span-2">{children}</span>
     </div>
   );
@@ -265,8 +265,11 @@ function Kv({ label, children }: { label: string; children: React.ReactNode }) {
 
 function BackLink() {
   return (
-    <Link href="/warranty" className="text-sm text-muted-foreground hover:text-foreground">
-      <ArrowLeft className="inline size-4" /> Back to warranty claims
-    </Link>
+    <Link
+        href="/warranty"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Warranty claims
+      </Link>
   );
 }

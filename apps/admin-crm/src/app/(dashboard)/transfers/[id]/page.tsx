@@ -67,8 +67,11 @@ export default function TransferDetailPage() {
 
   return (
     <section className="space-y-6">
-      <Link href="/transfers" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to transfers
+      <Link
+        href="/transfers"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Transfers
       </Link>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -140,7 +143,7 @@ export default function TransferDetailPage() {
           <CardTitle className="text-base">Line items</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>

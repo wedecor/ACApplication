@@ -88,7 +88,7 @@ export default function JobCardsPage() {
       {error ? <LoadError label="job cards" message={(error).message} /> : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Booking</TableHead>

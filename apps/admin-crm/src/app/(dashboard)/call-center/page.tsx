@@ -118,7 +118,7 @@ export default function CallCenterPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="lg:col-span-1">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2 className="mb-2 text-sm font-semibold text-muted-foreground">
             Missed call queue
           </h2>
           <div className="space-y-2">
@@ -159,7 +159,7 @@ export default function CallCenterPage() {
 
         <section className="lg:col-span-2">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-sm font-semibold text-muted-foreground">
               Call log
             </h2>
             <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function CallCenterPage() {
             <EmptyState title="No calls" description="No call activity matches your filter." />
           ) : (
             <div className="rounded-md border">
-              <Table>
+              <Table stackOnMobile>
                 <TableHeader>
                   <TableRow>
                     <TableHead>#</TableHead>
@@ -280,7 +280,7 @@ function Kpi({
 }) {
   return (
     <div className="rounded-md border bg-card p-4">
-      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
       {loading ? (
         <Skeleton className="mt-2 h-7 w-16" />
       ) : (

@@ -25,7 +25,7 @@ export function OtpVerifyForm({ id }: { id: string }) {
   return (
     <form onSubmit={submit} className="flex items-end gap-2">
       <div className="flex-1">
-        <label className="mb-1 block text-xs uppercase text-muted-foreground">
+        <label className="mb-1 block text-sm text-muted-foreground">
           Customer OTP
         </label>
         <Input

@@ -759,8 +759,8 @@ async function seed(): Promise<void> {
         ...(s.n % 2 === 0 ? { sun: [['10:00', '14:00']] } : {}),
       }),
       documents: json([
-        { kind: 'AADHAAR', status: 'VERIFIED', url: img('Aadhaar') },
-        { kind: 'DRIVING_LICENSE', status: s.n === 5 ? 'PENDING' : 'VERIFIED', url: img('DL') },
+        { type: 'AADHAAR', label: 'Aadhaar card', verified: true, url: img('Aadhaar') },
+        { type: 'DRIVING_LICENSE', label: 'Driving licence', verified: s.n !== 5, url: img('DL') },
       ]),
       createdAt: ago(between(90, 400) * DAY),
     });

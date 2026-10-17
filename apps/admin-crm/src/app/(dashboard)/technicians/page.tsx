@@ -41,6 +41,7 @@ import { apiErrorMessage } from '@/lib/api/error-message';
 import type { TechnicianListItem, TechnicianListQuery } from '@/lib/api/technicians';
 import type { TechnicianStatus } from '@/lib/api/tracking';
 import { formatDateTime } from '@/lib/format';
+import { categoryLabel, humanizeEnum } from '@/lib/labels';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 
 const PRESENCE: TechnicianStatus[] = [
@@ -137,14 +138,15 @@ function RosterTab() {
     }
   };
 
-  const selectCls = 'h-9 rounded-md border bg-background px-2 text-sm';
+  const selectCls = 'h-10 min-w-0 rounded-md border bg-background px-2 text-sm';
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <Input
-          className="h-9 w-64"
-          placeholder="Search name, phone, employee code"
+          type="search"
+          className="col-span-2 h-10 sm:w-64"
+          placeholder="Name, phone or employee code"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           aria-label="Search technicians"
@@ -171,7 +173,7 @@ function RosterTab() {
           <option value="">Any presence</option>
           {PRESENCE.map((s) => (
             <option key={s} value={s}>
-              {s.replace(/_/g, ' ')}
+              {humanizeEnum(s)}
             </option>
           ))}
         </select>
@@ -184,7 +186,7 @@ function RosterTab() {
           <option value="">Any skill</option>
           {options?.skills.map((s) => (
             <option key={s} value={s}>
-              {s.replace(/_/g, ' ')}
+              {categoryLabel(s)}
             </option>
           ))}
         </select>
@@ -196,7 +198,7 @@ function RosterTab() {
             patch({ accountStatus: (e.target.value || undefined) as TechnicianListQuery['accountStatus'] })
           }
         >
-          <option value="">Active + deactivated</option>
+          <option value="">Any account status</option>
           <option value="ACTIVE">Active</option>
           <option value="SUSPENDED">Deactivated</option>
         </select>
@@ -206,7 +208,7 @@ function RosterTab() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Technician</TableHead>
@@ -244,8 +246,11 @@ function RosterTab() {
                   const suspended = t.user.status !== 'ACTIVE';
                   return (
                     <TableRow key={t.id} className={suspended ? 'opacity-60' : undefined}>
-                      <TableCell>
-                        <Link href={`/technicians/${t.id}`} className="font-medium hover:underline">
+                      <TableCell data-primary="">
+                        <Link
+                          href={`/technicians/${t.id}`}
+                          className="font-medium hover:underline max-md:after:absolute max-md:after:inset-0"
+                        >
                           {t.fullName}
                         </Link>
                         <p className="text-xs text-muted-foreground">
@@ -253,15 +258,15 @@ function RosterTab() {
                         </p>
                       </TableCell>
                       <TableCell className="text-sm">{t.city.name}</TableCell>
-                      <TableCell className="max-w-[16rem]">
-                        <div className="flex flex-wrap gap-1">
+                      <TableCell className="md:max-w-[16rem]">
+                        <div className="flex flex-wrap gap-1 max-md:justify-end">
                           {t.skills.slice(0, 3).map((s) => (
-                            <Badge key={s} variant="muted" className="text-[10px]">
-                              {s.replace(/_/g, ' ')}
+                            <Badge key={s} variant="muted">
+                              {categoryLabel(s)}
                             </Badge>
                           ))}
                           {t.skills.length > 3 ? (
-                            <Badge variant="outline" className="text-[10px]">
+                            <Badge variant="outline">
                               +{t.skills.length - 3}
                             </Badge>
                           ) : null}
@@ -284,12 +289,12 @@ function RosterTab() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
                               aria-label={`Edit ${t.fullName}`}
                               onClick={() => setEditId(t.id)}
                             >
-                              <Pencil className="size-4" />
+                              <Pencil aria-hidden />
                             </Button>
                             {suspended ? (
                               <Button
@@ -368,7 +373,7 @@ function PresenceBadge({ status }: { status: TechnicianStatus }) {
   const c = STATUS_COLOR[status];
   return (
     <Badge variant="outline" style={{ borderColor: c.fg, color: c.fg, backgroundColor: c.bg }}>
-      {status.replace(/_/g, ' ')}
+      {humanizeEnum(status)}
     </Badge>
   );
 }
@@ -382,7 +387,7 @@ function LiveAvailabilityTab() {
   return (
     <div className="space-y-4">
       {buckets ? (
-        <div className="grid gap-3 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
           <Bucket label="Available" value={buckets.available} />
           <Bucket label="Engaged" value={buckets.engaged} />
           <Bucket label="On break" value={buckets.onBreak} />
@@ -395,7 +400,7 @@ function LiveAvailabilityTab() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>

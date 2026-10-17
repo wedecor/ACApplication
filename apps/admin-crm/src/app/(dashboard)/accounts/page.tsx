@@ -86,7 +86,7 @@ export default function AccountsPage() {
       ) : (
         <>
           <div className="rounded-lg border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Account</TableHead>

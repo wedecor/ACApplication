@@ -104,7 +104,7 @@ export default function KnowledgeBasePage() {
           <EmptyState title="No articles" description="Write your first KB article." />
         ) : (
           <div className="rounded-md border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>

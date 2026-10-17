@@ -19,3 +19,10 @@ describe('labels', () => {
     expect(categoryLabel(undefined)).toBe('—');
   });
 });
+
+describe('special labels', () => {
+  it('uses curated names for modes and OEM terms', () => {
+    expect(humanizeEnum('PICKUP_DROP')).toBe('Pickup & drop');
+    expect(humanizeEnum('SUBMITTED_TO_OEM')).toBe('Submitted to OEM');
+  });
+});

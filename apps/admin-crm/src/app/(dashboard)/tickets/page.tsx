@@ -124,7 +124,7 @@ export default function TicketsPage() {
         <EmptyState title="No tickets" description="Adjust filters or create a new ticket." />
       ) : (
         <div className="rounded-md border">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Ticket</TableHead>

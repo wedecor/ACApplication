@@ -19,7 +19,7 @@ import { useDebounce } from 'use-debounce';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
-import { NativeSelect } from '@/components/repair/repair-ui';
+import { NativeSelect, WarrantyBadge } from '@/components/repair/repair-ui';
 import { useAppliances } from '@/hooks/use-repair';
 import { humanize, SERVICE_CATEGORIES } from '@/lib/api/repair';
 import { formatDate } from '@/lib/format';
@@ -53,26 +53,29 @@ export default function AppliancesPage() {
         </p>
       </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full max-w-sm">
-          <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+        <div className="relative col-span-2 sm:w-full sm:max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <Input
+            type="search"
+            aria-label="Search appliances"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Brand, model, customer name or phone"
-            className="pl-8"
+            placeholder="Brand, model, customer or phone"
+            className="pl-9"
           />
         </div>
         <Input
           value={serial}
           onChange={(e) => setSerial(e.target.value)}
-          placeholder="Exact serial number"
-          className="w-48"
+          placeholder="Serial number"
+          aria-label="Exact serial number"
+          className="min-w-0 sm:w-48"
         />
         <NativeSelect
           value={category}
           onChange={(e) => setCategory(e.target.value as ServiceCategory | '')}
-          className="w-52"
+          className="min-w-0 sm:w-52"
           aria-label="Category"
         >
           <option value="">All categories</option>
@@ -87,14 +90,14 @@ export default function AppliancesPage() {
       {error ? <LoadError label="appliances" message={(error).message} /> : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Appliance</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Serial</TableHead>
               <TableHead>Customer</TableHead>
-              <TableHead>Mfr. warranty</TableHead>
+              <TableHead>Warranty</TableHead>
               <TableHead>Last serviced</TableHead>
               <TableHead className="text-right">Bookings</TableHead>
             </TableRow>
@@ -141,7 +144,14 @@ export default function AppliancesPage() {
                     )}
                     <div className="text-muted-foreground">{a.customer?.phone}</div>
                   </TableCell>
-                  <TableCell>{formatDate(a.manufacturerWarrantyUntil)}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col items-end gap-0.5 md:items-start">
+                      <WarrantyBadge manufacturerUntil={a.manufacturerWarrantyUntil} extendedUntil={a.extendedWarrantyUntil} />
+                      {a.manufacturerWarrantyUntil ? (
+                        <span className="text-xs text-muted-foreground">{formatDate(a.manufacturerWarrantyUntil)}</span>
+                      ) : null}
+                    </div>
+                  </TableCell>
                   <TableCell>{formatDate(a.lastServicedAt)}</TableCell>
                   <TableCell className="text-right tabular-nums">{a._count?.bookings ?? 0}</TableCell>
                 </TableRow>

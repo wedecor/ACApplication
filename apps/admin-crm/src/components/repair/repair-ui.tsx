@@ -147,6 +147,23 @@ export function WarrantyPill({
   );
 }
 
+/** Compact warranty state for an appliance: the later of manufacturer / extended cover. */
+export function WarrantyBadge({
+  manufacturerUntil,
+  extendedUntil,
+}: {
+  manufacturerUntil: string | null | undefined;
+  extendedUntil?: string | null;
+}) {
+  const ends = [manufacturerUntil, extendedUntil].filter(Boolean).map((d) => new Date(d as string).getTime());
+  if (ends.length === 0) return <Badge variant="muted">No warranty info</Badge>;
+  const until = Math.max(...ends);
+  const days = Math.ceil((until - Date.now()) / 86_400_000);
+  if (days < 0) return <Badge variant="muted">Out of warranty</Badge>;
+  if (days <= 30) return <Badge variant="warning">Warranty ends in {days} d</Badge>;
+  return <Badge variant="success">In warranty</Badge>;
+}
+
 /** Format a datetime-local input value as ISO. */
 export function localToIso(value: string): string | undefined {
   if (!value) return undefined;

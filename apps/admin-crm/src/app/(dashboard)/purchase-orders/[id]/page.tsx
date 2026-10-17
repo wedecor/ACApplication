@@ -68,8 +68,11 @@ export default function PurchaseOrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/purchase-orders" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to purchase orders
+      <Link
+        href="/purchase-orders"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Purchase orders
       </Link>
 
       <header className="flex flex-wrap items-start justify-between gap-3">
@@ -177,7 +180,7 @@ export default function PurchaseOrderDetailPage() {
           <CardTitle className="text-base">Line items</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          <Table stackOnMobile>
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>

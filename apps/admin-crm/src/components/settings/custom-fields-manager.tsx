@@ -134,7 +134,7 @@ export function CustomFieldsManager() {
           <p className="text-sm text-muted-foreground">No custom fields for {entity} yet.</p>
         ) : (
           <div className="rounded-md border">
-            <Table>
+            <Table stackOnMobile>
               <TableHeader>
                 <TableRow>
                   <TableHead>Label</TableHead>

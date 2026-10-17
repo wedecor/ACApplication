@@ -87,8 +87,11 @@ export default function KbArticleDetailPage() {
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
-      <Link href="/knowledge-base" className="text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="inline size-4" /> Back to knowledge base
+      <Link
+        href="/knowledge-base"
+        className="-ml-2 inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden /> Knowledge base
       </Link>
 
       <header className="flex flex-wrap items-start justify-between gap-3">

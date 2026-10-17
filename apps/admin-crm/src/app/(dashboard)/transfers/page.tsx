@@ -86,7 +86,7 @@ export default function TransfersPage() {
       {error ? <LoadError label="transfers" message={(error as Error).message} /> : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Number</TableHead>

@@ -44,7 +44,7 @@ export default function WarehousesPage() {
       {error ? <LoadError label="warehouses" message={(error as Error).message} /> : null}
 
       <div className="rounded-md border">
-        <Table>
+        <Table stackOnMobile>
           <TableHeader>
             <TableRow>
               <TableHead>Code</TableHead>

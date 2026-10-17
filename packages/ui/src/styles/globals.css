@@ -110,21 +110,27 @@
       gap: 0.25rem;
       padding: 0.875rem 1rem;
     }
+    /* Label floats left; the cell's own content (any number of children) flows right-aligned beside it. */
     .table-stack tbody td {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 1rem;
+      display: flow-root;
       padding: 0;
       min-width: 0;
       text-align: right;
+      overflow-wrap: anywhere;
     }
     .table-stack tbody td::before {
       content: attr(data-label);
-      flex-shrink: 0;
+      float: left;
+      margin-right: 1rem;
       text-align: left;
+      font-family: theme('fontFamily.sans');
       font-size: 0.8125rem;
+      font-weight: 400;
+      line-height: 1.5rem;
       color: hsl(var(--muted-foreground));
+    }
+    .table-stack tbody td > :is(div, p, span).flex {
+      justify-content: flex-end;
     }
     .table-stack tbody td[data-label='']::before,
     .table-stack tbody td[data-primary]::before,
@@ -132,14 +138,16 @@
       content: none;
     }
     .table-stack tbody td[data-label=''] {
-      justify-content: flex-start;
       text-align: left;
+    }
+    .table-stack tbody td[data-label=''] > :is(div, p, span).flex {
+      justify-content: flex-start;
     }
     .table-stack tbody td[data-primary],
     .table-stack tbody tr:not(:has(td[data-primary])) td:first-child {
       order: -1;
-      display: block;
       text-align: left;
+      overflow-wrap: normal;
       font-weight: 500;
       padding-bottom: 0.25rem;
     }
@@ -154,6 +162,11 @@
     /* Lets a cell link use after:absolute after:inset-0 to make the whole card tappable. */
     .table-stack tbody tr {
       position: relative;
+    }
+    /* Keep real controls clickable above a stretched card link. */
+    .table-stack tbody td :is(button, input, select, textarea, [role='button']) {
+      position: relative;
+      z-index: 1;
     }
   }
 }
