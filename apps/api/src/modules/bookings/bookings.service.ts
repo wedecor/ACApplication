@@ -1,3 +1,18 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { otp } from '@ac/auth';
+import type { Prisma } from '@ac/database';
+import {
+  ActivityType,
+  type BookingId,
+  BookingPaymentStatus,
+  BookingStatus,
+  canTransitionBooking,
+  DomainEventName,
+  type LeadId,
+  type ServiceCategory,
+  type TechnicianId,
+  TERMINAL_BOOKING_STATUSES,
+} from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -5,40 +20,36 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ActivityType,
-  BookingPaymentStatus,
-  BookingStatus,
-  canTransitionBooking,
-  DomainEventName,
-  type BookingId,
-  type LeadId,
-  type TechnicianId,
-  type ServiceCategory,
-  TERMINAL_BOOKING_STATUSES,
-} from '@ac/types';
-import { otp } from '@ac/auth';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ActivityService } from '../activity/activity.service';
 import { AssignmentService } from '../assignment/assignment.service';
 import { LeadsRepository } from '../leads/leads.repository';
-import { AddBookingNoteDto } from './dto/booking-note.dto';
-import { AddBookingAttachmentDto, AddSignatureDto } from './dto/booking-attachment.dto';
+import { computeRepairWarrantyUntil, isWindowActive } from '../repair/domain/warranty';
+import { createWorkshopJobTx } from '../repair/workshop/workshop-job.factory';
+import { BookingsRepository } from './bookings.repository';
 import { AssignTechnicianDto } from './dto/assign-technician.dto';
+import { AddBookingAttachmentDto, AddSignatureDto } from './dto/booking-attachment.dto';
+import { AddBookingNoteDto } from './dto/booking-note.dto';
 import { ChangeBookingStatusDto } from './dto/change-booking-status.dto';
 import { ConvertLeadDto } from './dto/convert-lead.dto';
-import { CreateBookingDto } from './dto/create-booking.dto';
+import { CreateBookingDto, type ServiceModeValue } from './dto/create-booking.dto';
 import { ListBookingsDto } from './dto/list-bookings.dto';
 import { RescheduleBookingDto } from './dto/reschedule-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { VerifyBookingOtpDto } from './dto/verify-otp.dto';
-import { BookingsRepository } from './bookings.repository';
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
+
+/** Internal-only create options (not exposed on the public DTO). */
+export interface CreateBookingOptions {
+  /** Booking this one is a revisit of. */
+  parentBookingId?: string;
+  /** Free revisit under the parent's repair warranty — forces a zero estimate. */
+  isWarrantyRevisit?: boolean;
+}
 
 @Injectable()
 export class BookingsService {
@@ -51,7 +62,7 @@ export class BookingsService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async create(actor: AuthPrincipal, dto: CreateBookingDto) {
+  async create(actor: AuthPrincipal, dto: CreateBookingDto, options: CreateBookingOptions = {}) {
     if (new Date(dto.scheduledAt) < new Date(Date.now() - 60 * 1000)) {
       throw new BadRequestException('scheduledAt must not be in the past');
     }
@@ -62,6 +73,18 @@ export class BookingsService {
       select: { id: true },
     });
     if (!customer) throw new NotFoundException('Customer not found');
+
+    const { appliance, catalogItem } = await this.resolveRepairLinks(actor.tenantId, {
+      customerId: dto.customerId,
+      category: dto.category,
+      applianceId: dto.applianceId,
+      catalogItemId: dto.catalogItemId,
+    });
+    const serviceMode: ServiceModeValue = dto.serviceMode ?? 'ON_SITE';
+    const estimatedAmountMinor = options.isWarrantyRevisit
+      ? 0
+      : (dto.estimatedAmountMinor ??
+        (catalogItem ? catalogItem.basePriceMinor + catalogItem.visitChargeMinor : 0));
 
     // Either reuse an existing address (verify ownership) or create one from snapshot.
     let addressId = dto.addressId;
@@ -98,28 +121,46 @@ export class BookingsService {
           tenantId: actor.tenantId,
           customer: { connect: { id: dto.customerId } },
           city: { connect: { id: dto.cityId } },
-          address: { connect: { id: addressId! } },
+          address: { connect: { id: addressId } },
           category: dto.category,
-          serviceType: dto.serviceType ?? null,
-          applianceBrand: dto.applianceBrand ?? null,
-          applianceType: dto.applianceType ?? null,
+          serviceType: dto.serviceType ?? catalogItem?.name ?? null,
+          applianceBrand: dto.applianceBrand ?? appliance?.brand ?? null,
+          applianceType: dto.applianceType ?? describeAppliance(appliance),
           issueDescription: dto.issueDescription ?? null,
           status: BookingStatus.PENDING,
           paymentStatus: BookingPaymentStatus.UNPAID,
           priority: dto.priority ?? 'STANDARD',
           scheduledAt: new Date(dto.scheduledAt),
           scheduledTimeSlot: dto.scheduledTimeSlot ?? null,
-          estimatedAmountMinor: dto.estimatedAmountMinor ?? 0,
-          addressSnapshot: { ...dto.address } as never,
+          estimatedAmountMinor,
+          addressSnapshot: { ...dto.address },
           geoLatitude: dto.geoLatitude ?? null,
           geoLongitude: dto.geoLongitude ?? null,
           notes: dto.notes ?? null,
           ...(dto.leadId ? { lead: { connect: { id: dto.leadId } } } : {}),
+          ...(appliance ? { appliance: { connect: { id: appliance.id } } } : {}),
+          ...(catalogItem ? { catalogItem: { connect: { id: catalogItem.id } } } : {}),
+          serviceMode,
+          ...(options.parentBookingId
+            ? { parentBooking: { connect: { id: options.parentBookingId } } }
+            : {}),
+          isWarrantyRevisit: options.isWarrantyRevisit ?? false,
           createdBy: actor.userId,
           updatedBy: actor.userId,
         },
         tx,
       );
+
+      // Pickup/drop and carry-in jobs are tracked through the workshop pipeline.
+      if (serviceMode !== 'ON_SITE') {
+        await createWorkshopJobTx(tx, {
+          tenantId: actor.tenantId,
+          bookingId: row.id,
+          serviceMode,
+          actorUserId: actor.userId,
+          pickupScheduledAt: serviceMode === 'PICKUP_DROP' ? row.scheduledAt : null,
+        });
+      }
 
       await this.activity.recordBookingActivity(
         row.id,
@@ -205,17 +246,57 @@ export class BookingsService {
     return booking;
   }
 
+  /** Booking detail plus a computed warranty summary for the repair panels. */
+  async getDetail(actor: AuthPrincipal, id: string) {
+    const booking = await this.getById(actor, id);
+    const now = new Date();
+    return {
+      ...booking,
+      warranty: {
+        repairWarrantyUntil: booking.repairWarrantyUntil ?? null,
+        repairWarrantyActive: isWindowActive(booking.repairWarrantyUntil, now),
+        manufacturerWarrantyUntil: booking.appliance?.manufacturerWarrantyUntil ?? null,
+        manufacturerWarrantyActive: isWindowActive(booking.appliance?.manufacturerWarrantyUntil, now),
+        extendedWarrantyUntil: booking.appliance?.extendedWarrantyUntil ?? null,
+        extendedWarrantyActive: isWindowActive(booking.appliance?.extendedWarrantyUntil, now),
+        isWarrantyRevisit: booking.isWarrantyRevisit ?? false,
+        parentBookingId: booking.parentBookingId ?? null,
+      },
+    };
+  }
+
   async update(actor: AuthPrincipal, id: string, dto: UpdateBookingDto) {
     const booking = await this.getById(actor, id);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Booking is closed and cannot be edited');
     }
+
+    const repairLinks = await this.resolveRepairLinks(actor.tenantId, {
+      customerId: booking.customerId,
+      category: (dto.category ?? booking.category),
+      applianceId: dto.applianceId ?? undefined,
+      catalogItemId: dto.catalogItemId ?? undefined,
+    });
+    const nextMode = dto.serviceMode;
+    const needsWorkshopJob =
+      !!nextMode && nextMode !== 'ON_SITE' && !booking.workshopJob;
 
     const updated = await this.prisma.client.$transaction(async (tx) => {
       const row = await this.repo.update(
         id,
         {
           ...(dto.category ? { category: dto.category } : {}),
+          ...(repairLinks.appliance
+            ? { appliance: { connect: { id: repairLinks.appliance.id } } }
+            : (dto.applianceId as unknown) === null
+              ? { appliance: { disconnect: true } }
+              : {}),
+          ...(repairLinks.catalogItem
+            ? { catalogItem: { connect: { id: repairLinks.catalogItem.id } } }
+            : (dto.catalogItemId as unknown) === null
+              ? { catalogItem: { disconnect: true } }
+              : {}),
+          ...(nextMode ? { serviceMode: nextMode } : {}),
           serviceType: dto.serviceType ?? undefined,
           applianceBrand: dto.applianceBrand ?? undefined,
           applianceType: dto.applianceType ?? undefined,
@@ -242,6 +323,15 @@ export class BookingsService {
         },
         tx,
       );
+      if (needsWorkshopJob) {
+        await createWorkshopJobTx(tx, {
+          tenantId: actor.tenantId,
+          bookingId: id,
+          serviceMode: nextMode,
+          actorUserId: actor.userId,
+          pickupScheduledAt: nextMode === 'PICKUP_DROP' ? row.scheduledAt : null,
+        });
+      }
       return row;
     });
 
@@ -250,7 +340,7 @@ export class BookingsService {
 
   async assignTechnician(actor: AuthPrincipal, id: string, dto: AssignTechnicianDto) {
     const booking = await this.getById(actor, id);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Cannot assign a closed booking');
     }
 
@@ -260,7 +350,7 @@ export class BookingsService {
       const best = await this.assignment.pickBest({
         tenantId: actor.tenantId,
         cityId: booking.cityId,
-        category: booking.category as ServiceCategory,
+        category: booking.category,
         geo:
           booking.geoLatitude != null && booking.geoLongitude != null
             ? { latitude: booking.geoLatitude, longitude: booking.geoLongitude }
@@ -280,7 +370,7 @@ export class BookingsService {
         select: { id: true, skills: true, status: true },
       });
       if (!tech) throw new BadRequestException('Technician not found in this city');
-      if (!tech.skills.includes(booking.category as ServiceCategory)) {
+      if (!tech.skills.includes(booking.category)) {
         throw new BadRequestException('Technician lacks the required skill');
       }
       const conflict = await this.repo.hasTechnicianConflict({
@@ -296,7 +386,7 @@ export class BookingsService {
       const row = await this.repo.update(
         id,
         {
-          technician: { connect: { id: technicianId! } },
+          technician: { connect: { id: technicianId } },
           status: BookingStatus.ASSIGNED,
           assignedAt: new Date(),
           updatedBy: actor.userId,
@@ -333,7 +423,7 @@ export class BookingsService {
 
   async changeStatus(actor: AuthPrincipal, id: string, dto: ChangeBookingStatusDto) {
     const booking = await this.getById(actor, id);
-    if (!canTransitionBooking(booking.status as BookingStatus, dto.status)) {
+    if (!canTransitionBooking(booking.status, dto.status)) {
       throw new ForbiddenException(
         `Cannot transition booking from ${booking.status} to ${dto.status}`,
       );
@@ -341,11 +431,17 @@ export class BookingsService {
 
     const now = new Date();
     const stamps: Record<string, Date> = {};
-    if (dto.status === BookingStatus.TECHNICIAN_EN_ROUTE) stamps['enRouteAt'] = now;
-    if (dto.status === BookingStatus.IN_PROGRESS) stamps['startedAt'] = now;
-    if (dto.status === BookingStatus.WAITING_PARTS) stamps['waitingPartsAt'] = now;
-    if (dto.status === BookingStatus.COMPLETED) stamps['completedAt'] = now;
-    if (dto.status === BookingStatus.CANCELLED) stamps['cancelledAt'] = now;
+    if (dto.status === BookingStatus.TECHNICIAN_EN_ROUTE) stamps.enRouteAt = now;
+    if (dto.status === BookingStatus.IN_PROGRESS) stamps.startedAt = now;
+    if (dto.status === BookingStatus.WAITING_PARTS) stamps.waitingPartsAt = now;
+    if (dto.status === BookingStatus.COMPLETED) stamps.completedAt = now;
+    if (dto.status === BookingStatus.CANCELLED) stamps.cancelledAt = now;
+
+    // Repair guarantee window: completedAt + catalog item's repairWarrantyDays (30 by default).
+    const repairWarrantyUntil =
+      dto.status === BookingStatus.COMPLETED
+        ? computeRepairWarrantyUntil(now, booking.catalogItem?.repairWarrantyDays)
+        : undefined;
 
     const updated = await this.prisma.client.$transaction(async (tx) => {
       const row = await this.repo.update(
@@ -353,6 +449,7 @@ export class BookingsService {
         {
           status: dto.status,
           ...stamps,
+          ...(repairWarrantyUntil ? { repairWarrantyUntil } : {}),
           cancellationReason: dto.status === BookingStatus.CANCELLED ? dto.reason ?? null : undefined,
           finalAmountMinor:
             dto.status === BookingStatus.COMPLETED && dto.finalAmountMinor != null
@@ -388,12 +485,15 @@ export class BookingsService {
         },
         tx,
       );
+      if (dto.status === BookingStatus.COMPLETED) {
+        await this.onRepairCompleted(tx, booking, now, actor.userId);
+      }
       return row;
     });
 
     this.events.publish(DomainEventName.BookingStatusChanged, {
       bookingId: id as BookingId,
-      from: booking.status as BookingStatus,
+      from: booking.status,
       to: dto.status,
     });
 
@@ -416,7 +516,7 @@ export class BookingsService {
 
   async reschedule(actor: AuthPrincipal, id: string, dto: RescheduleBookingDto) {
     const booking = await this.getById(actor, id);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Cannot reschedule a closed booking');
     }
     const newAt = new Date(dto.scheduledAt);
@@ -528,7 +628,7 @@ export class BookingsService {
     // Return the plaintext OTP only when running in development so the
     // notification dispatcher (console mode) can also surface it. In
     // production the code is delivered out-of-band.
-    return process.env['NODE_ENV'] === 'development' ? { devCode: code } : { ok: true };
+    return process.env.NODE_ENV === 'development' ? { devCode: code } : { ok: true };
   }
 
   async verifyArrivalOtp(actor: AuthPrincipal, id: string, dto: VerifyBookingOtpDto) {
@@ -583,7 +683,7 @@ export class BookingsService {
     });
     this.events.publish(DomainEventName.BookingStatusChanged, {
       bookingId: id as BookingId,
-      from: booking.status as BookingStatus,
+      from: booking.status,
       to: BookingStatus.IN_PROGRESS,
     });
 
@@ -691,4 +791,91 @@ export class BookingsService {
   listActivities(_actor: AuthPrincipal, id: string) {
     return this.activity.listBookingActivities(id);
   }
+
+  /**
+   * Validate the optional repair links on create/update: the appliance must
+   * belong to the booking's customer, the catalog item to the tenant and the
+   * booking's category.
+   */
+  private async resolveRepairLinks(
+    tenantId: string,
+    input: {
+      customerId: string;
+      category: ServiceCategory;
+      applianceId?: string;
+      catalogItemId?: string;
+    },
+  ) {
+    const [appliance, catalogItem] = await Promise.all([
+      input.applianceId
+        ? this.prisma.client.customerAppliance.findFirst({
+            where: { id: input.applianceId, tenantId, deletedAt: null },
+            select: {
+              id: true,
+              customerId: true,
+              brand: true,
+              modelNumber: true,
+              capacity: true,
+              category: true,
+            },
+          })
+        : Promise.resolve(null),
+      input.catalogItemId
+        ? this.prisma.client.serviceCatalogItem.findFirst({
+            where: { id: input.catalogItemId, tenantId, deletedAt: null },
+            select: {
+              id: true,
+              name: true,
+              category: true,
+              isActive: true,
+              basePriceMinor: true,
+              visitChargeMinor: true,
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+    if (input.applianceId) {
+      if (!appliance) throw new NotFoundException('Appliance not found');
+      if (appliance.customerId !== input.customerId) {
+        throw new BadRequestException('applianceId does not belong to customer');
+      }
+    }
+    if (input.catalogItemId) {
+      if (!catalogItem) throw new NotFoundException('Catalog item not found');
+      if (!catalogItem.isActive) throw new BadRequestException('Catalog item is inactive');
+      if (catalogItem.category !== input.category) {
+        throw new BadRequestException('Catalog item category does not match booking category');
+      }
+    }
+    return { appliance, catalogItem };
+  }
+
+  /** Side effects of a completed repair: appliance service date + closing a warranty revisit claim. */
+  private async onRepairCompleted(
+    tx: Prisma.TransactionClient,
+    booking: { id: string; applianceId?: string | null; isWarrantyRevisit?: boolean | null },
+    completedAt: Date,
+    actorUserId: string,
+  ): Promise<void> {
+    if (booking.applianceId) {
+      await tx.customerAppliance.update({
+        where: { id: booking.applianceId },
+        data: { lastServicedAt: completedAt, updatedBy: actorUserId },
+      });
+    }
+    if (booking.isWarrantyRevisit) {
+      await tx.warrantyClaim.updateMany({
+        where: { revisitBookingId: booking.id, status: 'APPROVED' },
+        data: { status: 'CLOSED', updatedBy: actorUserId },
+      });
+    }
+  }
+}
+
+function describeAppliance(
+  appliance: { modelNumber: string | null; capacity: string | null } | null,
+): string | null {
+  if (!appliance) return null;
+  const label = [appliance.capacity, appliance.modelNumber].filter(Boolean).join(' ');
+  return label || null;
 }

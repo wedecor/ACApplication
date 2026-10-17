@@ -26,6 +26,7 @@ import {
 import { BookingStatusActions } from '@/components/bookings/booking-status-actions';
 import { OtpVerifyForm } from '@/components/bookings/otp-verify-form';
 import { RescheduleForm } from '@/components/bookings/reschedule-form';
+import { BookingRepairPanel } from '@/components/repair/booking-repair-panel';
 import { useBooking, useBookingActivities } from '@/hooks/use-bookings';
 import { useRealtime } from '@/hooks/use-realtime';
 
@@ -128,6 +129,7 @@ export default function BookingDetailsPage() {
         </div>
 
         <aside className="space-y-6">
+          <BookingRepairPanel booking={booking} />
           <Card>
             <CardHeader>
               <CardTitle>Schedule</CardTitle>

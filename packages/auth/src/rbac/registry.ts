@@ -453,7 +453,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'workshop:view',
     'quotation:view',
     'quotation:create',
-    'payment:manage',
   ],
   CUSTOMER: ['amc:subscribe', 'ticket:view', 'ticket:create', 'kb:view', 'self:service'],
 };

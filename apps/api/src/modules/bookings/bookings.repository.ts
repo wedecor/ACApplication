@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import type { Booking, Prisma } from '@ac/database';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { type ListBookingsDto } from './dto/list-bookings.dto';
@@ -19,6 +19,74 @@ const BOOKING_INCLUDE = {
 
 export type BookingWithRelations = Prisma.BookingGetPayload<{ include: typeof BOOKING_INCLUDE }>;
 
+/**
+ * Detail view — list relations plus the repair domain (appliance, catalog
+ * item, job card, workshop job, rating, warranty links).
+ */
+const BOOKING_DETAIL_INCLUDE = {
+  ...BOOKING_INCLUDE,
+  appliance: {
+    select: {
+      id: true,
+      category: true,
+      brand: true,
+      modelNumber: true,
+      serialNumber: true,
+      capacity: true,
+      installedLocation: true,
+      manufacturerWarrantyUntil: true,
+      extendedWarrantyUntil: true,
+      lastServicedAt: true,
+    },
+  },
+  catalogItem: {
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      basePriceMinor: true,
+      visitChargeMinor: true,
+      repairWarrantyDays: true,
+    },
+  },
+  jobCard: {
+    select: {
+      id: true,
+      status: true,
+      symptoms: true,
+      faultCodes: true,
+      diagnosis: true,
+      resolution: true,
+      firstTimeFix: true,
+      startedAt: true,
+      completedAt: true,
+      updatedAt: true,
+    },
+  },
+  workshopJob: {
+    select: {
+      id: true,
+      number: true,
+      status: true,
+      pickupScheduledAt: true,
+      receivedAt: true,
+      estimatedReadyAt: true,
+      deliveredAt: true,
+      updatedAt: true,
+    },
+  },
+  rating: { select: { id: true, value: true, npsScore: true, comment: true, createdAt: true } },
+  parentBooking: { select: { id: true, code: true, completedAt: true } },
+  warrantyClaimRevisit: { select: { id: true, number: true, status: true } },
+  warrantyClaimsOriginal: {
+    where: { deletedAt: null },
+    select: { id: true, number: true, type: true, status: true, createdAt: true },
+    orderBy: { createdAt: 'desc' },
+  },
+} satisfies Prisma.BookingInclude;
+
+export type BookingDetail = Prisma.BookingGetPayload<{ include: typeof BOOKING_DETAIL_INCLUDE }>;
+
 @Injectable()
 export class BookingsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -27,10 +95,10 @@ export class BookingsRepository {
     return (tx ?? this.prisma.client).booking.create({ data });
   }
 
-  findById(tenantId: string, id: string): Promise<BookingWithRelations | null> {
+  findById(tenantId: string, id: string): Promise<BookingDetail | null> {
     return this.prisma.client.booking.findFirst({
       where: { id, tenantId },
-      include: BOOKING_INCLUDE,
+      include: BOOKING_DETAIL_INCLUDE,
     });
   }
 
@@ -192,6 +260,7 @@ export class BookingsRepository {
         const [field, dir] = segment.split(':');
         if (!field || !allowed.has(field)) return null;
         const direction: Prisma.SortOrder = dir === 'asc' ? 'asc' : 'desc';
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed: computed key widens to an index signature
         return { [field]: direction } as Prisma.BookingOrderByWithRelationInput;
       })
       .filter((v): v is Prisma.BookingOrderByWithRelationInput => v !== null);

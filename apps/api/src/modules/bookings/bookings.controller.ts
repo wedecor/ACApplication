@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -10,14 +12,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
+import { BookingsService } from './bookings.service';
+import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { AddBookingAttachmentDto, AddSignatureDto } from './dto/booking-attachment.dto';
 import { AddBookingNoteDto } from './dto/booking-note.dto';
-import { AssignTechnicianDto } from './dto/assign-technician.dto';
 import { ChangeBookingStatusDto } from './dto/change-booking-status.dto';
 import { ConvertLeadDto } from './dto/convert-lead.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -25,7 +26,6 @@ import { ListBookingsDto } from './dto/list-bookings.dto';
 import { RescheduleBookingDto } from './dto/reschedule-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { VerifyBookingOtpDto } from './dto/verify-otp.dto';
-import { BookingsService } from './bookings.service';
 
 @ApiTags('bookings')
 @ApiBearerAuth()
@@ -64,7 +64,7 @@ export class BookingsController {
   @Get(':id')
   @RequirePermissions(Permission.BOOKING_READ)
   get(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
-    return this.bookings.getById(actor, id);
+    return this.bookings.getDetail(actor, id);
   }
 
   @Patch(':id')

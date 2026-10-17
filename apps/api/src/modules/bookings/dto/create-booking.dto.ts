@@ -1,10 +1,11 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { type BookingPriority, ServiceCategory } from '@ac/types';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsEnum,
-  IsISO8601,
+  IsIn,
   IsInt,
+  IsISO8601,
   IsLatitude,
   IsLongitude,
   IsOptional,
@@ -14,6 +15,9 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
+
+export const SERVICE_MODES = ['ON_SITE', 'PICKUP_DROP', 'CARRY_IN'] as const;
+export type ServiceModeValue = (typeof SERVICE_MODES)[number];
 
 export class BookingAddressDto {
   @ApiProperty()
@@ -142,4 +146,19 @@ export class CreateBookingDto {
   @IsOptional()
   @IsString()
   addressId?: string;
+
+  @ApiPropertyOptional({ description: 'Registered customer appliance (must belong to the customer).' })
+  @IsOptional()
+  @IsString()
+  applianceId?: string;
+
+  @ApiPropertyOptional({ description: 'Service catalog item (rate card) for this job.' })
+  @IsOptional()
+  @IsString()
+  catalogItemId?: string;
+
+  @ApiPropertyOptional({ enum: SERVICE_MODES, default: 'ON_SITE' })
+  @IsOptional()
+  @IsIn(SERVICE_MODES)
+  serviceMode?: ServiceModeValue;
 }

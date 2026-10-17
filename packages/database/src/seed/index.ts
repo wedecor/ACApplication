@@ -8,6 +8,7 @@ import { assertRegistryValid } from '@ac/auth';
 import { PrismaClient, UserRole } from '@prisma/client';
 
 import { syncPermissionsFromSeed } from '../rbac/sync';
+import { seedRepair } from './repair';
 
 const prisma = new PrismaClient();
 
@@ -238,6 +239,67 @@ async function main() {
     console.info(`  ✓ Staff user: ${spec.firstName} ${spec.lastName} (${spec.phone}, ${spec.role})`);
   }
 
+  // Sample field technician — same shape the API's POST /v1/technicians creates:
+  // User (OTP login, ACTIVE) + Technician profile + TECHNICIAN role.
+  {
+    const spec = {
+      phone: '+919888888888',
+      firstName: 'Ravi',
+      lastName: 'Technician',
+      employeeCode: 'SEED-TECH-01',
+      cityName: 'Bengaluru',
+    };
+    const city = await prisma.city.findUniqueOrThrow({
+      where: { tenantId_name: { tenantId: tenant.id, name: spec.cityName } },
+    });
+    const user = await prisma.user.upsert({
+      where: { phone: spec.phone },
+      update: { tenantId: tenant.id, status: 'ACTIVE', deletedAt: null },
+      create: {
+        tenantId: tenant.id,
+        phone: spec.phone,
+        firstName: spec.firstName,
+        lastName: spec.lastName,
+        phoneVerified: true,
+        status: 'ACTIVE',
+        authProvider: 'OTP',
+      },
+    });
+    await prisma.technician.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        tenantId: tenant.id,
+        userId: user.id,
+        cityId: city.id,
+        employeeCode: spec.employeeCode,
+        fullName: `${spec.firstName} ${spec.lastName}`,
+        phone: spec.phone,
+        skills: ['AC_REPAIR', 'AC_SERVICING', 'AC_INSTALLATION'],
+        dailyCapacity: 8,
+        workingHours: {
+          mon: [['09:00', '18:00']],
+          tue: [['09:00', '18:00']],
+          wed: [['09:00', '18:00']],
+          thu: [['09:00', '18:00']],
+          fri: [['09:00', '18:00']],
+          sat: [['10:00', '14:00']],
+        },
+        documents: [],
+        status: 'OFFLINE',
+      },
+    });
+    const techRole = await prisma.role.findUniqueOrThrow({
+      where: { tenantId_key: { tenantId: tenant.id, key: 'TECHNICIAN' } },
+    });
+    await prisma.userRoleAssignment.upsert({
+      where: { userId_roleId: { userId: user.id, roleId: techRole.id } },
+      update: {},
+      create: { userId: user.id, roleId: techRole.id },
+    });
+    console.info(`  ✓ Technician: ${spec.firstName} ${spec.lastName} (${spec.phone}, ${spec.employeeCode})`);
+  }
+
   for (const tpl of NOTIFICATION_TEMPLATES) {
     await prisma.notificationTemplate.upsert({
       where: {
@@ -258,6 +320,8 @@ async function main() {
     });
   }
   console.info(`  ✓ Notification templates: ${NOTIFICATION_TEMPLATES.length}`);
+
+  await seedRepair(prisma, tenant.id);
 
   console.info('Seed complete.');
 }
