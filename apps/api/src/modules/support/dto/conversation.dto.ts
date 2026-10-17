@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -19,14 +19,17 @@ import {
 } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { toArray } from '../../../common/dto/query-transforms';
 
 export class ListConversationsDto extends PaginationDto {
   @IsOptional()
+  @Transform(({ value }) => toArray(value))
   @IsEnum(ConversationChannel, { each: true })
   @IsArray()
   channel?: ConversationChannel[];
 
   @IsOptional()
+  @Transform(({ value }) => toArray(value))
   @IsEnum(ConversationStatus, { each: true })
   @IsArray()
   status?: ConversationStatus[];
