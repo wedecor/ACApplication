@@ -18,17 +18,80 @@ import type {
   IssueRefundInput,
   IssueRefundResult,
   PaymentProvider,
+  ProviderPaymentStatus,
   WebhookEvent,
 } from './payment-provider.interface';
+
+/** Subset of the Razorpay payment-link entity we read during reconciliation. */
+export interface RazorpayPaymentLinkEntity {
+  id: string;
+  /** created | partially_paid | paid | expired | cancelled */
+  status: string;
+  amount?: number;
+  amount_paid?: number;
+  payments?: { payment_id?: string; amount?: number; status?: string }[] | null;
+}
+
+interface RazorpayClient {
+  paymentLink: {
+    create: (params: unknown) => Promise<{ id: string; short_url: string }>;
+    fetch: (id: string) => Promise<RazorpayPaymentLinkEntity>;
+  };
+  payments: { refund: (paymentId: string, params: unknown) => Promise<{ id: string; status: string }> };
+}
+
+/**
+ * Map a Razorpay payment-link entity to our canonical status. Exported for
+ * unit tests. Only ids / amounts / statuses are copied into `rawPayload` —
+ * the link entity also carries customer contact details which we drop.
+ */
+export function mapRazorpayPaymentLink(link: RazorpayPaymentLinkEntity): ProviderPaymentStatus {
+  const payments = (link.payments ?? []).map((p) => ({
+    payment_id: p.payment_id ?? null,
+    amount: p.amount ?? null,
+    status: p.status ?? null,
+  }));
+  const rawPayload = {
+    source: 'reconcile',
+    provider: 'razorpay',
+    id: link.id,
+    status: link.status,
+    amount: link.amount ?? null,
+    amount_paid: link.amount_paid ?? null,
+    payments,
+  };
+  const base = { paymentRef: null, amountMinor: null, failureCode: null, failureReason: null, rawPayload };
+
+  switch (link.status) {
+    case 'paid': {
+      const captured = payments.filter((p) => p.status === 'captured');
+      const last = captured[captured.length - 1] ?? payments[payments.length - 1];
+      return {
+        ...base,
+        status: 'captured',
+        paymentRef: last?.payment_id ?? null,
+        amountMinor: link.amount_paid ?? link.amount ?? null,
+      };
+    }
+    case 'expired':
+      return { ...base, status: 'expired', failureCode: 'LINK_EXPIRED', failureReason: 'Payment link expired' };
+    case 'cancelled':
+      return { ...base, status: 'cancelled', failureCode: 'LINK_CANCELLED', failureReason: 'Payment link cancelled' };
+    case 'created':
+    case 'partially_paid':
+      // Partial payments are not enabled on our links; if one shows up we
+      // leave the txn pending rather than settling a partial amount.
+      return { ...base, status: 'pending' };
+    default:
+      return { ...base, status: 'unknown' };
+  }
+}
 
 @Injectable()
 export class RazorpayProvider implements PaymentProvider {
   readonly name = 'razorpay' as const;
   private readonly logger = new Logger(RazorpayProvider.name);
-  private clientPromise?: Promise<{
-    paymentLink: { create: (params: unknown) => Promise<{ id: string; short_url: string }> };
-    payments: { refund: (paymentId: string, params: unknown) => Promise<{ id: string; status: string }> };
-  }>;
+  private clientPromise?: Promise<RazorpayClient>;
 
   private get configured(): boolean {
     return Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
@@ -38,12 +101,7 @@ export class RazorpayProvider implements PaymentProvider {
     if (this.clientPromise) return this.clientPromise;
     this.clientPromise = (async () => {
       const { default: Razorpay } = (await import('razorpay')) as unknown as {
-        default: new (opts: { key_id: string; key_secret: string }) => {
-          paymentLink: { create: (params: unknown) => Promise<{ id: string; short_url: string }> };
-          payments: {
-            refund: (paymentId: string, params: unknown) => Promise<{ id: string; status: string }>;
-          };
-        };
+        default: new (opts: { key_id: string; key_secret: string }) => RazorpayClient;
       };
       return new Razorpay({
         key_id: process.env.RAZORPAY_KEY_ID!,
@@ -76,7 +134,8 @@ export class RazorpayProvider implements PaymentProvider {
       notify: { sms: true, email: Boolean(input.customer.email) },
       callback_url: input.callbackUrl,
       callback_method: 'get',
-      notes: input.metadata,
+      // Carry our internal ref so payment.* events can be matched back.
+      notes: { ...(input.metadata ?? {}), orderRef: input.orderRef },
     });
     return { orderRef: link.id, hostedLink: link.short_url, rawPayload: link };
   }
@@ -99,6 +158,7 @@ export class RazorpayProvider implements PaymentProvider {
     const evt = payload as {
       event?: string;
       payload?: {
+        payment_link?: { entity?: { id?: string; amount_paid?: number; currency?: string } };
         payment?: { entity?: { id?: string; order_id?: string; amount?: number; currency?: string; error_code?: string; error_description?: string; status?: string; notes?: Record<string, string> } };
         refund?: { entity?: { id?: string; payment_id?: string; amount?: number; status?: string } };
       };
@@ -106,10 +166,26 @@ export class RazorpayProvider implements PaymentProvider {
     const payment = evt.payload?.payment?.entity;
     const refund = evt.payload?.refund?.entity;
 
+    const paymentLink = evt.payload?.payment_link?.entity;
+
+    // Payment-link checkouts: the link id is what we stored as orderRef.
+    if (evt.event === 'payment_link.paid') {
+      return {
+        type: 'payment_link.paid',
+        orderRef: paymentLink?.id ?? payment?.notes?.orderRef ?? null,
+        paymentRef: payment?.id ?? null,
+        amountMinor: payment?.amount ?? paymentLink?.amount_paid ?? null,
+        currency: payment?.currency ?? paymentLink?.currency ?? null,
+        status: 'captured',
+        failureCode: null,
+        failureReason: null,
+        rawPayload: payload,
+      };
+    }
     if (evt.event === 'payment.captured') {
       return {
         type: 'payment.captured',
-        orderRef: payment?.order_id ?? payment?.notes?.orderRef ?? null,
+        orderRef: payment?.notes?.orderRef ?? payment?.order_id ?? null,
         paymentRef: payment?.id ?? null,
         amountMinor: payment?.amount ?? null,
         currency: payment?.currency ?? null,
@@ -122,7 +198,7 @@ export class RazorpayProvider implements PaymentProvider {
     if (evt.event === 'payment.failed') {
       return {
         type: 'payment.failed',
-        orderRef: payment?.order_id ?? payment?.notes?.orderRef ?? null,
+        orderRef: payment?.notes?.orderRef ?? payment?.order_id ?? null,
         paymentRef: payment?.id ?? null,
         amountMinor: payment?.amount ?? null,
         currency: payment?.currency ?? null,
@@ -174,5 +250,21 @@ export class RazorpayProvider implements PaymentProvider {
       status: res.status === 'processed' ? 'completed' : 'processing',
       rawPayload: res,
     };
+  }
+
+  async fetchStatus(orderRef: string): Promise<ProviderPaymentStatus> {
+    if (!this.configured || orderRef.startsWith('mock_')) {
+      return {
+        status: 'unknown',
+        paymentRef: null,
+        amountMinor: null,
+        failureCode: null,
+        failureReason: null,
+        rawPayload: { source: 'reconcile', provider: 'razorpay', mock: true },
+      };
+    }
+    const c = await this.client();
+    const link = await c.paymentLink.fetch(orderRef);
+    return mapRazorpayPaymentLink(link);
   }
 }

@@ -31,10 +31,19 @@ export interface VerifyWebhookInput {
 
 /**
  * Common interface every payment provider implements.
+ *
+ * NOTE: the production gateway wiring the API uses lives in
+ * `apps/api/src/modules/payments/providers` (see `fetchStatus` there);
+ * this package keeps the framework-agnostic contract in sync.
  */
 export interface PaymentProvider {
   readonly name: 'razorpay' | 'stripe';
   createOrder(input: CreatePaymentOrderInput): Promise<PaymentOrder>;
+  /**
+   * Fetch the current gateway-side state of an order / payment link — used
+   * by reconciliation to resolve transactions whose webhook never arrived.
+   */
+  fetchOrder(orderId: string): Promise<PaymentOrder>;
   verifyWebhook(input: VerifyWebhookInput): boolean;
 }
 
@@ -57,6 +66,10 @@ export class RazorpayProvider implements PaymentProvider {
 
   createOrder(_input: CreatePaymentOrderInput): Promise<PaymentOrder> {
     throw new Error('RazorpayProvider.createOrder not yet implemented');
+  }
+
+  fetchOrder(_orderId: string): Promise<PaymentOrder> {
+    throw new Error('RazorpayProvider.fetchOrder not yet implemented');
   }
 
   /**
@@ -82,6 +95,10 @@ export class StripeProvider implements PaymentProvider {
 
   createOrder(_input: CreatePaymentOrderInput): Promise<PaymentOrder> {
     throw new Error('StripeProvider.createOrder not yet implemented');
+  }
+
+  fetchOrder(_orderId: string): Promise<PaymentOrder> {
+    throw new Error('StripeProvider.fetchOrder not yet implemented');
   }
 
   verifyWebhook(_input: VerifyWebhookInput): boolean {

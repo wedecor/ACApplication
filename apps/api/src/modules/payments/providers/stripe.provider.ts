@@ -14,18 +14,80 @@ import type {
   IssueRefundInput,
   IssueRefundResult,
   PaymentProvider,
+  ProviderPaymentStatus,
   WebhookEvent,
 } from './payment-provider.interface';
+
+/** Subset of a Stripe Checkout Session we read during reconciliation. */
+export interface StripeCheckoutSessionSummary {
+  id: string;
+  /** open | complete | expired */
+  status: string | null;
+  /** paid | unpaid | no_payment_required */
+  payment_status: string;
+  payment_intent: string | null;
+  amount_total: number | null;
+}
+
+interface StripeClient {
+  paymentLinks: {
+    create: (params: unknown) => Promise<{ id: string; url: string }>;
+    retrieve: (id: string) => Promise<{ id: string; active: boolean }>;
+  };
+  checkout: {
+    sessions: {
+      list: (params: { payment_link: string; limit?: number }) => Promise<{ data: StripeCheckoutSessionSummary[] }>;
+    };
+  };
+  refunds: { create: (params: unknown) => Promise<{ id: string; status: string }> };
+  webhooks: { constructEvent: (rawBody: string | Buffer, sig: string, secret: string) => unknown };
+}
+
+/**
+ * Map a Stripe payment link + its checkout sessions to our canonical
+ * status. Exported for unit tests. Only ids / amounts / statuses are kept
+ * in `rawPayload` (sessions also carry customer details we drop).
+ */
+export function mapStripePaymentLink(
+  link: { id: string; active: boolean },
+  sessions: StripeCheckoutSessionSummary[],
+): ProviderPaymentStatus {
+  const rawPayload = {
+    source: 'reconcile',
+    provider: 'stripe',
+    id: link.id,
+    active: link.active,
+    sessions: sessions.map((x) => ({
+      id: x.id,
+      status: x.status,
+      payment_status: x.payment_status,
+      payment_intent: x.payment_intent,
+      amount_total: x.amount_total,
+    })),
+  };
+  const base = { paymentRef: null, amountMinor: null, failureCode: null, failureReason: null, rawPayload };
+  const paid = sessions.find((x) => x.payment_status === 'paid');
+  if (paid) {
+    return {
+      ...base,
+      status: 'captured',
+      paymentRef: paid.payment_intent ?? paid.id,
+      amountMinor: paid.amount_total,
+    };
+  }
+  if (!link.active) {
+    return { ...base, status: 'cancelled', failureCode: 'LINK_DEACTIVATED', failureReason: 'Payment link deactivated' };
+  }
+  // Stripe payment links never expire on their own; an expired session just
+  // means that one checkout attempt lapsed — the customer can retry.
+  return { ...base, status: 'pending' };
+}
 
 @Injectable()
 export class StripeProvider implements PaymentProvider {
   readonly name = 'stripe' as const;
   private readonly logger = new Logger(StripeProvider.name);
-  private clientPromise?: Promise<{
-    paymentLinks: { create: (params: unknown) => Promise<{ id: string; url: string }> };
-    refunds: { create: (params: unknown) => Promise<{ id: string; status: string }> };
-    webhooks: { constructEvent: (rawBody: string | Buffer, sig: string, secret: string) => unknown };
-  }>;
+  private clientPromise?: Promise<StripeClient>;
 
   private get configured(): boolean {
     return Boolean(process.env.STRIPE_SECRET_KEY);
@@ -35,11 +97,7 @@ export class StripeProvider implements PaymentProvider {
     if (this.clientPromise) return this.clientPromise;
     this.clientPromise = (async () => {
       const stripeModule = (await import('stripe')) as unknown as { default: new (k: string) => never };
-      const Stripe = (stripeModule.default ?? stripeModule) as unknown as new (k: string) => {
-        paymentLinks: { create: (params: unknown) => Promise<{ id: string; url: string }> };
-        refunds: { create: (params: unknown) => Promise<{ id: string; status: string }> };
-        webhooks: { constructEvent: (rawBody: string | Buffer, sig: string, secret: string) => unknown };
-      };
+      const Stripe = (stripeModule.default ?? stripeModule) as unknown as new (k: string) => StripeClient;
       return new Stripe(process.env.STRIPE_SECRET_KEY!);
     })();
     return this.clientPromise;
@@ -64,6 +122,8 @@ export class StripeProvider implements PaymentProvider {
         },
       ],
       metadata: { orderRef: input.orderRef, ...(input.metadata ?? {}) },
+      // Payment Link metadata is not copied to the PaymentIntent; set it explicitly.
+      payment_intent_data: { metadata: { orderRef: input.orderRef } },
     });
     return { orderRef: link.id, hostedLink: link.url, rawPayload: link };
   }
@@ -85,12 +145,14 @@ export class StripeProvider implements PaymentProvider {
           currency?: string;
           last_payment_error?: { code?: string; message?: string };
           payment_intent?: string;
+          payment_link?: string | null;
           status?: string;
         };
       };
     };
     const obj = evt.data?.object ?? {};
-    const orderRef = obj.metadata?.orderRef ?? null;
+    // checkout.session.* carries the Payment Link id we stored as orderRef.
+    const orderRef = obj.metadata?.orderRef ?? obj.payment_link ?? null;
 
     if (evt.type === 'payment_intent.succeeded' || evt.type === 'checkout.session.completed') {
       return {
@@ -164,5 +226,24 @@ export class StripeProvider implements PaymentProvider {
     }
     const c = await this.client();
     return c.webhooks.constructEvent(rawBody, sigHeader, process.env.STRIPE_WEBHOOK_SECRET!);
+  }
+
+  async fetchStatus(orderRef: string): Promise<ProviderPaymentStatus> {
+    if (!this.configured || orderRef.startsWith('stripe_mock_')) {
+      return {
+        status: 'unknown',
+        paymentRef: null,
+        amountMinor: null,
+        failureCode: null,
+        failureReason: null,
+        rawPayload: { source: 'reconcile', provider: 'stripe', mock: true },
+      };
+    }
+    const c = await this.client();
+    const [link, sessions] = await Promise.all([
+      c.paymentLinks.retrieve(orderRef),
+      c.checkout.sessions.list({ payment_link: orderRef, limit: 20 }),
+    ]);
+    return mapStripePaymentLink(link, sessions.data);
   }
 }

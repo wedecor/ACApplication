@@ -60,6 +60,30 @@ export interface IssueRefundResult {
   rawPayload: unknown;
 }
 
+/**
+ * Provider-side truth for a payment link / order, as returned by
+ * `PaymentProvider.fetchStatus`. Used by the reconciliation cron.
+ *
+ *  • `captured`  — money has been collected; `paymentRef` + `amountMinor` set.
+ *  • `failed`    — the payment attempt failed terminally.
+ *  • `expired`   — the link / order expired without payment.
+ *  • `cancelled` — the link was cancelled / deactivated.
+ *  • `pending`   — still awaiting the customer; leave the txn alone.
+ *  • `unknown`   — provider not configured / mock ref / unrecognised state.
+ */
+export interface ProviderPaymentStatus {
+  status: 'captured' | 'failed' | 'expired' | 'cancelled' | 'pending' | 'unknown';
+  paymentRef: string | null;
+  amountMinor: number | null;
+  failureCode: string | null;
+  failureReason: string | null;
+  /**
+   * Sanitised summary of the provider response. Implementations MUST NOT
+   * include card data, tokens or customer PII here — it is persisted.
+   */
+  rawPayload: unknown;
+}
+
 export interface PaymentProvider {
   readonly name: PaymentProviderName;
   createPaymentLink(input: CreatePaymentLinkInput): Promise<CreatePaymentLinkResult>;
@@ -70,4 +94,9 @@ export interface PaymentProvider {
   verifyWebhookSignature(rawBody: string, signature: string | undefined): void;
   parseWebhookEvent(payload: unknown): WebhookEvent;
   issueRefund(input: IssueRefundInput): Promise<IssueRefundResult>;
+  /**
+   * Ask the gateway for the current state of a payment link / order we
+   * created (`orderRef` is the provider-side id stored on the txn).
+   */
+  fetchStatus(orderRef: string): Promise<ProviderPaymentStatus>;
 }
