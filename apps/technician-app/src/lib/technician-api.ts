@@ -1,5 +1,7 @@
 import { api } from './api';
 import { getTechnicianId } from './auth';
+import type { ApplianceSummary } from './repair-types';
+import type { AttachmentKind } from './write-queue-core';
 
 export type TechnicianStatus =
   | 'OFFLINE'
@@ -29,7 +31,52 @@ export interface JobSummary {
   customer: { id: string; fullName: string; phone: string };
 }
 
+/**
+ * GET /bookings/:id — the summary fields plus the repair-module additions
+ * (appliance link, warranty revisit flag, service mode). The repair fields
+ * are optional so the screen still works against an older API.
+ */
+export interface BookingDetail extends JobSummary {
+  customerId?: string;
+  applianceId?: string | null;
+  appliance?: ApplianceSummary | null;
+  isWarrantyRevisit?: boolean;
+  serviceMode?: string | null;
+  repairWarrantyUntil?: string | null;
+  customerSignatureUrl?: string | null;
+}
+
+export interface BookingAttachment {
+  id: string;
+  kind: AttachmentKind | 'INVOICE' | 'DOCUMENT';
+  url: string;
+  caption: string | null;
+  mimeType: string | null;
+  createdAt: string;
+}
+
 export const technicianApi = {
+  booking: (bookingId: string) => api<BookingDetail>(`/bookings/${bookingId}`),
+
+  attachments: (bookingId: string) =>
+    api<BookingAttachment[]>(`/bookings/${bookingId}/attachments`),
+
+  addAttachment: (
+    bookingId: string,
+    body: {
+      kind: AttachmentKind;
+      url: string;
+      storageKey: string;
+      mimeType?: string;
+      sizeBytes?: number;
+      caption?: string;
+    },
+  ) => api<BookingAttachment>(`/bookings/${bookingId}/attachments`, { method: 'POST', body }),
+
+  /** Allowed while IN_PROGRESS or COMPLETED. */
+  setSignature: (bookingId: string, url: string) =>
+    api(`/bookings/${bookingId}/signature`, { method: 'POST', body: { url } }),
+
   /** Self-service status change (from the field-app toggle). */
   setStatus: (technicianId: string, status: TechnicianStatus, reason?: string) =>
     api(`/technicians/${technicianId}/status`, {

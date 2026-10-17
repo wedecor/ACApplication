@@ -25,7 +25,8 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_BACKGROUND_LOCATION",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "CAMERA"
       ]
     },
     "plugins": [
@@ -37,8 +38,17 @@
           "locationAlwaysAndWhenInUsePermission": "AC Technician needs your location to update job ETAs."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "AC Technician uses the camera to photograph the appliance, parts and completed work.",
+          "photosPermission": "AC Technician attaches job photos from your gallery."
+        }
+      ]
     ],
-    "experiments": { "typedRoutes": true }
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

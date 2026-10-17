@@ -21,6 +21,7 @@ import {
 } from '../src/lib/location';
 import { getSocket } from '../src/lib/socket';
 import { type JobSummary, technicianApi } from '../src/lib/technician-api';
+import { flushWriteQueue } from '../src/lib/write-queue';
 
 /**
  * Field-app home screen — the technician's "command bar":
@@ -130,8 +131,12 @@ export default function HomeScreen() {
         <Pressable
           onPress={async () => {
             const out = await flushQueue();
-            setQueueSize(out.remaining);
-            Alert.alert('Queue flushed', `Sent ${out.flushed}, remaining ${out.remaining}.`);
+            const writes = await flushWriteQueue().catch(() => ({ flushed: 0, remaining: 0, dropped: 0 }));
+            setQueueSize(out.remaining + writes.remaining);
+            Alert.alert(
+              'Queue flushed',
+              `Location: sent ${out.flushed}, remaining ${out.remaining}.\nJob updates: sent ${writes.flushed}, remaining ${writes.remaining}${writes.dropped ? `, failed ${writes.dropped}` : ''}.`,
+            );
           }}
           style={{
             flex: 1,
@@ -170,7 +175,7 @@ export default function HomeScreen() {
 
       <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
-          Today's jobs
+          Today&apos;s jobs
         </Text>
         <View style={{ height: 12 }} />
         {jobs.isLoading ? (

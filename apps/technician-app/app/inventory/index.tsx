@@ -59,7 +59,7 @@ export default function VanInventoryScreen() {
 
   const van = useQuery({
     queryKey: ['van-inventory', techId],
-    queryFn: () => inventoryApi.vanInventory(techId as string),
+    queryFn: () => inventoryApi.vanInventory(techId!),
     enabled: !!techId,
   });
 

@@ -57,5 +57,10 @@
     "*.{json,md,mdx,yml,yaml,css}": [
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.28"
+    }
   }
 }
