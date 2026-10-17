@@ -34,7 +34,8 @@ function stableHash(input: string): number {
   for (let i = 0; i < input.length; i += 1) {
     h = ((h << 5) + h + input.charCodeAt(i)) | 0;
   }
-  return Math.abs(h);
+  // pg_advisory_xact_lock(int4, int4): keep the key a non-negative int4.
+  return h & 0x7fffffff;
 }
 
 export async function nextDocumentNumber(
@@ -50,7 +51,7 @@ export async function nextDocumentNumber(
   return prisma.client.$transaction(async (tx) => {
     const lockKey = stableHash(`${tenantId}:${opts.prefix}:${year}`);
     await tx.$executeRawUnsafe(
-      `SELECT pg_advisory_xact_lock(${ADVISORY_NAMESPACE}::bigint, ${lockKey}::bigint)`,
+      `SELECT pg_advisory_xact_lock(${ADVISORY_NAMESPACE}::int, ${lockKey}::int)`,
     );
 
     const model = (tx as unknown as Record<string, { findFirst: Function }>)[opts.table];
