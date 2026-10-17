@@ -42,6 +42,7 @@
     "format": "prisma format",
     "validate": "prisma validate",
     "seed": "tsx src/seed/index.ts",
+    "seed:demo": "tsx src/seed/demo.ts",
     "reset": "prisma migrate reset --force && pnpm seed",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
