@@ -31,8 +31,8 @@ export default function CsatPage() {
         </p>
       </header>
 
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <Card label="Average rating" loading={overview.isLoading}>
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <Card label="Average rating" loading={overview.isLoading} className="col-span-2 md:col-span-1">
           {o?.csat.count ? `${o.csat.averageRating.toFixed(2)} / 5` : '—'}
           <div className="mt-1 text-xs text-muted-foreground">
             {o?.csat.count ?? 0} ratings collected
@@ -95,15 +95,17 @@ function Card({
   label,
   loading,
   tone,
+  className,
   children,
 }: {
   label: string;
   loading?: boolean;
   tone?: 'positive' | 'negative';
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border bg-card p-4">
+    <div className={`rounded-md border bg-card p-4 ${className ?? ''}`}>
       <div className="text-sm text-muted-foreground">{label}</div>
       {loading ? (
         <Skeleton className="mt-2 h-7 w-24" />

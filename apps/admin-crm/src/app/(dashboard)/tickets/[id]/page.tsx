@@ -198,7 +198,7 @@ export default function TicketDetailPage() {
                               <UserCircle className="size-3.5" />
                               {m.author
                                 ? `${m.author.firstName ?? ''} ${m.author.lastName ?? ''}`.trim()
-                                : m.authorKind}
+                                : humanizeEnum(m.authorKind)}
                               {m.isInternal ? (
                                 <Badge variant="outline" className="ml-2">
                                   Internal
@@ -215,10 +215,11 @@ export default function TicketDetailPage() {
                 </div>
 
                 <div className="border-t p-3">
-                  <div className="mb-2 flex items-center gap-2 text-xs">
-                    <span>Reply via</span>
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
+                    <label htmlFor="ticket-reply-channel">Reply via</label>
                     <select
-                      className="rounded-md border bg-background px-2 py-1"
+                      id="ticket-reply-channel"
+                      className="h-9 rounded-md border bg-background px-2"
                       value={channel}
                       onChange={(e) => setChannel(e.target.value as ConversationChannel)}
                       disabled={internal}
@@ -239,6 +240,7 @@ export default function TicketDetailPage() {
                     </label>
                   </div>
                   <textarea
+                    aria-label={internal ? 'Internal note' : 'Reply to customer'}
                     className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     placeholder={internal ? 'Add an internal note…' : 'Type your reply…'}
                     value={draft}
@@ -280,7 +282,7 @@ export default function TicketDetailPage() {
                                 'System'
                               : 'System'}
                           </strong>{' '}
-                          — {a.type.replace('_', ' ').toLowerCase()}
+                          — {humanizeEnum(a.type).toLowerCase()}
                           {a.message ? <span className="text-muted-foreground"> · {a.message}</span> : null}
                         </div>
                         <div className="mt-0.5 text-xs text-muted-foreground">

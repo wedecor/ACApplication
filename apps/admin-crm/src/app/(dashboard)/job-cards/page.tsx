@@ -62,7 +62,7 @@ export default function JobCardsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input
+          <Input aria-label="Booking code or customer"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Booking code or customer"

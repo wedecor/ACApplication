@@ -82,7 +82,7 @@ export default function WorkshopPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative w-64">
             <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
-            <Input
+            <Input aria-label="Job, booking or customer"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Job, booking or customer"

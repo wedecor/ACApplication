@@ -15,8 +15,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from '@ac/ui';
+  TableRow, type BadgeProps } from '@ac/ui';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
@@ -25,13 +24,10 @@ import type { KbArticle } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
-const STATUS_VARIANT: Record<
-  KbArticle['status'],
-  'default' | 'secondary' | 'destructive' | 'outline'
-> = {
+const STATUS_VARIANT: Record<KbArticle['status'], NonNullable<BadgeProps['variant']>> = {
   DRAFT: 'outline',
-  PUBLISHED: 'default',
-  ARCHIVED: 'secondary',
+  PUBLISHED: 'success',
+  ARCHIVED: 'muted',
 };
 
 export default function KnowledgeBasePage() {
@@ -75,10 +71,12 @@ export default function KnowledgeBasePage() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Search articles…"
+            type="search"
+            aria-label="Search articles"
+            placeholder="Search articles"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-72"
+            className="w-full sm:w-72"
           />
           <Button
             size="sm"
@@ -221,8 +219,8 @@ function NewArticleForm({ onDone }: { onDone: () => void }) {
     <div className="rounded-md border bg-card p-4">
       <h2 className="text-sm font-semibold">New article</h2>
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-        <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-        <Input placeholder="slug-like-this" value={slug} onChange={(e) => setSlug(e.target.value)} />
+        <Input aria-label="Title" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        <Input aria-label="slug-like-this" placeholder="slug-like-this" value={slug} onChange={(e) => setSlug(e.target.value)} />
         <select
           className="rounded-md border border-input bg-background px-3 py-2 text-sm"
           value={categoryId}
@@ -245,13 +243,13 @@ function NewArticleForm({ onDone }: { onDone: () => void }) {
           <option value="INTERNAL">Internal only</option>
         </select>
       </div>
-      <Input
+      <Input aria-label="Excerpt (optional)"
         className="mt-3"
         placeholder="Excerpt (optional)"
         value={excerpt}
         onChange={(e) => setExcerpt(e.target.value)}
       />
-      <textarea
+      <textarea aria-label="# Markdown body"
         className="mt-3 min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         placeholder="# Markdown body…"
         value={bodyMarkdown}

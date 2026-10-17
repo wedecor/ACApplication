@@ -77,7 +77,7 @@ export default function PurchaseOrderDetailPage() {
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            PO {po.number}
+            {po.number}
             <Badge className="ml-2 align-middle" variant={STATUS_VARIANT[po.status]}>
               {humanizeEnum(po.status)}
             </Badge>
@@ -147,32 +147,20 @@ export default function PurchaseOrderDetailPage() {
         </div>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatMinor(po.totalMinor)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Created</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{formatDate(po.createdAt)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Expected</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{po.expectedAt ? formatDate(po.expectedAt) : '—'}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <dl className="grid grid-cols-3 divide-x rounded-lg border bg-card">
+        <div className="min-w-0 px-3 py-3 sm:px-5">
+          <dt className="text-sm text-muted-foreground">Total</dt>
+          <dd className="mt-0.5 truncate text-lg font-semibold tabular-nums sm:text-2xl">{formatMinor(po.totalMinor)}</dd>
+        </div>
+        <div className="min-w-0 px-3 py-3 sm:px-5">
+          <dt className="text-sm text-muted-foreground">Created</dt>
+          <dd className="mt-0.5 text-sm sm:text-base">{formatDate(po.createdAt)}</dd>
+        </div>
+        <div className="min-w-0 px-3 py-3 sm:px-5">
+          <dt className="text-sm text-muted-foreground">Expected</dt>
+          <dd className="mt-0.5 text-sm sm:text-base">{po.expectedAt ? formatDate(po.expectedAt) : '—'}</dd>
+        </div>
+      </dl>
 
       <Card>
         <CardHeader>

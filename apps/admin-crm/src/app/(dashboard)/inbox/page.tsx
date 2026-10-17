@@ -39,6 +39,7 @@ import type {
   MessageStatus,
 } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 const CHANNEL_ICONS: Record<ConversationChannel, React.ReactNode> = {
   WHATSAPP: <MessageCircle className="size-3.5 text-green-600" />,
@@ -63,6 +64,14 @@ export default function InboxPage() {
   const [channel, setChannel] = React.useState<ConversationChannel | 'all'>('all');
   const [search, setSearch] = React.useState('');
   const [selected, setSelected] = React.useState<string | null>(null);
+  const threadRef = React.useRef<HTMLElement>(null);
+  // Below lg the thread sits under the list; bring it into view when a conversation is picked.
+  const openConversation = (id: string) => {
+    setSelected(id);
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() => threadRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
 
   const conversations = useConversations({
     page: 1,
@@ -89,20 +98,24 @@ export default function InboxPage() {
             One unified queue for WhatsApp, email, phone, web chat, in-app and SMS.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
-            placeholder="Search messages…"
+            type="search"
+            aria-label="Search messages"
+            placeholder="Search messages"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-72"
+            className="min-w-0 flex-1 sm:w-72 sm:flex-none"
           />
           <Button
             variant="outline"
             size="sm"
             onClick={() => conversations.refetch()}
             disabled={conversations.isFetching}
+            aria-label="Refresh conversations"
+            title="Refresh"
           >
-            <RefreshCcw className="size-4" />
+            <RefreshCcw className={conversations.isFetching ? 'animate-spin' : undefined} aria-hidden />
           </Button>
         </div>
       </header>
@@ -130,7 +143,7 @@ export default function InboxPage() {
                   className="h-7 px-2 text-xs"
                   onClick={() => setChannel(c)}
                 >
-                  {c === 'all' ? 'All' : c.replace('_', ' ')}
+                  {c === 'all' ? 'All' : channelLabel(c)}
                 </Button>
               ),
             )}
@@ -147,7 +160,7 @@ export default function InboxPage() {
                   <li key={c.id}>
                     <button
                       type="button"
-                      onClick={() => setSelected(c.id)}
+                      onClick={() => openConversation(c.id)}
                       className={`block w-full px-3 py-2 text-left text-sm transition-colors hover:bg-muted/50 ${
                         selected === c.id ? 'bg-muted' : ''
                       }`}
@@ -176,7 +189,7 @@ export default function InboxPage() {
         </aside>
 
         {/* Thread */}
-        <section className="col-span-12 lg:col-span-8 xl:col-span-9">
+        <section ref={threadRef} className="col-span-12 scroll-mt-20 lg:col-span-8 xl:col-span-9">
           {selected ? (
             <ConversationDetail id={selected} />
           ) : (
@@ -246,7 +259,7 @@ function ConversationDetail({ id }: { id: string }) {
           {c?.ticket ? (
             <Badge variant="outline">Ticket {c.ticket.number}</Badge>
           ) : null}
-          {c?.status ? <Badge>{c.status.replace('_', ' ')}</Badge> : null}
+          {c?.status ? <Badge variant="muted">{humanizeEnum(c.status)}</Badge> : null}
           <Button
             size="sm"
             variant="outline"
@@ -273,7 +286,7 @@ function ConversationDetail({ id }: { id: string }) {
       <div className="border-t px-4 py-2">
         {c?.channel === 'WHATSAPP' ? (
           <div className="mb-2">
-            <Input
+            <Input aria-label="WhatsApp template name (e.g. ac_followup) — optional"
               placeholder="WhatsApp template name (e.g. ac_followup) — optional"
               value={template}
               onChange={(e) => setTemplate(e.target.value)}
@@ -282,7 +295,7 @@ function ConversationDetail({ id }: { id: string }) {
           </div>
         ) : null}
         <div className="flex items-end gap-2">
-          <textarea
+          <textarea aria-label="Reply"
             className="flex min-h-[64px] flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder="Type a reply… (Cmd/Ctrl + Enter to send)"
             value={draft}
@@ -339,4 +352,16 @@ function Bubble({ m }: { m: ConversationMessage }) {
       </div>
     </div>
   );
+}
+
+function channelLabel(channel: string): string {
+  const labels: Record<string, string> = {
+    WHATSAPP: 'WhatsApp',
+    EMAIL: 'Email',
+    PHONE: 'Phone',
+    WEB_CHAT: 'Web chat',
+    IN_APP_CHAT: 'In-app chat',
+    SMS: 'SMS',
+  };
+  return labels[channel] ?? humanizeEnum(channel);
 }

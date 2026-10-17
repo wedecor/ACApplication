@@ -82,7 +82,7 @@ export default function TicketsPage() {
             Every support case across all channels, with SLA timers and CSAT.
           </p>
         </div>
-        <Input
+        <Input aria-label="Search ticket #, subject"
           placeholder="Search ticket #, subject…"
           className="sm:w-72"
           value={filters.search}
@@ -137,21 +137,30 @@ export default function TicketsPage() {
             <TableBody>
               {items.map((t) => (
                 <TableRow key={t.id}>
-                  <TableCell className="font-medium">
+                  <TableCell className="font-medium max-md:hidden">
                     <Link href={`/tickets/${t.id}`} className="hover:underline">
                       {t.number}
                     </Link>
                   </TableCell>
-                  <TableCell className="max-w-[24ch] truncate">{t.subject}</TableCell>
+                  <TableCell data-primary="" className="md:max-w-[24ch] md:truncate">
+                    <Link
+                      href={`/tickets/${t.id}`}
+                      className="hover:underline max-md:after:absolute max-md:after:inset-0"
+                      title={t.subject}
+                    >
+                      {t.subject}
+                    </Link>
+                    <span className="block text-xs font-normal text-muted-foreground md:hidden">{t.number}</span>
+                  </TableCell>
                   <TableCell>{t.customer?.fullName ?? '—'}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{t.source.replace('_', ' ')}</Badge>
+                    <Badge variant="outline">{humanizeEnum(t.source)}</Badge>
                   </TableCell>
                   <TableCell>
                     <Badge variant={PRIORITY_VARIANT[t.priority]}>{humanizeEnum(t.priority)}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANT[t.status]}>{t.status.replace('_', ' ')}</Badge>
+                    <Badge variant={STATUS_VARIANT[t.status]}>{humanizeEnum(t.status)}</Badge>
                   </TableCell>
                   <TableCell>
                     {t.assignedAgent

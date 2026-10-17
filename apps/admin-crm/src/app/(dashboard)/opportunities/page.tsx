@@ -23,12 +23,12 @@ import { humanizeEnum } from '@/lib/labels';
 const OPEN_FLOW: OpportunityStage[] = ['NEW', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON'];
 
 const STAGE_TONE: Record<OpportunityStage, string> = {
-  NEW: 'border-t-slate-400',
-  QUALIFIED: 'border-t-sky-500',
-  PROPOSAL: 'border-t-violet-500',
-  NEGOTIATION: 'border-t-amber-500',
-  WON: 'border-t-emerald-500',
-  LOST: 'border-t-rose-500',
+  NEW: 'bg-slate-400',
+  QUALIFIED: 'bg-sky-500',
+  PROPOSAL: 'bg-violet-500',
+  NEGOTIATION: 'bg-amber-500',
+  WON: 'bg-emerald-500',
+  LOST: 'bg-rose-500',
 };
 
 export default function OpportunitiesPage() {
@@ -139,9 +139,12 @@ export default function OpportunitiesPage() {
             const items = byStage.get(stage) ?? [];
             const summary = pipeline?.stages.find((s) => s.stage === stage);
             return (
-              <div key={stage} className={`w-[85vw] max-w-72 shrink-0 snap-start rounded-lg border border-t-4 bg-muted/30 sm:w-72 ${STAGE_TONE[stage]}`}>
+              <div key={stage} className="w-[85vw] max-w-72 shrink-0 snap-start rounded-lg border bg-muted/30 sm:w-72">
                 <div className="flex items-baseline justify-between px-3 py-2">
-                  <span className="text-sm font-semibold">{humanizeEnum(stage)}</span>
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <span className={`size-2 rounded-full ${STAGE_TONE[stage]}`} aria-hidden />
+                    {humanizeEnum(stage)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {summary?.count ?? items.length} · {formatINR(summary?.valueMinor ?? items.reduce((a, o) => a + o.valueMinor, 0))}
                   </span>

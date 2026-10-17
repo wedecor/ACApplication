@@ -67,6 +67,7 @@ export default function CampaignsPage() {
 
       <div className="flex max-w-xs">
         <NativeSelect
+          aria-label="Campaign status"
           value={query.status ?? ''}
           onChange={(e) =>
             setQuery((q) => ({ ...q, page: 1, status: (e.target.value || undefined) as CampaignStatus | undefined }))

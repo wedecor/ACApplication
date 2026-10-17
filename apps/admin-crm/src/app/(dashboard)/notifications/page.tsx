@@ -140,7 +140,7 @@ export default function NotificationsPage() {
             </button>
           ))}
         </div>
-        <Input
+        <Input aria-label="Search template, phone, correlation"
           placeholder="Search template, phone, correlation…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

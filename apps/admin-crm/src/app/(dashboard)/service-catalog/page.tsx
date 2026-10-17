@@ -319,7 +319,7 @@ function FaultCodesTab({ category, canManage }: { category?: ServiceCategory; ca
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code or title" className="max-w-xs" />
+        <Input aria-label="Search code or title" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code or title" className="max-w-xs" />
         {canManage ? (
           <Button size="sm" onClick={() => setEditing('new')}>
             <Plus className="size-4" /> New fault code

@@ -264,7 +264,7 @@ function WarrantyCard({ booking }: { booking: BookingRepairInfo }) {
         {canManage && check.data?.eligibleForRepairRevisit ? (
           <div className="space-y-2 border-t pt-3">
             <p className="text-xs text-muted-foreground">Eligible for a free repair revisit.</p>
-            <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="What failed again?" />
+            <Input aria-label="What failed again?" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="What failed again?" />
             <Button size="sm" onClick={raise} disabled={create.isPending}>
               Raise revisit claim
             </Button>

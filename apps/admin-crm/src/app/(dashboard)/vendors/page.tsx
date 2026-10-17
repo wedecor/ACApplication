@@ -63,7 +63,7 @@ export default function VendorsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input
+          <Input aria-label="Search by name, GST, phone or email"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, GST, phone or email"

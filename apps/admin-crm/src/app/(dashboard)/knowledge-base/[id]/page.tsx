@@ -14,8 +14,7 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Skeleton,
-} from '@ac/ui';
+  Skeleton, Label } from '@ac/ui';
 
 import { useKbActions, useKbArticle } from '@/hooks/use-support';
 import { formatDateTime } from '@/lib/format';
@@ -33,8 +32,8 @@ export default function KbArticleDetailPage() {
 
   React.useEffect(() => {
     if (!article) return;
-    setTitle(article.title);
-    setBody(article.bodyMarkdown);
+    setTitle(article.title ?? '');
+    setBody(article.bodyMarkdown ?? '');
     setStatus(article.status);
   }, [article]);
 
@@ -110,9 +109,16 @@ export default function KbArticleDetailPage() {
           <CardTitle className="text-base">Content</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
-          <p className="font-mono text-xs text-muted-foreground">/{article.slug}</p>
+          <div className="space-y-1">
+            <Label htmlFor="kb-title">Title</Label>
+            <Input id="kb-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" />
+            <p className="text-xs text-muted-foreground">/{article.slug}</p>
+          </div>
+          <Label htmlFor="kb-status" className="sr-only">
+            Status
+          </Label>
           <select
+            id="kb-status"
             value={status}
             onChange={(e) => setStatus(e.target.value as typeof status)}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -121,7 +127,11 @@ export default function KbArticleDetailPage() {
             <option value="PUBLISHED">Published</option>
             <option value="ARCHIVED">Archived</option>
           </select>
+          <Label htmlFor="kb-body" className="sr-only">
+            Article body (Markdown)
+          </Label>
           <textarea
+            id="kb-body"
             className="min-h-[280px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
             value={bodyMarkdown}
             onChange={(e) => setBody(e.target.value)}

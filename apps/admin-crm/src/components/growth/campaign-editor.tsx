@@ -165,6 +165,9 @@ export function CampaignEditor({ campaignId }: { campaignId?: string }) {
             {campaign.status !== 'RUNNING' ? (
               <Button
                 variant="ghost"
+                size="icon"
+                aria-label="Delete campaign"
+                title="Delete campaign"
                 disabled={action.isPending}
                 onClick={() => {
                   if (window.confirm('Delete this campaign?')) {
@@ -172,7 +175,7 @@ export function CampaignEditor({ campaignId }: { campaignId?: string }) {
                   }
                 }}
               >
-                <Trash2 className="size-4" />
+                <Trash2 aria-hidden />
               </Button>
             ) : null}
           </div>

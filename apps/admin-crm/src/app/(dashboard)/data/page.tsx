@@ -90,7 +90,7 @@ function ImportSection() {
           >
             {IMPORT_ENTITIES.map((e) => (
               <option key={e} value={e}>
-                {e}
+                {humanizeEnum(e)}
               </option>
             ))}
           </NativeSelect>
@@ -222,7 +222,7 @@ function ExportSection() {
           <NativeSelect value={entity} onChange={(e) => setEntity(e.target.value as ExportEntity)}>
             {EXPORT_ENTITIES.map((e) => (
               <option key={e} value={e}>
-                {e}
+                {humanizeEnum(e)}
               </option>
             ))}
           </NativeSelect>

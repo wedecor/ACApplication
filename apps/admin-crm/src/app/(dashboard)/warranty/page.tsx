@@ -88,7 +88,7 @@ export default function WarrantyPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-xs">
           <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input
+          <Input aria-label="Claim number, customer or phone"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Claim number, customer or phone"

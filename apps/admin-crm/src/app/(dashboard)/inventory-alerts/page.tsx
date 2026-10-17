@@ -56,7 +56,7 @@ export default function InventoryAlertsPage() {
             variant={status === s ? 'default' : 'outline'}
             onClick={() => setStatus(s)}
           >
-            {s}
+            {humanizeEnum(s)}
           </Button>
         ))}
       </div>

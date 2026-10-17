@@ -44,7 +44,7 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
         cell: ({ row }) => (
           <Link
             href={`/bookings/${row.original.id}`}
-            className="font-mono text-xs font-semibold text-primary hover:underline"
+            className="whitespace-nowrap font-mono text-xs font-semibold text-primary hover:underline"
           >
             {row.original.code}
           </Link>

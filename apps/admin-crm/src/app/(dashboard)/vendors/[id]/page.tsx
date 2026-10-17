@@ -64,8 +64,8 @@ export default function VendorDetailPage() {
         <p className="mt-1 font-mono text-sm text-muted-foreground">{vendor.code}</p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Card className="col-span-2 sm:col-span-1">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime spend</CardTitle>
           </CardHeader>

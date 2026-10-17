@@ -22,6 +22,7 @@ import {
 import { Pagination } from '@/components/common/pagination';
 import { useInventoryItems, useInventoryValuation } from '@/hooks/use-inventory';
 import { formatMinor, formatMinorCompact } from '@/lib/format';
+import { humanizeEnum } from '@/lib/labels';
 
 const TYPE_FILTERS: Array<{ id: string | 'ALL'; label: string }> = [
   { id: 'ALL', label: 'All' },
@@ -86,7 +87,7 @@ export default function InventoryPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-sm">
           <Search className="pointer-events-none absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input
+          <Input aria-label="Search by name, SKU, brand or barcode"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name, SKU, brand or barcode"
@@ -170,7 +171,7 @@ export default function InventoryPage() {
                     <code className="font-mono text-xs">{it.sku}</code>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{it.type.replace('_', ' ')}</Badge>
+                    <Badge variant="outline">{humanizeEnum(it.type)}</Badge>
                   </TableCell>
                   <TableCell className="text-right">{it.totalQuantity ?? 0}</TableCell>
                   <TableCell className="text-right">{it.totalReserved ?? 0}</TableCell>
@@ -220,12 +221,12 @@ function KpiCard({
   icon?: React.ReactNode;
 }) {
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{label}</span>
+    <div className="min-w-0 rounded-lg border bg-card p-3 sm:p-4">
+      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span className="min-w-0">{label}</span>
         {icon}
       </div>
-      <div className="mt-1 text-2xl font-semibold">
+      <div className="mt-1 break-words text-xl font-semibold tabular-nums sm:text-2xl">
         {isLoading ? <Skeleton className="h-7 w-24" /> : value}
       </div>
     </div>

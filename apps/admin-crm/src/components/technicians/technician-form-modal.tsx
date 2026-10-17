@@ -264,7 +264,7 @@ export function TechnicianFormModal({ open, onOpenChange, technician, onSaved }:
             <div className="space-y-2">
               {form.documents.map((doc, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <Input
+                  <Input aria-label="Type"
                     className="h-8 w-32"
                     placeholder="Type"
                     value={doc.type}
@@ -274,7 +274,7 @@ export function TechnicianFormModal({ open, onOpenChange, technician, onSaved }:
                       set('documents', next);
                     }}
                   />
-                  <Input
+                  <Input aria-label="https://"
                     className="h-8 flex-1"
                     placeholder="https://…"
                     value={doc.url}

@@ -44,7 +44,7 @@ export function LeadsTable({ data, isLoading }: Props) {
         cell: ({ row }) => (
           <Link
             href={`/leads/${row.original.id}`}
-            className="font-mono text-xs font-semibold text-primary hover:underline"
+            className="whitespace-nowrap font-mono text-xs font-semibold text-primary hover:underline"
           >
             {row.original.code}
           </Link>

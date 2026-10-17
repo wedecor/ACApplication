@@ -78,12 +78,15 @@ export default function CallCenterPage() {
             Live agent calls, missed-call recovery and Exotel / Twilio integration.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:w-auto">
           <Input
-            placeholder="+91 99…"
+            type="tel"
+            inputMode="tel"
+            aria-label="Number to call"
+            placeholder="+91 98765 43210"
             value={c2cNumber}
             onChange={(e) => setC2cNumber(e.target.value)}
-            className="w-48"
+            className="min-w-0 flex-1 sm:w-48 sm:flex-none"
           />
           <Button
             disabled={!c2cNumber || actions.clickToCall.isPending}
@@ -100,7 +103,7 @@ export default function CallCenterPage() {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi label="Calls (30d)" value={stats.data?.total ?? 0} loading={stats.isLoading} />
         <Kpi
           label="Missed"
@@ -164,7 +167,7 @@ export default function CallCenterPage() {
               Call log
             </h2>
             <div className="flex items-center gap-2">
-              <Input
+              <Input aria-label="Search number / agent"
                 placeholder="Search number / agent"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

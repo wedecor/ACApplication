@@ -19,6 +19,7 @@ import {
 
 import { useCannedActions, useCannedResponses } from '@/hooks/use-support';
 import type { ConversationChannel } from '@/lib/api/support';
+import { humanizeEnum } from '@/lib/labels';
 
 const CHANNELS: ConversationChannel[] = [
   'WHATSAPP',
@@ -63,7 +64,7 @@ export default function CannedResponsesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Input
+          <Input aria-label="Search canned responses"
             placeholder="Search…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -80,18 +81,18 @@ export default function CannedResponsesPage() {
         <div className="rounded-md border bg-card p-4">
           <h2 className="text-sm font-semibold">New canned response</h2>
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-            <Input
+            <Input aria-label="Code (e.g. /eta)"
               placeholder="Code (e.g. /eta)"
               value={draft.code}
               onChange={(e) => setDraft({ ...draft, code: e.target.value })}
             />
-            <Input
+            <Input aria-label="Title"
               placeholder="Title"
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             />
           </div>
-          <textarea
+          <textarea aria-label="Body — supports {{customer.firstName}} placeholders"
             className="mt-3 min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder="Body — supports {{customer.firstName}} placeholders"
             value={draft.body}
@@ -159,23 +160,27 @@ export default function CannedResponsesPage() {
                     ) : (
                       r.channels.map((c) => (
                         <Badge key={c} variant="outline">
-                          {c.replace('_', ' ')}
+                          {humanizeEnum(c)}
                         </Badge>
                       ))
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{r.scope}</Badge>
+                    <Badge variant="secondary">{humanizeEnum(r.scope)}</Badge>
                   </TableCell>
                   <TableCell className="tabular-nums">{r.usageCount}</TableCell>
                   <TableCell>
                     <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
-                      onClick={() => actions.delete.mutate(r.id)}
+                      aria-label={`Delete canned response ${r.title ?? ''}`.trim()}
+                      title="Delete"
+                      onClick={() => {
+                        if (window.confirm('Delete this canned response?')) actions.delete.mutate(r.id);
+                      }}
                       disabled={actions.delete.isPending}
                     >
-                      <Trash2 className="size-4 text-destructive" />
+                      <Trash2 className="text-destructive" aria-hidden />
                     </Button>
                   </TableCell>
                 </TableRow>

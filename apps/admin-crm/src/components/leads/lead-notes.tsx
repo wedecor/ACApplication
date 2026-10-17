@@ -27,7 +27,7 @@ export function LeadNotes({ id }: { id: string }) {
   return (
     <div className="space-y-3">
       <form onSubmit={submit} className="flex gap-2">
-        <Input
+        <Input aria-label="Add a note"
           placeholder="Add a note…"
           value={body}
           onChange={(e) => setBody(e.target.value)}

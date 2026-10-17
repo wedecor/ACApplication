@@ -63,12 +63,12 @@ export default function SlaPage() {
         <div className="rounded-md border bg-card p-4">
           <h2 className="text-sm font-semibold">New SLA profile</h2>
           <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <Input
+            <Input aria-label="Profile name (e.g. Premium)"
               placeholder="Profile name (e.g. Premium)"
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
-            <Input
+            <Input aria-label="First response (min)"
               type="number"
               placeholder="First response (min)"
               value={draft.firstResponseMinutes}
@@ -76,7 +76,7 @@ export default function SlaPage() {
                 setDraft({ ...draft, firstResponseMinutes: Number(e.target.value) })
               }
             />
-            <Input
+            <Input aria-label="Resolution (min)"
               type="number"
               placeholder="Resolution (min)"
               value={draft.resolutionMinutes}

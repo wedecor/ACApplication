@@ -28,7 +28,7 @@ export function OtpVerifyForm({ id }: { id: string }) {
         <label className="mb-1 block text-sm text-muted-foreground">
           Customer OTP
         </label>
-        <Input
+        <Input aria-label="123456"
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={8}
