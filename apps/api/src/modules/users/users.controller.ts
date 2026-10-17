@@ -1,10 +1,11 @@
-import { Controller, Get, NotFoundException } from '@nestjs/common';
+import type { AuthPrincipal } from '@ac/auth';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { AllowAuthenticated, CurrentUser } from '../../common/decorators';
-import type { AuthPrincipal } from '@ac/auth';
 import { PermissionsLoader } from '../auth/permissions.loader';
 import { RbacService } from '../rbac/rbac.service';
+import { UpdateMeDto } from './dto/update-me.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -19,18 +20,23 @@ export class UsersController {
 
   @AllowAuthenticated()
   @Get('me')
-  @ApiOperation({ summary: 'Current user profile with effective permissions' })
+  @ApiOperation({ summary: 'Current user profile with effective permissions and active devices' })
   async me(@CurrentUser() principal: AuthPrincipal) {
-    const user = await this.users.getById(principal.userId);
-    if (!user) throw new NotFoundException('User not found');
+    const profile = await this.users.profile(principal.userId, principal.tenantId, principal.sessionId ?? null);
     const auth = await this.permissions.loadForUser(principal.userId);
     const permissionVersion = await this.rbac.getTenantRbacVersion(principal.tenantId);
-    const { passwordHash: _ph, ...safe } = user;
     return {
-      ...safe,
+      ...profile,
       roles: auth.roles,
       permissions: auth.permissions,
       permissionVersion,
     };
+  }
+
+  @AllowAuthenticated()
+  @Patch('me')
+  @ApiOperation({ summary: 'Update my name / email / avatar (keeps the Customer profile in sync)' })
+  update(@CurrentUser() principal: AuthPrincipal, @Body() dto: UpdateMeDto) {
+    return this.users.updateMe(principal.userId, principal.tenantId, dto);
   }
 }

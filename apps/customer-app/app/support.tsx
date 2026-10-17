@@ -83,7 +83,7 @@ export default function SupportScreen() {
               Call us
             </Text>
             <Text variant="caption" tone="muted">
-              9am \u2014 9pm
+              9am — 9pm
             </Text>
           </Card>
         </Pressable>

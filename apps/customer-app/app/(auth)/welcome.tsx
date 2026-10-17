@@ -47,14 +47,14 @@ export default function WelcomeScreen() {
             }}
           >
             <Text tone="inverse" variant="caption">
-              India\u2019s most trusted appliance repair platform
+              India’s most trusted appliance repair platform
             </Text>
           </View>
           <Text tone="inverse" style={{ fontSize: 36, fontWeight: '800', lineHeight: 42 }}>
             Repairs that actually{'\n'}feel premium.
           </Text>
           <Text tone="inverse" variant="body" style={{ marginTop: spacing[3], opacity: 0.85 }}>
-            Book trusted technicians for ACs, washing machines, refrigerators and more \u2014 with
+            Book trusted technicians for ACs, washing machines, refrigerators and more — with
             live tracking and upfront pricing.
           </Text>
           <View style={{ marginTop: spacing[6], gap: spacing[3] }}>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
-import type { CustomerAddress } from '@/api/types';
+import type { CreateBookingInput, CustomerAddress } from '@/api/types';
+import { getAppliance } from '@/content/appliances';
 
 /**
  * Booking draft state.
@@ -23,15 +24,22 @@ export const STEP_ORDER: BookingStep[] = [
 
 export interface BookingDraft {
   step: BookingStep;
+  /** Catalogue entry id from `content/appliances` (e.g. "ac"). */
   applianceId: string | null;
+  /** Optional registered appliance (`/v1/me/appliances`) the job is for. */
+  customerApplianceId: string | null;
   issueId: string | null;
   notes: string;
   photos: string[];
   scheduledAt: string | null;
+  slotEnd: string | null;
   slotLabel: string | null;
   isEmergency: boolean;
   address: CustomerAddress | null;
   contactPhone: string | null;
+  /** Coupon validated via `/v1/me/coupons/validate`; stored on the booking. */
+  couponCode: string | null;
+  couponDiscountMinor: number;
 }
 
 interface DraftActions {
@@ -45,14 +53,18 @@ interface DraftActions {
 const initial: BookingDraft = {
   step: 'service',
   applianceId: null,
+  customerApplianceId: null,
   issueId: null,
   notes: '',
   photos: [],
   scheduledAt: null,
+  slotEnd: null,
   slotLabel: null,
   isEmergency: false,
   address: null,
   contactPhone: null,
+  couponCode: null,
+  couponDiscountMinor: 0,
 };
 
 export const useBookingDraft = create<BookingDraft & DraftActions>((set, get) => ({
@@ -69,3 +81,28 @@ export const useBookingDraft = create<BookingDraft & DraftActions>((set, get) =>
     if (idx > 0) set({ step: STEP_ORDER[idx - 1] });
   },
 }));
+
+/**
+ * Draft → `POST /v1/me/bookings` body. Returns null while required fields are
+ * missing so the review step can keep the CTA disabled.
+ */
+export function toCreateBookingInput(draft: BookingDraft): CreateBookingInput | null {
+  const appliance = draft.applianceId ? getAppliance(draft.applianceId) : undefined;
+  if (!appliance || !draft.scheduledAt || !draft.address) return null;
+  const issue = appliance.issues.find((i) => i.id === draft.issueId);
+  return {
+    applianceCategory: appliance.category,
+    issueId: draft.issueId ?? undefined,
+    issueLabel: issue?.label,
+    notes: draft.notes.trim() || undefined,
+    photoUrls: draft.photos.length ? draft.photos : undefined,
+    scheduledAt: draft.scheduledAt,
+    slotEnd: draft.slotEnd ?? undefined,
+    slotLabel: draft.slotLabel ?? undefined,
+    isEmergency: draft.isEmergency || undefined,
+    addressId: draft.address.id,
+    contactPhone: draft.contactPhone ?? undefined,
+    applianceId: draft.customerApplianceId ?? undefined,
+    couponCode: draft.couponCode ?? undefined,
+  };
+}

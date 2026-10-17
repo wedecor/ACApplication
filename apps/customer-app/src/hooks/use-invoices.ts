@@ -29,7 +29,7 @@ export function usePayInvoice() {
 export function useConfirmInvoicePayment(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: Record<string, unknown>) => invoicesApi.confirm(id, body),
+    mutationFn: (body: Parameters<typeof invoicesApi.confirm>[1]) => invoicesApi.confirm(id, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.invoices() });
       qc.invalidateQueries({ queryKey: qk.invoiceDetail(id) });

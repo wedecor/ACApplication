@@ -22,7 +22,7 @@ export default function DevicesScreen() {
     <Screen padded>
       <SubHeader title="Devices & sessions" />
       <Text variant="body" tone="muted" style={{ marginTop: spacing[2] }}>
-        Anything that doesn\u2019t look like yours? Revoke it instantly.
+        Anything that doesn’t look like yours? Revoke it instantly.
       </Text>
 
       <View style={{ marginTop: spacing[4], gap: spacing[3] }}>

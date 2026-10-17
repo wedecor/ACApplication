@@ -118,7 +118,7 @@ export default function InvoiceDetailScreen() {
             </View>
           </Card>
 
-          {detail.data.status === 'PAID' ? (
+          {detail.data.status === 'CANCELLED' || detail.data.status === 'REFUNDED' ? null : detail.data.status === 'PAID' ? (
             <Card style={{ backgroundColor: '#ecfdf5' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[2] }}>
                 <CheckCircle2 color={colors.accent} size={20} />
@@ -136,7 +136,7 @@ export default function InvoiceDetailScreen() {
           ) : (
             <View style={{ gap: spacing[2] }}>
               <Button
-                label={`Pay ${formatRupees(detail.data.amountMinor)} with UPI / Cards`}
+                label={`Pay ${formatRupees(detail.data.dueMinor ?? detail.data.amountMinor)} with UPI / Cards`}
                 fullWidth
                 size="lg"
                 loading={paying === 'razorpay'}

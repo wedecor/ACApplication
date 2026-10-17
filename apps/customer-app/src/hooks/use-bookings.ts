@@ -7,7 +7,7 @@ import { track, Events } from '@/lib/analytics';
 import { useRealtimeEvent, useRealtimeRoom } from './use-realtime';
 import { Rooms, RealtimeEvents } from '@/lib/realtime';
 
-import type { BookingDetail, BookingSummary } from '@/api/types';
+import type { BookingDetail, BookingSummary, CreateBookingInput } from '@/api/types';
 
 export function useBookings(status?: 'active' | 'completed' | 'cancelled') {
   return useQuery({
@@ -41,13 +41,29 @@ export function useBookingDetail(id: string | undefined) {
   return query;
 }
 
+export function useBookingEstimate(input: {
+  applianceCategory: string;
+  issueId?: string;
+  city?: string;
+  isEmergency?: boolean;
+} | null) {
+  return useQuery({
+    queryKey: input
+      ? qk.estimate(input.applianceCategory, input.issueId ?? '', input.city ?? '', !!input.isEmergency)
+      : ['bookings', 'estimate', 'none'],
+    queryFn: () => bookingsApi.estimate(input!),
+    enabled: !!input,
+    staleTime: 5 * 60_000,
+  });
+}
+
 export function useBookingSlots(input: {
   applianceCategory: string;
-  city: string;
+  city?: string;
   date: string;
 } | null) {
   return useQuery({
-    queryKey: input ? qk.slots(input.applianceCategory, input.city, input.date) : ['slots', 'none'],
+    queryKey: input ? qk.slots(input.applianceCategory, input.city ?? '', input.date) : ['slots', 'none'],
     queryFn: () => bookingsApi.slots(input!),
     enabled: !!input,
     staleTime: 60_000,
@@ -57,10 +73,11 @@ export function useBookingSlots(input: {
 export function useCreateBooking() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Record<string, unknown>) => bookingsApi.create(input),
+    mutationFn: (input: CreateBookingInput) => bookingsApi.create(input),
     onSuccess: (booking) => {
       qc.invalidateQueries({ queryKey: qk.bookings() });
-      qc.setQueryData(qk.bookingDetail(booking.id), booking);
+      // Summary only — the detail screen refetches the full timeline.
+      qc.invalidateQueries({ queryKey: qk.bookingDetail(booking.id) });
       track(Events.BookingSuccess, { bookingId: booking.id });
     },
     onError: (err: unknown) => {
@@ -72,7 +89,7 @@ export function useCreateBooking() {
 export function useRescheduleBooking(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { scheduledAt: string; reason?: string }) =>
+    mutationFn: (body: { scheduledAt: string; slotEnd?: string; reason?: string }) =>
       bookingsApi.reschedule(id, body),
     onSuccess: () => {
       track(Events.BookingReschedule, { bookingId: id });
@@ -97,7 +114,7 @@ export function useCancelBooking(id: string) {
 export function useRateBooking(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { value: number; comment?: string; photos?: string[] }) =>
+    mutationFn: (body: { value: number; npsScore?: number; comment?: string; photos?: string[] }) =>
       bookingsApi.rate(id, body),
     onSuccess: () => {
       track(Events.ReviewSubmit, { bookingId: id });

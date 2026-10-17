@@ -146,6 +146,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       pendingMaskedTo: null,
       pendingTtlSeconds: 0,
     });
+    // The verify response carries a minimal user; pull the full profile
+    // (fullName, avatar, devices) in the background.
+    void get().refreshProfile();
   },
 
   async resend() {

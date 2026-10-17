@@ -9,6 +9,7 @@ import {
   LogOut,
   MapPin,
   ReceiptText,
+  Refrigerator,
   ShieldCheck,
   Smartphone,
   User2,
@@ -94,6 +95,13 @@ export default function ProfileScreen() {
           title="Addresses"
           left={<RowIcon icon={<MapPin size={18} color={colors.brand} />} />}
           onPress={() => router.push('/profile/addresses')}
+        />
+        <Divider />
+        <ListRow
+          title="My appliances"
+          subtitle="Warranty status and service history."
+          left={<RowIcon icon={<Refrigerator size={18} color={colors.brand} />} />}
+          onPress={() => router.push('/profile/appliances')}
         />
         <Divider />
         <ListRow
@@ -212,7 +220,7 @@ export default function ProfileScreen() {
 
       <View style={{ alignItems: 'center', marginTop: spacing[6] }}>
         <Text variant="micro" tone="subtle">
-          v0.1.0 \u2022 AC Platform
+          v0.1.0 • AC Platform
         </Text>
       </View>
     </Screen>

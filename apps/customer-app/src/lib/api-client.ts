@@ -74,7 +74,7 @@ async function refreshAccessToken(): Promise<string | null> {
       body: JSON.stringify({ refreshToken: refresh }),
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as {
+    const data = unwrapEnvelope(await res.json()) as {
       accessToken?: string;
       refreshToken?: string;
     };
@@ -164,7 +164,19 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
     const message = extractMessage(data) ?? `Request failed (${response.status})`;
     throw new ApiError(response.status, data, message);
   }
-  return data as T;
+  return unwrapEnvelope(data) as T;
+}
+
+/**
+ * The API wraps every success body as `{ success: true, data, requestId }`
+ * (ResponseInterceptor). Screens work with the inner payload.
+ */
+export function unwrapEnvelope(body: unknown): unknown {
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const rec = body as Record<string, unknown>;
+    if (rec.success === true && 'data' in rec) return rec.data;
+  }
+  return body;
 }
 
 function safeJson(text: string): unknown {
@@ -178,6 +190,11 @@ function safeJson(text: string): unknown {
 function extractMessage(body: unknown): string | null {
   if (!body || typeof body !== 'object') return null;
   const rec = body as Record<string, unknown>;
+  // Canonical API error envelope: { success: false, error: { code, message } }.
+  if (rec.error && typeof rec.error === 'object') {
+    const inner = (rec.error as Record<string, unknown>).message;
+    if (typeof inner === 'string') return inner;
+  }
   if (typeof rec.message === 'string') return rec.message;
   if (Array.isArray(rec.message)) return rec.message.join(', ');
   if (typeof rec.error === 'string') return rec.error;

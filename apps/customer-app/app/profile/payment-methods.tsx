@@ -91,7 +91,7 @@ export default function PaymentMethodsScreen() {
       <View style={{ marginTop: spacing[2], gap: spacing[2] }}>
         {(refunds.data?.length ?? 0) === 0 ? (
           <Text variant="caption" tone="muted">
-            No refunds in flight. Issued refunds typically settle within 5\u20137 business days.
+            No refunds in flight. Issued refunds typically settle within 5–7 business days.
           </Text>
         ) : (
           (refunds.data ?? []).map((r) => (

@@ -57,7 +57,7 @@ export default function EditProfileScreen() {
       </View>
       <Button label="Save changes" fullWidth size="lg" loading={saving} onPress={save} style={{ marginTop: spacing[4] }} />
       <Text variant="caption" tone="subtle" style={{ textAlign: 'center', marginTop: spacing[3] }}>
-        We never share your details with technicians beyond what\u2019s needed for the visit.
+        We never share your details with technicians beyond what’s needed for the visit.
       </Text>
     </Screen>
   );

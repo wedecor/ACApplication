@@ -53,7 +53,7 @@ export default function LoginScreen() {
         <View style={{ marginTop: spacing[6] }}>
           <Text variant="display">Sign in</Text>
           <Text variant="body" tone="muted" style={{ marginTop: spacing[2] }}>
-            We\u2019ll send you a one-time password to verify your number.
+            We’ll send you a one-time password to verify your number.
           </Text>
           <View style={{ marginTop: spacing[6] }}>
             <Input

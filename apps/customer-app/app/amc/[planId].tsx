@@ -12,6 +12,7 @@ import { Text } from '@/components/ui/text';
 import { useAddresses } from '@/hooks/use-addresses';
 import { useAmcPlans, usePurchaseAmc } from '@/hooks/use-amc';
 import { APPLIANCES } from '@/content/appliances';
+import { useAppliances } from '@/hooks/use-appliances';
 import { ApiError } from '@/lib/api-client';
 import { formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
@@ -24,9 +25,18 @@ export default function PlanDetailScreen() {
   const purchase = usePurchaseAmc();
   const plan = useMemo(() => plans.data?.find((p) => p.id === planId), [plans.data, planId]);
   const defaultAddress = (addresses.data ?? []).find((a) => a.isDefault) ?? addresses.data?.[0];
+  const mine = useAppliances();
+  // Selection values are server categories ("AC_REPAIR") or registered appliance ids.
   const [selected, setSelected] = useState<string[]>([]);
 
   if (!plan) return null;
+  const covered = plan.appliancesCovered ?? [];
+  const covers = (category: string) =>
+    !covered.length ||
+    covered.includes(category) ||
+    (category.startsWith('AC_') && covered.some((c) => c.startsWith('AC_')));
+  const coveredCatalogue = APPLIANCES.filter((a) => covers(a.category));
+  const coveredMine = (mine.data ?? []).filter((a) => covers(a.category));
 
   function toggle(applianceId: string) {
     setSelected((prev) =>
@@ -86,11 +96,45 @@ export default function PlanDetailScreen() {
       <Text variant="h3" style={{ marginTop: spacing[4] }}>
         Pick appliances to cover
       </Text>
+      {coveredMine.length ? (
+        <View style={{ gap: spacing[2], marginTop: spacing[2] }}>
+          <Text variant="caption" tone="muted">
+            Your registered appliances
+          </Text>
+          {coveredMine.map((a) => {
+            const active = selected.includes(a.id);
+            return (
+              <Pressable key={a.id} onPress={() => toggle(a.id)}>
+                <Card
+                  padded={false}
+                  elevated={false}
+                  style={{
+                    padding: spacing[4],
+                    borderColor: active ? colors.brand : colors.border,
+                    borderWidth: active ? 2 : 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text variant="h3" style={{ flex: 1 }}>
+                    {a.brand} {a.categoryLabel}
+                    {a.installedLocation ? ` \u2022 ${a.installedLocation}` : ''}
+                  </Text>
+                  {active ? <Badge tone="brand" label="Selected" small /> : null}
+                </Card>
+              </Pressable>
+            );
+          })}
+          <Text variant="caption" tone="muted" style={{ marginTop: spacing[2] }}>
+            Or cover by appliance type
+          </Text>
+        </View>
+      ) : null}
       <View style={{ gap: spacing[2], marginTop: spacing[2] }}>
-        {APPLIANCES.map((a) => {
-          const active = selected.includes(a.id);
+        {coveredCatalogue.map((a) => {
+          const active = selected.includes(a.category);
           return (
-            <Pressable key={a.id} onPress={() => toggle(a.id)}>
+            <Pressable key={a.id} onPress={() => toggle(a.category)}>
               <Card
                 padded={false}
                 elevated={false}

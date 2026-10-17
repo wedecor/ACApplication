@@ -1,19 +1,45 @@
 import * as Clipboard from 'expo-clipboard';
 import { Copy, Gift, Share2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { Alert, Share, View } from 'react-native';
 
+import type { ReferralStatus } from '@/api/types';
+import { SubHeader } from '@/components/layout/sub-header';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Divider } from '@/components/ui/divider';
+import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
-import { useAuthStore } from '@/state/auth-store';
+import { useApplyReferral, useReferrals } from '@/hooks/use-growth';
+import { ApiError } from '@/lib/api-client';
+import { formatDate, formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
 
+const STATUS_TONE: Record<ReferralStatus, 'neutral' | 'brand' | 'success' | 'danger'> = {
+  PENDING: 'neutral',
+  QUALIFIED: 'brand',
+  REWARDED: 'success',
+  REJECTED: 'danger',
+};
+
 export default function ReferralsScreen() {
-  const profile = useAuthStore((s) => s.profile);
-  const code = (profile?.phone ?? '0000').slice(-4).toUpperCase() + 'AC';
-  const link = `https://acplatform.in/r/${code}`;
+  const referrals = useReferrals();
+  const apply = useApplyReferral();
+  const [friendCode, setFriendCode] = useState('');
+  const data = referrals.data;
+
+  async function onApply() {
+    try {
+      await apply.mutateAsync(friendCode);
+      setFriendCode('');
+      Alert.alert('Code applied', 'Your discount will be applied to your first booking.');
+    } catch (err) {
+      Alert.alert('Could not apply code', err instanceof ApiError ? err.message : 'Please try again.');
+    }
+  }
 
   return (
     <Screen padded>
@@ -33,10 +59,9 @@ export default function ReferralsScreen() {
             <Gift color={colors.warn} size={22} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text variant="h2">Earn \u20B9300</Text>
+            <Text variant="h2">Invite friends, earn credit</Text>
             <Text variant="caption" tone="muted">
-              Friends get \u20B9300 off their first booking; you get \u20B9300 credit when they
-              complete it.
+              Friends get a discount on their first booking; you earn credit when they complete it.
             </Text>
           </View>
         </View>
@@ -46,28 +71,100 @@ export default function ReferralsScreen() {
         <Text variant="caption" tone="muted">
           Your code
         </Text>
-        <Text variant="display" style={{ letterSpacing: 2 }}>
-          {code}
-        </Text>
-        <View style={{ flexDirection: 'row', gap: spacing[2], marginTop: spacing[3] }}>
+        {referrals.isLoading ? (
+          <Skeleton width="50%" height={32} style={{ marginTop: 6 }} />
+        ) : data ? (
+          <>
+            <Text variant="display" style={{ letterSpacing: 2 }}>
+              {data.code}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: spacing[2], marginTop: spacing[3] }}>
+              <Button
+                label="Copy link"
+                variant="secondary"
+                leftIcon={<Copy size={16} color={colors.brand} />}
+                onPress={async () => {
+                  await Clipboard.setStringAsync(data.shareUrl);
+                  Alert.alert('Copied', 'Referral link copied to clipboard.');
+                }}
+              />
+              <Button
+                label="Share"
+                variant="primary"
+                leftIcon={<Share2 size={16} color="#fff" />}
+                onPress={() =>
+                  Share.share({
+                    message: `Use my code ${data.code} for a discount on your first AC Platform booking. ${data.shareUrl}`,
+                  })
+                }
+              />
+            </View>
+          </>
+        ) : (
+          <View style={{ marginTop: spacing[2] }}>
+            <Text variant="caption" tone="muted">
+              Couldn’t load your referral code.
+            </Text>
+            <Button label="Retry" variant="outline" onPress={() => referrals.refetch()} style={{ marginTop: spacing[2] }} />
+          </View>
+        )}
+      </Card>
+
+      {data ? (
+        <Card style={{ marginTop: spacing[3] }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Stat label="Invited" value={String(data.referredCount)} />
+            <Stat label="Rewarded" value={String(data.rewardedCount)} />
+            <Stat label="Earned" value={formatRupees(data.totalRewardMinor)} />
+          </View>
+        </Card>
+      ) : null}
+
+      {data?.referrals.length ? (
+        <Card style={{ marginTop: spacing[3] }}>
+          <Text variant="h3">Your referrals</Text>
+          {data.referrals.map((r, idx) => (
+            <View key={r.id}>
+              {idx > 0 ? <Divider /> : null}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  paddingVertical: spacing[2],
+                }}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text variant="body">{r.referredName}</Text>
+                  <Text variant="caption" tone="muted">
+                    {formatDate(r.createdAt)}
+                    {r.rewardMinor ? ` • ${formatRupees(r.rewardMinor)}` : ''}
+                  </Text>
+                </View>
+                <Badge small tone={STATUS_TONE[r.status]} label={r.status.toLowerCase()} />
+              </View>
+            </View>
+          ))}
+        </Card>
+      ) : null}
+
+      <Card style={{ marginTop: spacing[3] }}>
+        <Text variant="h3">Have a friend’s code?</Text>
+        <View style={{ flexDirection: 'row', gap: spacing[2], alignItems: 'flex-end', marginTop: spacing[2] }}>
+          <View style={{ flex: 1 }}>
+            <Input
+              placeholder="Enter code"
+              autoCapitalize="characters"
+              value={friendCode}
+              onChangeText={setFriendCode}
+            />
+          </View>
           <Button
-            label="Copy link"
-            variant="secondary"
-            leftIcon={<Copy size={16} color={colors.brand} />}
-            onPress={async () => {
-              await Clipboard.setStringAsync(link);
-              Alert.alert('Copied', 'Referral link copied to clipboard.');
-            }}
-          />
-          <Button
-            label="Share"
-            variant="primary"
-            leftIcon={<Share2 size={16} color="#fff" />}
-            onPress={() =>
-              Share.share({
-                message: `Use my code ${code} to get \u20B9300 off your first AC Platform booking. ${link}`,
-              })
-            }
+            label="Apply"
+            variant="outline"
+            loading={apply.isPending}
+            disabled={friendCode.trim().length < 3}
+            onPress={onApply}
           />
         </View>
       </Card>
@@ -78,7 +175,7 @@ export default function ReferralsScreen() {
           {[
             'Share your code with a friend.',
             'They book their first service with your code.',
-            'You earn \u20B9300 credit when the booking is completed.',
+            'You earn credit when the booking is completed.',
           ].map((line, idx) => (
             <View key={idx} style={{ flexDirection: 'row', gap: spacing[2] }}>
               <Text variant="caption" tone="brand" weight="700">
@@ -92,5 +189,16 @@ export default function ReferralsScreen() {
         </View>
       </View>
     </Screen>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={{ alignItems: 'center', flex: 1 }}>
+      <Text variant="h2">{value}</Text>
+      <Text variant="caption" tone="muted">
+        {label}
+      </Text>
+    </View>
   );
 }

@@ -13,6 +13,7 @@ import type { AuthPrincipal } from '@ac/auth';
 
 import { IdempotencyKeys } from '@ac/notifications';
 import { NotificationChannel } from '@ac/types';
+import { SessionDevice } from '@prisma/client';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { AllowAuthenticated, CurrentUser, Public } from '../../common/decorators';
@@ -84,7 +85,7 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Verify an OTP and issue access + refresh tokens.' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.auth.verifyOtpAndIssueTokens(dto.destination, dto.code);
+    return this.auth.verifyOtpAndIssueTokens(dto.destination, dto.code, dto.device ? sessionDeviceFor(dto.device.platform) : undefined, dto.device?.deviceId);
   }
 
   @Public()
@@ -100,9 +101,27 @@ export class AuthController {
   @ApiBearerAuth()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  logout(@CurrentUser() _user: AuthPrincipal): void {
-    // Session revocation wired in a later phase.
+  @ApiOperation({ summary: 'Revoke the current session (refresh token stops working).' })
+  async logout(@CurrentUser() user: AuthPrincipal): Promise<void> {
+    await this.auth.revokeSessions(user.userId, user.sessionId);
   }
+
+  @AllowAuthenticated()
+  @ApiBearerAuth()
+  @Post('logout-all')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Revoke every session of the current user (sign out everywhere).' })
+  async logoutAll(@CurrentUser() user: AuthPrincipal): Promise<{ ok: true; revoked: number }> {
+    const revoked = await this.auth.revokeSessions(user.userId);
+    return { ok: true, revoked };
+  }
+}
+
+function sessionDeviceFor(platform?: string): SessionDevice {
+  const p = (platform ?? '').toLowerCase();
+  if (p === 'android') return SessionDevice.ANDROID;
+  if (p === 'ios') return SessionDevice.IOS;
+  return SessionDevice.CUSTOMER_APP;
 }
 
 function maskDestination(d: string): string {

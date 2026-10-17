@@ -1,4 +1,4 @@
-import { api, ApiError, onAuthLost } from '../api-client';
+import { api, ApiError, onAuthLost, unwrapEnvelope } from '../api-client';
 import { secureStore, SecureKeys } from '../secure-store';
 
 describe('api-client', () => {
@@ -81,5 +81,32 @@ describe('api-client', () => {
       expect((err as ApiError).status).toBe(0);
       expect((err as ApiError).isNetwork).toBe(true);
     }
+  });
+
+  it('unwraps the { success, data } envelope and prefixes /api', async () => {
+    const calls: string[] = [];
+    global.fetch = jest.fn(async (input: any) => {
+      calls.push(typeof input === 'string' ? input : input.url);
+      return new Response(JSON.stringify({ success: true, data: [{ id: 'b1' }], requestId: 'r' }), { status: 200 });
+    }) as unknown as typeof fetch;
+    const res = await api.get<{ id: string }[]>('/v1/me/bookings');
+    expect(res).toEqual([{ id: 'b1' }]);
+    expect(calls[0]).toMatch(/\/api\/v1\/me\/bookings$/);
+  });
+
+  it('surfaces the API error envelope message', async () => {
+    global.fetch = jest.fn(
+      async () =>
+        new Response(JSON.stringify({ success: false, error: { code: 'X', message: 'Booking not found', statusCode: 404 } }), {
+          status: 404,
+        }),
+    ) as unknown as typeof fetch;
+    await expect(api.get('/v1/x')).rejects.toThrow('Booking not found');
+  });
+
+  it('unwrapEnvelope leaves non-envelope bodies untouched', () => {
+    expect(unwrapEnvelope({ ok: true })).toEqual({ ok: true });
+    expect(unwrapEnvelope({ success: true, data: null })).toBeNull();
+    expect(unwrapEnvelope([1])).toEqual([1]);
   });
 });

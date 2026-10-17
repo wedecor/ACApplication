@@ -88,7 +88,7 @@ export default function BookingDetailScreen() {
             <View style={{ flex: 1 }}>
               <Text variant="h3">Booking confirmed!</Text>
               <Text variant="caption" tone="muted">
-                You\u2019ll get a push notification the moment a pro is assigned.
+                You’ll get a push notification the moment a pro is assigned.
               </Text>
             </View>
           </View>
@@ -134,7 +134,7 @@ export default function BookingDetailScreen() {
 
       <Sheet open={cancelOpen} onClose={() => setCancelOpen(false)} title="Cancel booking">
         <Text variant="body" tone="muted">
-          Tell us why you\u2019re cancelling so we can improve.
+          Tell us why you’re cancelling so we can improve.
         </Text>
         <View style={{ marginTop: spacing[3] }}>
           <Input
@@ -289,7 +289,7 @@ function Detail({
             </Text>
           ) : (
             <Text variant="caption" tone="muted">
-              Pro will share their location once they\u2019re on the way.
+              Pro will share their location once they’re on the way.
             </Text>
           )}
           <View style={{ marginTop: spacing[3] }}>
@@ -361,7 +361,7 @@ function Detail({
             {[booking.address.line1, booking.address.line2].filter(Boolean).join(', ')}
           </Text>
           <Text variant="caption" tone="muted">
-            {booking.address.city} \u2022 {booking.address.pincode}
+            {booking.address.city} • {booking.address.pincode}
           </Text>
         </Card>
       ) : null}

@@ -52,15 +52,22 @@ export interface BookingSummary {
   address?: BookingAddress;
   technician?: BookingTechnician | null;
   isEmergency?: boolean;
+  /** Registered appliance this job is for (see {@link CustomerAppliance}). */
+  applianceId?: string | null;
+  serviceMode?: ServiceMode;
+  couponCode?: string | null;
+  discountMinor?: number;
   createdAt: string;
 }
+
+export type ServiceMode = 'ON_SITE' | 'PICKUP_DROP' | 'CARRY_IN';
 
 export interface BookingDetail extends BookingSummary {
   notes?: string | null;
   photoUrls: string[];
   timeline: { status: BookingStatus; at: string; note?: string | null }[];
   invoiceId?: string | null;
-  rating?: { value: number; comment?: string | null } | null;
+  rating?: { value: number; comment?: string | null; npsScore?: number | null } | null;
 }
 
 export interface InvoiceSummary {
@@ -68,10 +75,36 @@ export interface InvoiceSummary {
   number: string;
   status: 'PENDING' | 'PAID' | 'PARTIAL' | 'REFUNDED' | 'CANCELLED';
   amountMinor: number;
+  /** Outstanding balance (amountMinor − paid). */
+  dueMinor?: number;
+  paidMinor?: number;
+  currency?: string;
   dueAt?: string | null;
   issuedAt: string;
   bookingId?: string | null;
+  amcSubscriptionId?: string | null;
+  /** Signed, short-lived PDF link (opens in the browser without a token). */
   pdfUrl?: string | null;
+}
+
+export interface InvoiceDetail extends InvoiceSummary {
+  lineItems: { label: string; amountMinor: number }[];
+  pdfUrl: string;
+  subtotalMinor?: number;
+  taxMinor?: number;
+  discountMinor?: number;
+}
+
+export interface PaymentIntent {
+  gateway: 'razorpay' | 'stripe';
+  orderId: string;
+  transactionId?: string;
+  key: string;
+  amountMinor: number;
+  currency: string;
+  clientSecret?: string;
+  /** Hosted checkout URL opened in the in-app browser. */
+  checkoutUrl: string | null;
 }
 
 export interface PaymentMethod {
@@ -82,6 +115,7 @@ export interface PaymentMethod {
   brand?: string | null;
   isDefault?: boolean;
   expiresAt?: string | null;
+  gateway?: string;
 }
 
 export interface AmcPlan {
@@ -94,6 +128,9 @@ export interface AmcPlan {
   features: string[];
   emergencyIncluded: boolean;
   popular?: boolean;
+  renewalPriceMinor?: number;
+  /** ServiceCategory values; empty = all appliances. */
+  appliancesCovered?: string[];
 }
 
 export interface AmcSubscription {
@@ -107,6 +144,8 @@ export interface AmcSubscription {
   visitsTotal: number;
   appliances: { applianceCategory: string; label: string }[];
   emergencyIncluded: boolean;
+  number?: string;
+  autoRenew?: boolean;
 }
 
 export interface NotificationItem {
@@ -153,6 +192,7 @@ export interface SupportMessage {
 export interface FaqItem {
   q: string;
   a: string;
+  slug?: string;
 }
 
 export interface CustomerAddress {
@@ -166,6 +206,7 @@ export interface CustomerAddress {
   isDefault: boolean;
   lat?: number | null;
   lng?: number | null;
+  state?: string | null;
 }
 
 export interface TechnicianLocation {
@@ -178,4 +219,98 @@ export interface TechnicianLocation {
   etaMinutes?: number | null;
   distanceKm?: number | null;
   recordedAt: string;
+}
+
+export type WarrantyStatus = 'IN_WARRANTY' | 'EXPIRING_SOON' | 'EXPIRED' | 'UNKNOWN';
+
+/** A physical appliance the customer registered (`/v1/me/appliances`). */
+export interface CustomerAppliance {
+  id: string;
+  category: string;
+  categoryLabel: string;
+  brand: string;
+  modelNumber?: string | null;
+  serialNumber?: string | null;
+  capacity?: string | null;
+  installedLocation?: string | null;
+  purchaseDate?: string | null;
+  installDate?: string | null;
+  manufacturerWarrantyUntil?: string | null;
+  extendedWarrantyUntil?: string | null;
+  warranty: { status: WarrantyStatus; until: string | null; daysLeft: number | null };
+  photos: string[];
+  addressId?: string | null;
+  notes?: string | null;
+  lastServicedAt?: string | null;
+  createdAt: string;
+}
+
+export interface CustomerApplianceInput {
+  category: string;
+  brand: string;
+  modelNumber?: string | null;
+  serialNumber?: string | null;
+  capacity?: string | null;
+  installedLocation?: string | null;
+  purchaseDate?: string | null;
+  installDate?: string | null;
+  manufacturerWarrantyUntil?: string | null;
+  photos?: string[];
+  addressId?: string | null;
+  notes?: string | null;
+}
+
+export type ReferralStatus = 'PENDING' | 'QUALIFIED' | 'REWARDED' | 'REJECTED';
+
+export interface ReferralSummary {
+  code: string;
+  shareUrl: string;
+  referredCount: number;
+  rewardedCount: number;
+  totalRewardMinor: number;
+  referrals: {
+    id: string;
+    status: ReferralStatus;
+    rewardMinor: number;
+    createdAt: string;
+    referredName: string;
+  }[];
+}
+
+export interface CouponValidation {
+  valid: boolean;
+  discountMinor: number;
+  message?: string;
+}
+
+export interface BookingSlot {
+  start: string;
+  end: string;
+  available: boolean;
+}
+
+export interface CreateBookingInput {
+  applianceCategory: string;
+  issueId?: string;
+  issueLabel?: string;
+  notes?: string;
+  photoUrls?: string[];
+  scheduledAt: string;
+  slotEnd?: string;
+  slotLabel?: string;
+  isEmergency?: boolean;
+  addressId: string;
+  contactPhone?: string;
+  applianceId?: string;
+  serviceMode?: ServiceMode;
+  couponCode?: string;
+}
+
+export interface UserDevice {
+  id: string;
+  deviceId: string;
+  modelName: string | null;
+  platform?: string | null;
+  lastSeenAt: string;
+  current: boolean;
 }

@@ -11,6 +11,8 @@ export const qk = {
   bookingLocation: (id: string) => ['bookings', 'location', id] as const,
   slots: (category: string, city: string, date: string) =>
     ['bookings', 'slots', category, city, date] as const,
+  estimate: (category: string, issueId: string, city: string, emergency: boolean) =>
+    ['bookings', 'estimate', category, issueId, city, emergency] as const,
 
   invoices: () => ['invoices'] as const,
   invoiceDetail: (id: string) => ['invoices', 'detail', id] as const,
@@ -29,4 +31,7 @@ export const qk = {
   supportFaqs: () => ['support', 'faqs'] as const,
 
   addresses: () => ['addresses'] as const,
+
+  appliances: () => ['appliances'] as const,
+  referrals: () => ['referrals'] as const,
 };

@@ -10,6 +10,20 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { LeadsService } from '../leads/leads.service';
 import { PublicLeadIntakeDto } from './dto/public-lead.dto';
 
+const RATING_CACHE_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Rounds to one decimal. With no ratings yet `averageRating` is omitted (not
+ * serialised) so clients keep their own default instead of showing "0".
+ */
+export function summariseRatings(
+  avg: number | null | undefined,
+  count: number,
+): { averageRating?: number; ratingCount: number } {
+  if (!count || avg == null || Number.isNaN(avg)) return { ratingCount: 0 };
+  return { averageRating: Math.round(avg * 10) / 10, ratingCount: count };
+}
+
 /**
  * Public-intake orchestrator. Sits between the unauthenticated HTTP
  * controller and the internal `LeadsService`. Owns:
@@ -25,6 +39,10 @@ export class PublicIntakeService {
   private readonly logger = new Logger(PublicIntakeService.name);
   /** Lazy memoised tenant resolution. */
   private tenantCache = new Map<string, string>();
+  private ratingCache = new Map<
+    string,
+    { value: { averageRating?: number; ratingCount: number }; expiresAt: number }
+  >();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -145,11 +163,32 @@ export class PublicIntakeService {
       bookingsToday,
       techniciansLive,
       citiesLive,
-      // The rating is fed from a `ReviewAggregate` summary table in
-      // production. For now we expose a static value so the site never
-      // shows "0 reviews".
-      averageRating: 4.8,
+      ...(await this.ratingSummary(tenantId)),
     };
+  }
+
+  /**
+   * Average customer rating over BookingRating, cached per tenant for
+   * {@link RATING_CACHE_TTL_MS}. Omits the average when there are no
+   * ratings yet or the query fails (the site then keeps its default).
+   */
+  async ratingSummary(tenantId: string): Promise<{ averageRating?: number; ratingCount: number }> {
+    const hit = this.ratingCache.get(tenantId);
+    if (hit && hit.expiresAt > Date.now()) return hit.value;
+    let value: { averageRating?: number; ratingCount: number };
+    try {
+      const agg = await this.prisma.client.bookingRating.aggregate({
+        where: { tenantId, deletedAt: null },
+        _avg: { value: true },
+        _count: { _all: true },
+      });
+      value = summariseRatings(agg._avg.value, agg._count._all);
+    } catch (err) {
+      this.logger.warn(`Rating aggregate failed: ${(err as Error).message}`);
+      value = summariseRatings(null, 0);
+    }
+    this.ratingCache.set(tenantId, { value, expiresAt: Date.now() + RATING_CACHE_TTL_MS });
+    return value;
   }
 
   /**

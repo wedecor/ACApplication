@@ -112,7 +112,7 @@ function BookingRow({ item, onPress }: { item: BookingSummary; onPress: () => vo
           {item.applianceLabel}
         </Text>
         <Text variant="caption" tone="muted">
-          {item.issueLabel} \u2022 {formatDateTime(item.scheduledAt)}
+          {item.issueLabel} • {formatDateTime(item.scheduledAt)}
         </Text>
         {item.amountMinor != null ? (
           <Text variant="caption" tone="muted" style={{ marginTop: 6 }}>

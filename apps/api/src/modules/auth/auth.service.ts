@@ -49,6 +49,7 @@ export class AuthService {
     destination: string,
     code: string,
     device: SessionDevice = SessionDevice.ADMIN_WEB,
+    deviceId?: string,
   ): Promise<AuthTokensResponse> {
     const ok = await this.otp.verify(destination, code);
     if (!ok) {
@@ -80,7 +81,7 @@ export class AuthService {
       );
     }
 
-    return this.issueSessionForUser(user, device);
+    return this.issueSessionForUser(user, device, undefined, deviceId);
   }
 
   /**
@@ -135,6 +136,18 @@ export class AuthService {
     });
   }
 
+  /**
+   * Revoke sessions of a user — one (`sessionId`) or all of them. Revoked
+   * sessions can no longer refresh; access JWTs expire on their short TTL.
+   */
+  async revokeSessions(userId: string, sessionId?: string): Promise<number> {
+    const res = await this.prisma.client.session.updateMany({
+      where: { userId, revokedAt: null, ...(sessionId ? { id: sessionId } : {}) },
+      data: { revokedAt: new Date() },
+    });
+    return res.count;
+  }
+
   /** Logs OTP to the API console when SMS is not configured (local dev). */
   logDevOtp(destination: string, code: string): void {
     this.logger.warn(`[DEV] OTP for ${destination}: ${code}`);
@@ -157,6 +170,7 @@ export class AuthService {
     },
     device: SessionDevice,
     existing?: { sessionId: string; refreshOpaque: string },
+    deviceId?: string,
   ): Promise<AuthTokensResponse> {
     const roles = user.roles.map((a) => a.role.key as UserRole);
     const permissionSet = new Set<Permission>();
@@ -183,6 +197,7 @@ export class AuthService {
             userId: user.id,
             refreshTokenHash: refreshHash,
             device,
+            deviceId: deviceId ?? null,
             expiresAt: new Date(Date.now() + refreshTtlMs),
           },
         });

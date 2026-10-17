@@ -62,6 +62,7 @@ export async function payInvoice(
     const confirmation = await invoicesApi.confirm(invoiceId, {
       gateway,
       returnUrl: result.url,
+      transactionId: intent.transactionId,
     });
     return {
       status: confirmation.status === 'PAID' ? 'PAID' : confirmation.status === 'PARTIAL' ? 'PARTIAL' : 'PENDING',
@@ -76,14 +77,8 @@ export async function payInvoice(
 }
 
 function buildCheckoutUrl(intent: Awaited<ReturnType<typeof invoicesApi.pay>>): string | null {
-  if (intent.gateway === 'razorpay') {
-    // Backend hands us a hosted checkout link to keep the mobile bundle thin.
-    // It packages the order id, key and amount; the page redirects back to
-    // `acplatform://pay/return` (configured in the order) on completion.
-    return (intent as unknown as { checkoutUrl?: string }).checkoutUrl ?? null;
-  }
-  if (intent.gateway === 'stripe') {
-    return (intent as unknown as { checkoutUrl?: string }).checkoutUrl ?? null;
-  }
-  return null;
+  // Backend hands us a hosted checkout link (Razorpay payment link / Stripe
+  // Checkout) to keep the mobile bundle thin; the page redirects back to
+  // `acplatform://pay/return` (configured server-side) on completion.
+  return intent.checkoutUrl ?? null;
 }

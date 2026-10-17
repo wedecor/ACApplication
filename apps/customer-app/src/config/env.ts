@@ -33,9 +33,14 @@ export const config: AppConfig = (() => {
   };
 })();
 
-/** API base used by both REST and websocket clients. */
+/**
+ * REST URL for a versioned API path (`/v1/...`). The Nest API mounts every
+ * route under the global `/api` prefix, so it is added here unless the
+ * configured base already ends with it.
+ */
 export const apiBase = (path: string): string => {
   const base = config.apiUrl.replace(/\/$/, '');
+  const root = base.endsWith('/api') ? base : `${base}/api`;
   const suffix = path.startsWith('/') ? path : `/${path}`;
-  return `${base}${suffix}`;
+  return `${root}${suffix}`;
 };

@@ -1,4 +1,4 @@
-import { STEP_ORDER, useBookingDraft } from '../booking-draft';
+import { STEP_ORDER, toCreateBookingInput, useBookingDraft } from '../booking-draft';
 
 describe('booking draft store', () => {
   beforeEach(() => useBookingDraft.getState().reset());
@@ -39,5 +39,28 @@ describe('booking draft store', () => {
     expect(useBookingDraft.getState().applianceId).toBeNull();
     expect(useBookingDraft.getState().issueId).toBeNull();
     expect(useBookingDraft.getState().step).toBe('service');
+  });
+
+  it('builds the create payload with server categories, appliance and coupon', () => {
+    const d = useBookingDraft.getState();
+    expect(toCreateBookingInput(d)).toBeNull();
+    d.patch({
+      applianceId: 'washing-machine',
+      issueId: 'not-spinning',
+      scheduledAt: '2030-01-01T02:30:00.000Z',
+      slotEnd: '2030-01-01T05:30:00.000Z',
+      address: { id: 'a1', label: 'HOME', line1: 'L1', city: 'Pune', pincode: '411001', isDefault: true },
+      customerApplianceId: 'ap1',
+      couponCode: 'SAVE10',
+    });
+    expect(toCreateBookingInput(useBookingDraft.getState())).toMatchObject({
+      applianceCategory: 'WASHING_MACHINE',
+      issueId: 'not-spinning',
+      issueLabel: 'Not spinning',
+      addressId: 'a1',
+      applianceId: 'ap1',
+      couponCode: 'SAVE10',
+      slotEnd: '2030-01-01T05:30:00.000Z',
+    });
   });
 });

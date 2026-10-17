@@ -35,7 +35,7 @@ export function StepPills({ active }: Props) {
         ))}
       </View>
       <Text variant="caption" tone="muted">
-        Step {activeIndex + 1} of {STEP_ORDER.length} \u2022 {LABELS[active]}
+        Step {activeIndex + 1} of {STEP_ORDER.length} • {LABELS[active]}
       </Text>
     </View>
   );

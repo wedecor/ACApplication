@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, Matches } from 'class-validator';
+import { IsEnum, IsIn, IsOptional, Matches } from 'class-validator';
 
 export enum OtpPurpose {
   LOGIN = 'LOGIN',
@@ -16,4 +16,10 @@ export class RequestOtpDto {
   @IsOptional()
   @IsEnum(OtpPurpose)
   purpose?: OtpPurpose;
+
+  /** Preferred delivery channel hint from the mobile apps (SMS is the default transport). */
+  @ApiProperty({ enum: ['sms', 'whatsapp'], required: false })
+  @IsOptional()
+  @IsIn(['sms', 'whatsapp'])
+  channel?: 'sms' | 'whatsapp';
 }
