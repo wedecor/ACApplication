@@ -73,7 +73,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <SiteFooter />
-          <WhatsAppFab />
+          {/* The sticky mobile CTA already offers WhatsApp below sm. */}
+          <WhatsAppFab hideOnMobile />
           <StickyMobileCta />
           <ExitIntentSheet />
           <LiveChatWidget />

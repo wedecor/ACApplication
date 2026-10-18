@@ -208,7 +208,7 @@ export function BookingForm() {
 
       {step === 'service' ? (
         <fieldset className="flex flex-col gap-4">
-          <legend className="text-2xl font-bold tracking-tight">What do you need fixed?</legend>
+          <legend className="mb-4 text-2xl font-bold tracking-tight">What do you need fixed?</legend>
           <div className="grid grid-cols-1 gap-3">
             <Label htmlFor="service">Service</Label>
             <select
@@ -252,7 +252,7 @@ export function BookingForm() {
 
       {step === 'contact' ? (
         <fieldset className="flex flex-col gap-4">
-          <legend className="text-2xl font-bold tracking-tight">How can we reach you?</legend>
+          <legend className="mb-4 text-2xl font-bold tracking-tight">How can we reach you?</legend>
           <div>
             <Label htmlFor="customerName">Your name</Label>
             <Input id="customerName" autoComplete="name" {...form.register('customerName')} />
@@ -282,7 +282,7 @@ export function BookingForm() {
 
       {step === 'schedule' ? (
         <fieldset className="flex flex-col gap-4">
-          <legend className="text-2xl font-bold tracking-tight">Where and when?</legend>
+          <legend className="mb-4 text-2xl font-bold tracking-tight">Where and when?</legend>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr]">
             <div>
               <Label htmlFor="addressLine1">Address (optional)</Label>

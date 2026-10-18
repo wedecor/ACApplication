@@ -15,7 +15,8 @@ import { Faq } from '@/components/sections/faq';
 import { SITE_FAQS } from '@/content/faqs';
 import { JsonLd } from '@/components/seo/json-ld';
 import { faqJsonLd, serviceJsonLd } from '@/lib/seo/json-ld';
-import { Events, track } from '@/lib/analytics';
+import { TrackedLink } from '@/components/analytics/tracked-link';
+import { Events } from '@/lib/analytics';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 /**
@@ -60,6 +61,7 @@ export function ServiceDetail({
         bookingsToday={bookingsToday}
         defaultCitySlug={city?.slug}
         defaultServiceSlug={service.slug}
+        headingAs="h2"
       />
 
       <TrustStrip
@@ -174,17 +176,16 @@ export function ServiceDetail({
                 . Pay only after the job.
               </p>
               <Button asChild size="lg">
-                <Link
+                <TrackedLink
                   href={`/book?service=${service.slug}${city ? `&city=${city.slug}` : ''}`}
-                  onClick={() =>
-                    track(Events.CtaClick, { location: 'service-detail', label: service.slug })
-                  }
+                  event={Events.CtaClick}
+                  eventProps={{ location: 'service-detail', label: service.slug }}
                 >
                   Book a visit
-                </Link>
+                </TrackedLink>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link
+                <TrackedLink
                   href={buildWhatsAppLink({
                     message: city
                       ? WhatsAppTemplates.city(city, service)
@@ -192,10 +193,11 @@ export function ServiceDetail({
                   })}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => track(Events.WhatsAppClick, { location: 'service-detail' })}
+                  event={Events.WhatsAppClick}
+                  eventProps={{ location: 'service-detail' }}
                 >
                   Chat on WhatsApp
-                </Link>
+                </TrackedLink>
               </Button>
               <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                 <li>· Verified, brand-certified technicians</li>

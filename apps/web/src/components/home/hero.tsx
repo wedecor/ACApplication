@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Check, Phone, Shield, Sparkles, Star, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -37,6 +37,8 @@ interface HeroProps {
   defaultServiceSlug?: string;
   rating?: number;
   reviewCount?: number;
+  /** Pages that already have their own <h1> (service/city/brand detail) render the hero headline as h2. */
+  headingAs?: 'h1' | 'h2';
 }
 
 export function Hero({
@@ -45,7 +47,12 @@ export function Hero({
   defaultServiceSlug,
   rating = 4.9,
   reviewCount = 18_000,
+  headingAs = 'h1',
 }: HeroProps) {
+  const reduceMotion = useReducedMotion();
+  const Heading = headingAs === 'h2' ? motion.h2 : motion.h1;
+  // Detail pages reuse the hero above their own content: keep it short on phones.
+  const compact = headingAs === 'h2';
   const [city, setCity] = useState(defaultCitySlug ?? siteConfig.defaultCity);
   const [service, setService] = useState(defaultServiceSlug ?? 'ac-repair');
   const liveCities = getLiveCities();
@@ -57,7 +64,9 @@ export function Hero({
   const emergencyHref = `/book?service=${encodeURIComponent(service)}&city=${encodeURIComponent(city)}&urgency=emergency`;
 
   return (
-    <section className="relative min-h-[90vh] overflow-hidden border-b border-white/[0.06] bg-zinc-950">
+    <section
+      className={`relative overflow-hidden border-b border-white/[0.06] bg-zinc-950 ${compact ? '' : 'min-h-[90vh]'}`}
+    >
       {/* Background layers */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-violet-950/40 via-zinc-950 to-zinc-950" />
       <motion.div
@@ -115,38 +124,40 @@ export function Hero({
               <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden />
               {rating} · {formatNumber(reviewCount)}+ reviews
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-400 backdrop-blur-sm">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            {bookingsToday > 0 ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-400 backdrop-blur-sm">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-75 motion-safe:animate-ping" />
+                  <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                </span>
+                {formatNumber(bookingsToday)} bookings today
               </span>
-              {formatNumber(bookingsToday)} bookings today
-            </span>
+            ) : null}
           </motion.div>
 
-          <motion.h1
+          <Heading
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.05 }}
-            className="mt-6 text-balance text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem] xl:text-6xl"
+            className={`mt-6 text-balance text-4xl font-bold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem] xl:text-6xl ${compact ? 'hidden lg:block' : ''}`}
           >
             Same-day appliance repair from{' '}
             <motion.span
               className="bg-gradient-to-r from-violet-300 via-violet-200 to-blue-400 bg-clip-text text-transparent"
-              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-              transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
+              animate={reduceMotion ? undefined : { backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+              transition={reduceMotion ? undefined : { duration: 8, repeat: Infinity, ease: 'linear' }}
               style={{ backgroundSize: '200% auto' }}
             >
               verified experts
             </motion.span>
             .
-          </motion.h1>
+          </Heading>
 
           <motion.p
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="mt-6 max-w-xl text-pretty text-base leading-relaxed text-zinc-400 sm:text-lg"
+            className={`mt-6 max-w-xl text-pretty text-base leading-relaxed text-zinc-400 sm:text-lg ${compact ? 'hidden lg:block' : ''}`}
           >
             AC, fridge, washing machine & more — book in 60 seconds. WhatsApp quotes, live tracking,
             AI dispatch, and a 30-day warranty. Pay only after the job.
@@ -290,7 +301,7 @@ export function Hero({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative lg:mt-0"
+          className={`relative lg:mt-0 ${compact ? 'hidden lg:block' : ''}`}
         >
           <OperationalDashboard />
         </motion.div>

@@ -27,8 +27,11 @@ export function formatRupees(n: number): string {
  * spaces so the URL can't inject HTML or script content.
  */
 export function substituteKeyword(template: string, keyword: string | null | undefined, fallback: string): string {
-  const cleaned = (keyword ?? '').replace(/[^a-zA-Z0-9\s\-&]/g, '').trim().slice(0, 60);
-  const value = cleaned || fallback;
+  const raw = (keyword ?? '').trim();
+  // Ad keywords should be plain words; anything carrying markup or symbols is rejected outright
+  // rather than stripped, so "<script>" never renders as "script" on a landing page.
+  const safe = /^[a-zA-Z0-9\s\-&]{1,60}$/.test(raw);
+  const value = safe ? raw : fallback;
   return template.replace(/\{\{keyword\}\}/g, value);
 }
 

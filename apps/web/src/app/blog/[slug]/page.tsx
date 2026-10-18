@@ -105,7 +105,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </aside>
         ) : null}
 
-        <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl">
+        <div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-headings:tracking-tight prose-a:text-primary prose-img:rounded-xl [&_:is(h2,h3,h4)>a]:text-inherit [&_:is(h2,h3,h4)>a]:no-underline [&_:is(h2,h3,h4)>a:hover]:underline">
           <MDXRemote
             source={post.content}
             options={{

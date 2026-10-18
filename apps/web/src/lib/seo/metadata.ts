@@ -103,8 +103,8 @@ export function buildMetadata(input: BuildMetadataInput): Metadata {
           },
         },
     icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-touch-icon.png',
+      icon: '/icon',
+      apple: '/apple-icon',
     },
   };
 }

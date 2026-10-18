@@ -6,7 +6,8 @@ const nextConfig = {
     typedRoutes: true,
     optimizePackageImports: ['lucide-react', '@ac/ui'],
   },
-  transpilePackages: ['@ac/ui', '@ac/types', '@ac/config', '@ac/analytics'],
+  // next-mdx-remote is bundled so its JSX runtime resolves to the App Router's React, not the app's React 18 copy.
+  transpilePackages: ['@ac/ui', '@ac/types', '@ac/config', '@ac/analytics', 'next-mdx-remote'],
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   images: {
     formats: ['image/avif', 'image/webp'],
