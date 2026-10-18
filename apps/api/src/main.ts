@@ -15,6 +15,7 @@ import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { parseTrustProxy } from './common/http/trust-proxy';
+import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { installBigIntJson } from './common/serialization/bigint-json';
 
@@ -30,6 +31,9 @@ async function bootstrap() {
 
   // Pino-based structured logger.
   app.useLogger(app.get(Logger));
+
+  // Websocket broadcasts reach sockets on every instance via Redis.
+  app.useWebSocketAdapter(new RedisIoAdapter(app));
 
   // Security headers + CORS.
   await app.register(helmet, { contentSecurityPolicy: false });

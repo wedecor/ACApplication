@@ -173,6 +173,8 @@ export interface DomainEvent<T extends DomainEventName, P> {
   name: T;
   occurredAt: string;
   actorId: UserId | null;
+  /** Owning tenant when known at publish time; realtime fan-out is scoped by it. */
+  tenantId?: string | null;
   payload: P;
 }
 

@@ -76,6 +76,31 @@ import type { Server, Socket } from 'socket.io';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { TokenService } from '../auth/token.service';
 
+/** `t:{tenantId}:{room}` — personal `user:` rooms stay global (ids are unique, self-joined only). */
+export function scopedRoom(tenantId: string, room: string): string {
+  return room.startsWith('user:') ? room : `t:${tenantId}:${room}`;
+}
+
+interface TenantLookup {
+  findFirst(args: { where: { id: string }; select: { tenantId: true } }): Promise<{ tenantId: string } | null>;
+}
+
+/** Payload id field → Prisma model, tried in order when an event has no tenant stamp. */
+const TENANT_LOOKUPS: Array<[string, string]> = [
+  ['bookingId', 'booking'],
+  ['ticketId', 'supportTicket'],
+  ['conversationId', 'conversation'],
+  ['technicianId', 'technician'],
+  ['invoiceId', 'invoice'],
+  ['subscriptionId', 'aMCSubscription'],
+  ['payoutId', 'technicianPayout'],
+  ['leadId', 'lead'],
+  ['callLogId', 'callLog'],
+  ['purchaseOrderId', 'purchaseOrder'],
+  ['transferId', 'stockTransfer'],
+  ['customerId', 'customer'],
+];
+
 const ROOM_PREFIX_PERMISSIONS: Array<{ prefix: string; permission: Permission }> = [
   { prefix: 'dispatch:', permission: Permission.DISPATCH_VIEW },
   { prefix: 'technician:', permission: Permission.TECHNICIAN_TRACK },
@@ -88,8 +113,12 @@ const ROOM_PREFIX_PERMISSIONS: Array<{ prefix: string; permission: Permission }>
  * Realtime gateway — translates domain events into per-room websocket
  * broadcasts and exposes a `subscribe` op for clients.
  *
- * Rooms:
- *   tenant:{tenantId}                  — broadcast within a tenant
+ * Every room except `user:{id}` is namespaced per tenant on the wire as
+ * `t:{tenantId}:{room}`; clients subscribe with the logical name and only
+ * ever join their own tenant's copy, so no event crosses tenants.
+ *
+ * Rooms (logical names):
+ *   tenant                             — broadcast within the caller's tenant
  *   user:{userId}                      — personal channel
  *   dispatch:global                    — every dispatch dashboard
  *   dispatch:city:{cityId}             — city-scoped ops feed
@@ -98,7 +127,15 @@ const ROOM_PREFIX_PERMISSIONS: Array<{ prefix: string; permission: Permission }>
  *   booking:{bookingId}                — per-job tracking
  */
 @WebSocketGateway({
-  cors: { origin: true, credentials: true },
+  // Same allowlist as the HTTP API; native apps send no Origin and are allowed.
+  cors: {
+    origin: (origin: string | undefined, cb: (err: Error | null, ok?: boolean) => void) => {
+      const extra = (process.env['CORS_EXTRA_ORIGINS'] ?? '').split(',').map((o) => o.trim());
+      const allow = [process.env['WEB_URL'], process.env['ADMIN_URL'], ...extra].filter(Boolean);
+      cb(null, !origin || allow.includes(origin));
+    },
+    credentials: true,
+  },
   path: '/ws',
   transports: ['websocket'],
 })
@@ -108,12 +145,22 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   @WebSocketServer()
   server!: Server;
 
+  private readonly tenantCache = new Map<string, string>();
+
   constructor(
     private readonly tokens: TokenService,
     private readonly prisma: PrismaService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
+    // socket.io fires the client's `connect` before this async handler finishes,
+    // so early `subscribe` messages wait on this promise instead of being refused.
+    const ready = this.authenticate(client);
+    client.data['authReady'] = ready;
+    await ready;
+  }
+
+  private async authenticate(client: Socket): Promise<void> {
     // JWT validation — disconnect anonymous sockets.
     const token =
       (client.handshake.auth?.['token'] as string | undefined) ??
@@ -137,7 +184,12 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       client.data['permissions'] = payload.permissions ?? [];
       // Auto-join personal + tenant rooms.
       await client.join(`user:${payload.sub}`);
-      await client.join(`tenant:${payload.tid}`);
+      await client.join(scopedRoom(payload.tid, 'tenant'));
+      // Sockets outlive their access token otherwise; drop them at expiry so a
+      // revoked or downgraded session stops receiving events.
+      const msLeft = (payload.exp ?? 0) * 1000 - Date.now();
+      const timer = setTimeout(() => client.disconnect(true), Math.max(msLeft, 0));
+      client.once('disconnect', () => clearTimeout(timer));
       this.logger.debug(`WS connected user=${payload.sub}`);
     } catch (err) {
       this.logger.debug({ err }, 'WS auth failed');
@@ -154,8 +206,12 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { rooms: string[] },
   ): Promise<{ ok: true; rooms: string[] }> {
-    const allowed = (body.rooms ?? []).filter((r) => this.canJoin(client, r));
-    await Promise.all(allowed.map((r) => client.join(r)));
+    await (client.data['authReady'] as Promise<void> | undefined);
+    const requested = (body.rooms ?? []).slice(0, 50);
+    const checks = await Promise.all(requested.map((r) => this.canJoin(client, r)));
+    const allowed = requested.filter((_, i) => checks[i]);
+    const tenantId = client.data['tenantId'] as string;
+    await Promise.all(allowed.map((r) => client.join(scopedRoom(tenantId, r))));
     return { ok: true, rooms: allowed };
   }
 
@@ -164,7 +220,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { rooms: string[] },
   ): Promise<{ ok: true }> {
-    await Promise.all((body.rooms ?? []).map((r) => client.leave(r)));
+    const tenantId = client.data['tenantId'] as string;
+    await Promise.all((body.rooms ?? []).map((r) => client.leave(scopedRoom(tenantId, r))));
     return { ok: true };
   }
 
@@ -172,7 +229,7 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   @OnEvent(DomainEventName.LeadCreated)
   onLeadCreated(event: LeadCreatedEvent): void {
-    this.broadcast([`tenant:${event.actorId ? 'all' : 'all'}`], event);
+    this.broadcast(['tenant'], event);
   }
 
   @OnEvent(DomainEventName.LeadAssigned)
@@ -639,7 +696,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
       DomainEventName.CallRecordingReady,
     ]);
     if (handled.has(event.name)) return;
-    this.server.emit(event.name, event);
+    // Unmapped events go to the owning tenant's room only — never to every socket.
+    this.broadcast(['tenant'], event);
   }
 
   /** Type-safe publish helper for services that bypass the event bus. */
@@ -650,16 +708,58 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   // --------------- helpers ---------------
 
   private broadcast(rooms: string[], event: AnyDomainEvent): void {
-    this.server.to(rooms).emit(event.name, event);
+    void this.resolveTenant(event)
+      .then((tenantId) => {
+        if (!tenantId) {
+          // Unknown tenant: only personal rooms (globally unique, self-joined) are safe.
+          const personal = rooms.filter((r) => r.startsWith('user:'));
+          if (personal.length) this.server.to(personal).emit(event.name, event);
+          return;
+        }
+        this.server.to(rooms.map((r) => scopedRoom(tenantId, r))).emit(event.name, event);
+      })
+      .catch((err: unknown) => this.logger.warn({ err, event: event.name }, 'Realtime broadcast failed'));
   }
 
-  private canJoin(client: Socket, room: string): boolean {
+  /** Tenant stamped at publish time, else looked up from the event's entity ids. */
+  private async resolveTenant(event: AnyDomainEvent): Promise<string | null> {
+    if (event.tenantId) return event.tenantId;
+    const payload = event.payload as Record<string, unknown>;
+    for (const [field, model] of TENANT_LOOKUPS) {
+      const id = payload[field];
+      if (typeof id !== 'string') continue;
+      const cacheKey = `${model}:${id}`;
+      const cached = this.tenantCache.get(cacheKey);
+      if (cached) return cached;
+      const delegate = (this.prisma.client as unknown as Record<string, TenantLookup>)[model];
+      const row = await delegate?.findFirst({ where: { id }, select: { tenantId: true } });
+      if (row?.tenantId) {
+        if (this.tenantCache.size > 5000) this.tenantCache.clear();
+        this.tenantCache.set(cacheKey, row.tenantId);
+        return row.tenantId;
+      }
+    }
+    return null;
+  }
+
+  private async canJoin(client: Socket, room: string): Promise<boolean> {
     const userId = client.data['userId'] as string | undefined;
     const tenantId = client.data['tenantId'] as string | undefined;
     if (!userId || !tenantId) return false;
 
     if (room.startsWith('user:')) return room === `user:${userId}`;
-    if (room.startsWith('tenant:')) return room === `tenant:${tenantId}`;
+    if (room === 'tenant') return true;
+
+    // Within the tenant, people without the dispatch view (field technicians)
+    // may only follow bookings assigned to them.
+    if (room.startsWith('booking:') && !this.clientHasPermission(client, Permission.DISPATCH_VIEW)) {
+      if (!this.clientHasPermission(client, Permission.BOOKING_READ)) return false;
+      const booking = await this.prisma.client.booking.findFirst({
+        where: { id: room.slice('booking:'.length), tenantId, technician: { userId } },
+        select: { id: true },
+      });
+      return Boolean(booking);
+    }
 
     if (room.startsWith('ticket:') || room.startsWith('support:')) {
       return this.clientHasPermission(client, Permission.TICKET_VIEW);
