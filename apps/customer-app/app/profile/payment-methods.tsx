@@ -40,7 +40,7 @@ export default function PaymentMethodsScreen() {
         ) : (methods.data?.length ?? 0) === 0 ? (
           <EmptyState
             title="No saved methods"
-            subtitle="Pay any pending invoice and we’ll offer to save your card / UPI handle for one-tap reuse."
+            subtitle="Saving cards and UPI IDs isn’t available yet. You can pay any invoice by UPI, card or net banking at checkout."
             icon={<CreditCard size={26} />}
           />
         ) : (
