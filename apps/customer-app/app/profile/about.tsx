@@ -24,12 +24,12 @@ export default function AboutScreen() {
           title="Privacy policy"
           onPress={() => Linking.openURL('https://acplatform.in/privacy')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Terms of service"
           onPress={() => Linking.openURL('https://acplatform.in/terms')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Refund & cancellation"
           onPress={() => Linking.openURL('https://acplatform.in/refunds')}

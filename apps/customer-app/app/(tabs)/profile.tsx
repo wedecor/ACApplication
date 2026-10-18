@@ -79,7 +79,7 @@ export default function ProfileScreen() {
           <View style={{ flex: 1 }}>
             <Text variant="h2">{profile?.fullName ?? 'Add your name'}</Text>
             <Text variant="caption" tone="muted">
-              {profile?.phone ?? profile?.email ?? '\u2014'}
+              {profile?.phone ?? profile?.email ?? '—'}
             </Text>
           </View>
           <Pressable onPress={() => router.push('/profile/edit')} hitSlop={12}>
@@ -96,26 +96,26 @@ export default function ProfileScreen() {
           left={<RowIcon icon={<MapPin size={18} color={colors.brand} />} />}
           onPress={() => router.push('/profile/addresses')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="My appliances"
           subtitle="Warranty status and service history."
           left={<RowIcon icon={<Refrigerator size={18} color={colors.brand} />} />}
           onPress={() => router.push('/profile/appliances')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Payment methods"
           left={<RowIcon icon={<CreditCard size={18} color={colors.brand} />} />}
           onPress={() => router.push('/profile/payment-methods')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Invoices"
           left={<RowIcon icon={<ReceiptText size={18} color={colors.brand} />} />}
           onPress={() => router.push('/(tabs)/invoices')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="AMC membership"
           left={<RowIcon icon={<ShieldCheck size={18} color={colors.brand} />} />}
@@ -126,14 +126,14 @@ export default function ProfileScreen() {
       <Card padded={false} style={{ marginTop: spacing[3] }}>
         <ListRow
           title="Refer & earn"
-          subtitle="Get \u20B9300 credit for every friend who books their first job."
+          subtitle="Get ₹300 credit for every friend who books their first job."
           left={<RowIcon icon={<Gift size={18} color={colors.warn} />} />}
           onPress={() => router.push('/profile/referrals')}
         />
       </Card>
 
       <Card padded={false} style={{ marginTop: spacing[3] }}>
-        <View style={{ paddingHorizontal: spacing[3], paddingVertical: spacing[3] }}>
+        <View style={{ paddingHorizontal: spacing[3], paddingVertical: spacing[4] }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
             <RowIcon icon={<Fingerprint size={18} color={colors.brand} />} />
             <View style={{ flex: 1 }}>
@@ -148,17 +148,18 @@ export default function ProfileScreen() {
               value={bioEnabled}
               onValueChange={toggleBiometric}
               disabled={!bioAvailable}
+              accessibilityLabel="Biometric unlock"
               trackColor={{ true: colors.brand, false: colors.border }}
             />
           </View>
         </View>
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Notification settings"
           left={<RowIcon icon={<Bell size={18} color={colors.brand} />} />}
           onPress={() => router.push('/profile/notifications')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Devices & sessions"
           subtitle="Sign out of devices you no longer use."
@@ -173,7 +174,7 @@ export default function ProfileScreen() {
           left={<RowIcon icon={<HelpCircle size={18} color={colors.brand} />} />}
           onPress={() => router.push('/support')}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="About"
           left={<RowIcon icon={<User2 size={18} color={colors.brand} />} />}
@@ -199,12 +200,12 @@ export default function ProfileScreen() {
             ]);
           }}
         />
-        <Divider />
+        <Divider flush />
         <ListRow
           title="Log out of all devices"
           left={<RowIcon icon={<LogOut size={18} color={colors.danger} />} />}
           onPress={() =>
-            Alert.alert('Sign out everywhere?', 'You\u2019ll be signed out of every device.', [
+            Alert.alert('Sign out everywhere?', 'You’ll be signed out of every device.', [
               { text: 'Cancel', style: 'cancel' },
               {
                 text: 'Sign out everywhere',

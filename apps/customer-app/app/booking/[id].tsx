@@ -196,7 +196,7 @@ async function promptReschedule(
         onPress: async () => {
           try {
             await reschedule.mutateAsync({ scheduledAt: proposed.toISOString() });
-            Alert.alert('Updated', 'We\u2019ll notify the pro about the new time.');
+            Alert.alert('Updated', 'We’ll notify the pro about the new time.');
           } catch (err) {
             Alert.alert('Failed', err instanceof Error ? err.message : 'Try again.');
           }
@@ -283,9 +283,9 @@ function Detail({
             <Text variant="caption" tone="muted">
               ETA{' '}
               <Text variant="caption" tone="brand" weight="700">
-                {locationData.etaMinutes ?? '\u2014'} min
+                {locationData.etaMinutes ?? '—'} min
               </Text>{' '}
-              \u2022 {locationData.distanceKm?.toFixed(1) ?? '\u2014'} km away
+              • {locationData.distanceKm?.toFixed(1) ?? '—'} km away
             </Text>
           ) : (
             <Text variant="caption" tone="muted">
@@ -321,8 +321,8 @@ function Detail({
                 <View style={{ flex: 1 }}>
                   <Text variant="h3">{booking.technician.fullName}</Text>
                   <Text variant="caption" tone="muted">
-                    {booking.technician.completedJobs ?? 0}+ jobs \u2022{' '}
-                    {booking.technician.rating?.toFixed(1) ?? '\u2014'} \u2605
+                    {booking.technician.completedJobs ?? 0}+ jobs •{' '}
+                    {booking.technician.rating?.toFixed(1) ?? '—'} ★
                   </Text>
                 </View>
               </View>

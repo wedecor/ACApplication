@@ -15,6 +15,7 @@ import { formatDateTime, formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
 
 import type { BookingSummary } from '@/api/types';
+import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '@/lib/status';
 
 const TABS = [
   { id: 'active', label: 'Active' },
@@ -94,16 +95,7 @@ function BookingRow({ item, onPress }: { item: BookingSummary; onPress: () => vo
     <Pressable onPress={onPress}>
       <Card>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Badge
-            tone={
-              item.status === 'COMPLETED'
-                ? 'success'
-                : item.status === 'CANCELLED' || item.status === 'NO_SHOW'
-                  ? 'danger'
-                  : 'brand'
-            }
-            label={item.status.replace('_', ' ').toLowerCase()}
-          />
+          <Badge tone={BOOKING_STATUS_TONE[item.status]} label={BOOKING_STATUS_LABEL[item.status]} />
           <Text variant="caption" tone="subtle">
             #{item.code}
           </Text>

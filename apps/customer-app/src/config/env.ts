@@ -25,8 +25,8 @@ function stringOr(value: unknown, fallback: string): string {
 export const config: AppConfig = (() => {
   const extra = readExtra();
   return {
-    apiUrl: stringOr(extra.apiUrl, 'http://localhost:3000'),
-    wsUrl: stringOr(extra.wsUrl, 'http://localhost:3000'),
+    apiUrl: stringOr(extra.apiUrl, 'http://localhost:4000'),
+    wsUrl: stringOr(extra.wsUrl, 'http://localhost:4000'),
     whatsappNumber: stringOr(extra.whatsappNumber, '+919999999999'),
     supportPhone: stringOr(extra.supportPhone, '+919999999999'),
     supportEmail: stringOr(extra.supportEmail, 'care@acplatform.in'),

@@ -13,6 +13,7 @@ import { formatDate, formatRupees } from '@/lib/format';
 import { spacing } from '@/theme/tokens';
 
 import type { InvoiceSummary } from '@/api/types';
+import { humanizeStatus } from '@/lib/status';
 
 const STATUS_TONE: Record<InvoiceSummary['status'], 'success' | 'warn' | 'danger' | 'brand' | 'neutral'> = {
   PAID: 'success',
@@ -64,7 +65,7 @@ export default function InvoicesScreen() {
                     <View style={{ alignItems: 'flex-end' }}>
                       <Text variant="h2">{formatRupees(item.amountMinor)}</Text>
                       <View style={{ marginTop: 4 }}>
-                        <Badge tone={STATUS_TONE[item.status]} label={item.status.toLowerCase()} small />
+                        <Badge tone={STATUS_TONE[item.status]} label={humanizeStatus(item.status)} small />
                       </View>
                     </View>
                   </View>

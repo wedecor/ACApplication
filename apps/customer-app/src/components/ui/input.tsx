@@ -45,12 +45,18 @@ export const Input = forwardRef<TextInput, Props>(function Input(
           style={[
             {
               flex: 1,
+              // Fill the 48pt field so a tap anywhere on it focuses the input.
+              alignSelf: 'stretch',
+              minHeight: 46,
               color: colors.ink,
               fontSize: 15,
               paddingVertical: 0,
             },
             style,
           ]}
+          // Expose the visible label (and any error/hint) to screen readers; callers can still override.
+          accessibilityLabel={label}
+          accessibilityHint={error ?? hint}
           {...rest}
         />
         {rightAdornment ? <View style={{ marginLeft: spacing[2] }}>{rightAdornment}</View> : null}

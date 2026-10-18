@@ -59,8 +59,7 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to show nearby technicians and live ETAs."
         }
       ],
-      "expo-local-authentication",
-      "expo-screen-capture"
+      "expo-local-authentication"
     ],
     "experiments": { "typedRoutes": true },
     "extra": {

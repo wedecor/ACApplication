@@ -29,12 +29,13 @@ import { pickAndUploadImage } from '@/lib/upload';
 import { toCreateBookingInput, useBookingDraft } from '@/state/booking-draft';
 import { warrantyLabel, warrantyTone } from '@/lib/warranty';
 import { colors, radius, spacing } from '@/theme/tokens';
+import { ApplianceIcon } from '@/components/appliance-icon';
 
 const SLOTS = [
-  { id: 'morning', label: 'Morning', hint: '8 AM \u2014 11 AM' },
-  { id: 'midday', label: 'Midday', hint: '11 AM \u2014 2 PM' },
-  { id: 'afternoon', label: 'Afternoon', hint: '2 PM \u2014 5 PM' },
-  { id: 'evening', label: 'Evening', hint: '5 PM \u2014 8 PM' },
+  { id: 'morning', label: 'Morning', hint: '8 AM — 11 AM' },
+  { id: 'midday', label: 'Midday', hint: '11 AM — 2 PM' },
+  { id: 'afternoon', label: 'Afternoon', hint: '2 PM — 5 PM' },
+  { id: 'evening', label: 'Evening', hint: '5 PM — 8 PM' },
 ];
 
 export default function BookingFlow() {
@@ -103,7 +104,7 @@ export default function BookingFlow() {
               }
               try {
                 const booking = await create.mutateAsync(input);
-                router.replace(`/booking/${booking.id}?fresh=1`);
+                router.replace({ pathname: '/booking/[id]', params: { id: booking.id, fresh: '1' } });
               } catch (err) {
                 Alert.alert(
                   'Could not book',
@@ -187,7 +188,7 @@ function ServiceStep() {
                     }}
                   >
                     <Text variant="h3" numberOfLines={1}>
-                      {catalogue?.emoji ?? '\uD83D\uDD27'} {item.brand}
+                      {item.brand}
                     </Text>
                     <Text variant="caption" tone="muted" numberOfLines={1}>
                       {item.installedLocation ?? item.categoryLabel}
@@ -246,7 +247,7 @@ function ServiceStep() {
                     justifyContent: 'center',
                   }}
                 >
-                  <Text variant="h2">{item.emoji}</Text>
+                  <ApplianceIcon category={item.category} />
                 </View>
                 <Text variant="h3" style={{ marginTop: spacing[3] }}>
                   {item.name}
@@ -282,7 +283,7 @@ function IssueStep() {
   if (!appliance) return null;
   return (
     <View style={{ flex: 1 }}>
-      <Text variant="h1">What\u2019s going on?</Text>
+      <Text variant="h1">What’s going on?</Text>
       <Text variant="body" tone="muted" style={{ marginTop: 6 }}>
         Picking the right issue helps the pro arrive with the right parts.
       </Text>

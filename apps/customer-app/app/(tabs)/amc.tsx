@@ -17,6 +17,7 @@ import { formatDate, formatRupees } from '@/lib/format';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 import type { AmcSubscription } from '@/api/types';
+import { humanizeStatus } from '@/lib/status';
 
 export default function AmcScreen() {
   const plans = useAmcPlans();
@@ -100,7 +101,7 @@ export default function AmcScreen() {
                   </Text>
                 </View>
                 <Text variant="caption" tone="muted">
-                  {item.visitsIncluded} visits included \u2022 {item.emergencyIncluded ? 'emergency covered' : 'emergency extra'}
+                  {item.visitsIncluded} visits included • {item.emergencyIncluded ? 'emergency covered' : 'emergency extra'}
                 </Text>
                 <View style={{ marginTop: spacing[3], gap: 6 }}>
                   {item.features.map((f) => (
@@ -150,7 +151,7 @@ function ActiveSubscriptionCard({
         <Text tone="inverse" variant="h3">
           {subscription.planName}
         </Text>
-        <Badge label={subscription.status.toLowerCase()} tone={tone} small />
+        <Badge label={humanizeStatus(subscription.status)} tone={tone} small />
       </View>
       <Text tone="inverse" variant="caption" style={{ opacity: 0.8, marginTop: 4 }}>
         Active until {formatDate(subscription.expiresAt)}

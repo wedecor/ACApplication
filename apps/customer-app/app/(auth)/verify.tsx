@@ -129,7 +129,7 @@ export default function VerifyScreen() {
           />
           <View style={{ marginTop: spacing[5], flexDirection: 'row', alignItems: 'center' }}>
             <Text variant="caption" tone="muted">
-              Didn\u2019t get the code?{' '}
+              Didn’t get the code?{' '}
             </Text>
             {resendIn > 0 ? (
               <Text variant="caption" tone="subtle">

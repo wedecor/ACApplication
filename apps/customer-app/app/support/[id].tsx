@@ -23,6 +23,7 @@ import {
 import { formatRelative } from '@/lib/format';
 import { colors, radius, spacing } from '@/theme/tokens';
 import type { SupportMessage } from '@/api/types';
+import { humanizeStatus } from '@/lib/status';
 
 /**
  * In-app support chat screen.
@@ -84,7 +85,7 @@ export default function TicketChatScreen() {
                   ? 'warn'
                   : 'brand'
             }
-            label={ticket.data.status.replace(/_/g, ' ').toLowerCase()}
+            label={humanizeStatus(ticket.data.status)}
             small
           />
         ) : null}

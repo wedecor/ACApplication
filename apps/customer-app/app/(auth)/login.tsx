@@ -105,6 +105,7 @@ export default function LoginScreen() {
           </View>
         </View>
         <Button
+          style={{ marginTop: spacing[6] }}
           label="Send OTP"
           rightIcon={<ArrowRight color="#fff" size={18} />}
           fullWidth

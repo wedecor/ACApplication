@@ -9,9 +9,9 @@ import type { BookingDetail, TechnicianLocation } from '@/api/types';
 /**
  * Wrapper around `react-native-maps`.
  *
- * Map rendering depends on native modules that aren\u2019t available in
+ * Map rendering depends on native modules that aren’t available in
  * Expo Go on the simulator, so we lazy-import `react-native-maps` and
- * fall back to a stylised "live route" placeholder when it can\u2019t be
+ * fall back to a stylised "live route" placeholder when it can’t be
  * loaded. The placeholder still surfaces ETA + distance so the screen
  * is useful even without a map.
  */

@@ -90,8 +90,8 @@ async function reportTokenToServer(token: string): Promise<void> {
     });
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
-      // Backend device-registration endpoint not deployed yet \u2014 no-op so
-      // we don\u2019t crash the app while the notification module ships.
+      // Backend device-registration endpoint not deployed yet — no-op so
+      // we don’t crash the app while the notification module ships.
       return;
     }
     throw err;

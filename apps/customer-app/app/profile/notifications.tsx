@@ -44,14 +44,14 @@ export default function NotificationsSettingsScreen() {
           value={push}
           onChange={togglePush}
         />
-        <Divider />
+        <Divider flush />
         <Row
           title="WhatsApp notifications"
           subtitle="Fallback for important updates"
           value={whatsapp}
           onChange={setWhatsapp}
         />
-        <Divider />
+        <Divider flush />
         <Row
           title="Offers & promos"
           subtitle="Seasonal AMC discounts, partner coupons"
@@ -95,6 +95,7 @@ function Row({
       <Switch
         value={value}
         onValueChange={onChange}
+        accessibilityLabel={title}
         trackColor={{ true: colors.brand, false: colors.border }}
       />
     </View>

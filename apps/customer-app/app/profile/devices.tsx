@@ -72,7 +72,7 @@ export default function DevicesScreen() {
 
       <Pressable
         onPress={() =>
-          Alert.alert('Sign out everywhere?', 'You\u2019ll need to sign in again on every device.', [
+          Alert.alert('Sign out everywhere?', 'You’ll need to sign in again on every device.', [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Sign out everywhere', style: 'destructive', onPress: () => logoutAll() },
           ])

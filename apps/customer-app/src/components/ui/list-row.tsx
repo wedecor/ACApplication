@@ -20,7 +20,8 @@ export function ListRow({ title, subtitle, left, right, onPress, showChevron = t
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        paddingVertical: spacing[3],
+        paddingVertical: spacing[4],
+        minHeight: 56,
         paddingHorizontal: spacing[3],
         flexDirection: 'row',
         alignItems: 'center',

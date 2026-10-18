@@ -5,8 +5,8 @@ describe('formatRupees', () => {
     expect(formatRupees(49900)).toContain('499');
   });
   it('renders a dash for null/undefined', () => {
-    expect(formatRupees(null)).toBe('\u20B9 \u2014');
-    expect(formatRupees(undefined)).toBe('\u20B9 \u2014');
+    expect(formatRupees(null)).toBe('₹ —');
+    expect(formatRupees(undefined)).toBe('₹ —');
   });
   it('applies a sign when requested', () => {
     expect(formatRupees(-49900, { showSign: true })).toContain('\u2212');
@@ -16,9 +16,9 @@ describe('formatRupees', () => {
 
 describe('formatRupeesShort', () => {
   it('compresses thousands and lakhs', () => {
-    expect(formatRupeesShort(150000)).toBe('\u20B91.5k');
-    expect(formatRupeesShort(15000000)).toBe('\u20B91.5L');
-    expect(formatRupeesShort(45000)).toBe('\u20B9450');
+    expect(formatRupeesShort(150000)).toBe('₹1.5k');
+    expect(formatRupeesShort(15000000)).toBe('₹1.5L');
+    expect(formatRupeesShort(45000)).toBe('₹450');
   });
 });
 

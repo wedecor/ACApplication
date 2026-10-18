@@ -2,6 +2,8 @@
 module.exports = {
   content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
+  // 'media' makes NativeWind's web runtime throw when anything toggles the <html> class; no dark: utilities are used.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

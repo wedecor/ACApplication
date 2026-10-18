@@ -14,7 +14,7 @@ import { api } from '@/lib/api-client';
  *
  * The queue is intentionally simple: at-most-once delivery, no
  * conflict resolution. Use it only for idempotent or low-stakes
- * actions \u2014 bookings/payments still go through the regular request
+ * actions — bookings/payments still go through the regular request
  * path and fail visibly.
  */
 const KEY = 'ac.customer.offline-queue.v1';

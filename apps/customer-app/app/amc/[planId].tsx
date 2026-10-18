@@ -16,6 +16,7 @@ import { useAppliances } from '@/hooks/use-appliances';
 import { ApiError } from '@/lib/api-client';
 import { formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
+import { ApplianceIcon } from '@/components/appliance-icon';
 
 export default function PlanDetailScreen() {
   const { planId } = useLocalSearchParams<{ planId: string }>();
@@ -79,7 +80,7 @@ export default function PlanDetailScreen() {
       <Card style={{ marginTop: spacing[4] }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[2] }}>
           <ShieldCheck color={colors.brand} size={20} />
-          <Text variant="h3">What\u2019s included</Text>
+          <Text variant="h3">What’s included</Text>
         </View>
         <View style={{ marginTop: spacing[2], gap: 6 }}>
           {plan.features.map((f) => (
@@ -118,7 +119,7 @@ export default function PlanDetailScreen() {
                 >
                   <Text variant="h3" style={{ flex: 1 }}>
                     {a.brand} {a.categoryLabel}
-                    {a.installedLocation ? ` \u2022 ${a.installedLocation}` : ''}
+                    {a.installedLocation ? ` • ${a.installedLocation}` : ''}
                   </Text>
                   {active ? <Badge tone="brand" label="Selected" small /> : null}
                 </Card>
@@ -146,7 +147,7 @@ export default function PlanDetailScreen() {
                   alignItems: 'center',
                 }}
               >
-                <Text variant="h2">{a.emoji}</Text>
+                <ApplianceIcon category={a.category} />
                 <Text variant="h3" style={{ marginLeft: spacing[3], flex: 1 }}>
                   {a.name}
                 </Text>

@@ -1,7 +1,7 @@
 /** Common formatters used across customer-app screens. */
 
 export function formatRupees(minor: number | null | undefined, opts: { showSign?: boolean } = {}): string {
-  if (minor == null) return '\u20B9 \u2014';
+  if (minor == null) return '₹ —';
   const rupees = minor / 100;
   const formatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -16,21 +16,21 @@ export function formatRupees(minor: number | null | undefined, opts: { showSign?
 }
 
 export function formatRupeesShort(minor: number | null | undefined): string {
-  if (minor == null) return '\u20B9 \u2014';
+  if (minor == null) return '₹ —';
   const rupees = minor / 100;
   if (Math.abs(rupees) >= 100_000) {
-    return `\u20B9${(rupees / 100_000).toFixed(1)}L`;
+    return `₹${(rupees / 100_000).toFixed(1)}L`;
   }
   if (Math.abs(rupees) >= 1_000) {
-    return `\u20B9${(rupees / 1_000).toFixed(rupees % 1_000 === 0 ? 0 : 1)}k`;
+    return `₹${(rupees / 1_000).toFixed(rupees % 1_000 === 0 ? 0 : 1)}k`;
   }
-  return `\u20B9${Math.round(rupees)}`;
+  return `₹${Math.round(rupees)}`;
 }
 
 export function formatRelative(iso: string | Date | null | undefined): string {
-  if (!iso) return '\u2014';
+  if (!iso) return '—';
   const target = typeof iso === 'string' ? new Date(iso) : iso;
-  if (Number.isNaN(target.getTime())) return '\u2014';
+  if (Number.isNaN(target.getTime())) return '—';
   const diffMs = target.getTime() - Date.now();
   const abs = Math.abs(diffMs);
   const sign = diffMs >= 0 ? 1 : -1;
@@ -54,9 +54,9 @@ export function formatRelative(iso: string | Date | null | undefined): string {
 }
 
 export function formatDateTime(iso: string | Date | null | undefined): string {
-  if (!iso) return '\u2014';
+  if (!iso) return '—';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
-  if (Number.isNaN(d.getTime())) return '\u2014';
+  if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -66,16 +66,16 @@ export function formatDateTime(iso: string | Date | null | undefined): string {
 }
 
 export function formatDate(iso: string | Date | null | undefined): string {
-  if (!iso) return '\u2014';
+  if (!iso) return '—';
   const d = typeof iso === 'string' ? new Date(iso) : iso;
-  if (Number.isNaN(d.getTime())) return '\u2014';
+  if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function maskPhone(phone: string): string {
   const trimmed = phone.replace(/\s+/g, '');
   if (trimmed.length < 6) return trimmed;
-  return `${trimmed.slice(0, 3)}\u00B7\u00B7\u00B7\u00B7${trimmed.slice(-3)}`;
+  return `${trimmed.slice(0, 3)}····${trimmed.slice(-3)}`;
 }
 
 export function initials(name: string | null | undefined): string {

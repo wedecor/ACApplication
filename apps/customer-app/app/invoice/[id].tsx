@@ -15,6 +15,7 @@ import { track, Events } from '@/lib/analytics';
 import { formatDate, formatRupees } from '@/lib/format';
 import { payInvoice } from '@/lib/payments';
 import { colors, spacing } from '@/theme/tokens';
+import { humanizeStatus } from '@/lib/status';
 
 export default function InvoiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -70,7 +71,7 @@ export default function InvoiceDetailScreen() {
                 </Text>
               </View>
               <Badge
-                label={detail.data.status.toLowerCase()}
+                label={humanizeStatus(detail.data.status)}
                 tone={
                   detail.data.status === 'PAID'
                     ? 'success'

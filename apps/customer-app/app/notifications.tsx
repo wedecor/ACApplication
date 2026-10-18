@@ -65,7 +65,7 @@ export default function NotificationsScreen() {
       <View style={{ marginTop: spacing[4] }}>
         {(data?.length ?? 0) === 0 ? (
           <EmptyState
-            title="You\u2019re all caught up"
+            title="You’re all caught up"
             subtitle="Booking updates, payment receipts and AMC reminders will appear here."
             icon={<Bell size={26} />}
             action={

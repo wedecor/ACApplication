@@ -6,8 +6,8 @@ import { getAppliance } from '@/content/appliances';
 /**
  * Booking draft state.
  *
- * Lives in-memory only \u2014 the booking flow is short, single-session and
- * we don\u2019t want stale drafts persisting across days. If the user kills
+ * Lives in-memory only — the booking flow is short, single-session and
+ * we don’t want stale drafts persisting across days. If the user kills
  * the app mid-flow they restart from the first step (intentional, this
  * is how Urban Company / Swiggy behave too).
  */

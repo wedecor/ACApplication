@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text';
 import { APPLIANCES } from '@/content/appliances';
 import { formatRupeesShort } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
+import { ApplianceIcon } from '@/components/appliance-icon';
 
 export function QuickServices() {
   const router = useRouter();
@@ -32,9 +33,9 @@ export function QuickServices() {
                 justifyContent: 'center',
               }}
             >
-              <Text variant="h2">{item.emoji}</Text>
+              <ApplianceIcon category={item.category} />
             </View>
-            <Text variant="h3" style={{ marginTop: spacing[3] }} numberOfLines={1}>
+            <Text variant="h3" style={{ marginTop: spacing[3] }} numberOfLines={2}>
               {item.name}
             </Text>
             <Text variant="caption" tone="muted">

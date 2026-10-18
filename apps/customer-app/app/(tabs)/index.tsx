@@ -70,7 +70,7 @@ export default function HomeScreen() {
 
       {!online ? (
         <View style={{ marginTop: spacing[3] }}>
-          <Badge tone="warn" label="You\u2019re offline \u2014 showing cached info" />
+          <Badge tone="warn" label="You’re offline — showing cached info" />
         </View>
       ) : null}
 
@@ -157,7 +157,7 @@ export default function HomeScreen() {
         <ShortcutRow
           icon={<HeartHandshake color={colors.brand} size={18} />}
           title="Refer & earn"
-          subtitle="Invite friends, get \u20B9300 credit"
+          subtitle="Invite friends, get ₹300 credit"
           onPress={() => router.push('/profile/referrals')}
         />
       </View>

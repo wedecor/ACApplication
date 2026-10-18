@@ -16,6 +16,7 @@ import {
 } from '@/hooks/use-payments';
 import { formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
+import { humanizeStatus } from '@/lib/status';
 
 export default function PaymentMethodsScreen() {
   const methods = usePaymentMethods();
@@ -39,7 +40,7 @@ export default function PaymentMethodsScreen() {
         ) : (methods.data?.length ?? 0) === 0 ? (
           <EmptyState
             title="No saved methods"
-            subtitle="Pay any pending invoice and we\u2019ll offer to save your card / UPI handle for one-tap reuse."
+            subtitle="Pay any pending invoice and we’ll offer to save your card / UPI handle for one-tap reuse."
             icon={<CreditCard size={26} />}
           />
         ) : (
@@ -50,7 +51,7 @@ export default function PaymentMethodsScreen() {
                 {m.isDefault ? <Badge tone="brand" label="Default" small /> : null}
               </View>
               <Text variant="caption" tone="muted">
-                {m.type === 'UPI' ? 'UPI' : m.brand ?? ''} {m.last4 ? `\u2022\u2022 ${m.last4}` : ''}
+                {m.type === 'UPI' ? 'UPI' : m.brand ?? ''} {m.last4 ? `•• ${m.last4}` : ''}
               </Text>
               <View style={{ flexDirection: 'row', gap: spacing[3], marginTop: spacing[3] }}>
                 {!m.isDefault ? (
@@ -98,7 +99,7 @@ export default function PaymentMethodsScreen() {
             <Card key={r.id}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text variant="h3">{formatRupees(r.amountMinor)}</Text>
-                <Badge label={r.status.toLowerCase()} tone="brand" small />
+                <Badge label={humanizeStatus(r.status)} tone="brand" small />
               </View>
               <Text variant="caption" tone="muted" style={{ marginTop: 4 }}>
                 Initiated on {new Date(r.createdAt).toLocaleDateString('en-IN')}

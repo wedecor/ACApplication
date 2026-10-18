@@ -28,6 +28,7 @@ import { track, Events } from '@/lib/analytics';
 import { dialPhone, openWhatsApp } from '@/lib/external';
 import { formatRelative } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
+import { humanizeStatus } from '@/lib/status';
 
 export default function SupportScreen() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function SupportScreen() {
               Call us
             </Text>
             <Text variant="caption" tone="muted">
-              9am — 9pm
+              9am–9pm
             </Text>
           </Card>
         </Pressable>
@@ -125,7 +126,7 @@ export default function SupportScreen() {
                           ? 'warn'
                           : 'brand'
                     }
-                    label={t.status.replace(/_/g, ' ').toLowerCase()}
+                    label={humanizeStatus(t.status)}
                     small
                   />
                 </View>
@@ -187,7 +188,7 @@ export default function SupportScreen() {
       <Sheet open={open} onClose={() => setOpen(false)} title="New ticket">
         <Input
           label="Subject"
-          placeholder="What\u2019s this about?"
+          placeholder="What’s this about?"
           value={form.subject}
           onChangeText={(v) => setForm({ ...form, subject: v })}
         />
@@ -217,7 +218,7 @@ export default function SupportScreen() {
               });
               setOpen(false);
               setForm({ subject: '', message: '' });
-              Alert.alert('Ticket created', 'We\u2019ll get back to you shortly.');
+              Alert.alert('Ticket created', 'We’ll get back to you shortly.');
             } catch (err) {
               Alert.alert('Failed', err instanceof Error ? err.message : 'Try again.');
             }

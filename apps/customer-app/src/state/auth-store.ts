@@ -80,7 +80,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         profile = fresh;
         await secureStore.setItem(PROFILE_KEY, JSON.stringify(fresh));
       } catch (err) {
-        // If we can\u2019t reach the API on cold start we still trust the cached
+        // If we can’t reach the API on cold start we still trust the cached
         // session and let queries surface their own errors. A 401 will have
         // already triggered logout via onAuthLost.
         if (err instanceof ApiError && err.isAuth) {
@@ -164,7 +164,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await secureStore.setItem(PROFILE_KEY, JSON.stringify(fresh));
       set({ profile: fresh });
     } catch {
-      /* swallow \u2014 caller can retry */
+      /* swallow — caller can retry */
     }
   },
 

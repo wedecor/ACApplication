@@ -21,6 +21,7 @@ import { formatDate } from '@/lib/format';
 import { pickAndUploadImage } from '@/lib/upload';
 import { computeWarrantyStatus, warrantyLabel, warrantyTone } from '@/lib/warranty';
 import { colors, radius, spacing } from '@/theme/tokens';
+import { ApplianceIcon } from '@/components/appliance-icon';
 
 interface FormState {
   category: string;
@@ -167,12 +168,11 @@ export default function AppliancesScreen() {
           />
         ) : (
           list.data.map((a) => {
-            const emoji = getApplianceByCategory(a.category)?.emoji ?? '\u{1F527}';
             return (
               <Pressable key={a.id} onPress={() => setEditing({ id: a.id, form: toForm(a) })}>
                 <Card>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[3] }}>
-                    <Text variant="h2">{emoji}</Text>
+                    <ApplianceIcon category={a.category} />
                     <View style={{ flex: 1 }}>
                       <Text variant="h3">
                         {a.brand} {a.categoryLabel}
@@ -243,7 +243,7 @@ export default function AppliancesScreen() {
                       }}
                     >
                       <Text variant="caption" tone={active ? 'brand' : 'default'}>
-                        {o.emoji} {o.label}
+                        {o.label}
                       </Text>
                     </Pressable>
                   );

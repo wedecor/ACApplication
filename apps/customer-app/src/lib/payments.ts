@@ -18,7 +18,7 @@ import { ApiError } from '@/lib/api-client';
  *   2. Lets the server stay the source of truth for amounts, taxes,
  *      surcharges, AMC offsets, and dispute trails.
  *   3. Makes UPI Intent flows work on Android via Razorpay's hosted
- *      page \u2014 no additional integration on our side.
+ *      page — no additional integration on our side.
  */
 export interface PaymentResult {
   status: 'PAID' | 'PARTIAL' | 'PENDING' | 'CANCELLED' | 'FAILED';
@@ -56,7 +56,7 @@ export async function payInvoice(
     return { status: 'CANCELLED', message: 'Payment cancelled.' };
   }
 
-  // Confirm with the server \u2014 webhook may have already done so but a
+  // Confirm with the server — webhook may have already done so but a
   // belt-and-braces confirm guarantees the UI updates immediately.
   try {
     const confirmation = await invoicesApi.confirm(invoiceId, {

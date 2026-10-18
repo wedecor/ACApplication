@@ -1,7 +1,7 @@
 /**
  * Shared types for the customer-app API surface.
  *
- * These mirror the API contracts but stay intentionally narrow \u2014 we only
+ * These mirror the API contracts but stay intentionally narrow — we only
  * expose fields the customer app actually consumes. Keeping the shapes
  * here (instead of importing from `@ac/types`) keeps the mobile bundle
  * lean and decoupled from server-only enums.

@@ -17,6 +17,7 @@ import { useApplyReferral, useReferrals } from '@/hooks/use-growth';
 import { ApiError } from '@/lib/api-client';
 import { formatDate, formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
+import { humanizeStatus } from '@/lib/status';
 
 const STATUS_TONE: Record<ReferralStatus, 'neutral' | 'brand' | 'success' | 'danger'> = {
   PENDING: 'neutral',
@@ -141,7 +142,7 @@ export default function ReferralsScreen() {
                     {r.rewardMinor ? ` • ${formatRupees(r.rewardMinor)}` : ''}
                   </Text>
                 </View>
-                <Badge small tone={STATUS_TONE[r.status]} label={r.status.toLowerCase()} />
+                <Badge small tone={STATUS_TONE[r.status]} label={humanizeStatus(r.status)} />
               </View>
             </View>
           ))}
@@ -154,6 +155,7 @@ export default function ReferralsScreen() {
           <View style={{ flex: 1 }}>
             <Input
               placeholder="Enter code"
+              accessibilityLabel="Friend's referral code"
               autoCapitalize="characters"
               value={friendCode}
               onChangeText={setFriendCode}

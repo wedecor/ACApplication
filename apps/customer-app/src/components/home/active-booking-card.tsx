@@ -10,32 +10,7 @@ import { formatDateTime } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
 
 import type { BookingSummary } from '@/api/types';
-
-const STATUS_TONE: Record<BookingSummary['status'], 'neutral' | 'brand' | 'success' | 'warn' | 'danger'> = {
-  CREATED: 'neutral',
-  CONFIRMED: 'brand',
-  ASSIGNED: 'brand',
-  EN_ROUTE: 'warn',
-  ARRIVED: 'success',
-  IN_PROGRESS: 'success',
-  AWAITING_PARTS: 'warn',
-  COMPLETED: 'neutral',
-  CANCELLED: 'danger',
-  NO_SHOW: 'danger',
-};
-
-const STATUS_LABEL: Record<BookingSummary['status'], string> = {
-  CREATED: 'Booked',
-  CONFIRMED: 'Confirmed',
-  ASSIGNED: 'Pro assigned',
-  EN_ROUTE: 'On the way',
-  ARRIVED: 'Arrived',
-  IN_PROGRESS: 'In progress',
-  AWAITING_PARTS: 'Awaiting parts',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
-  NO_SHOW: 'No show',
-};
+import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '@/lib/status';
 
 interface Props {
   booking: BookingSummary;
@@ -49,7 +24,7 @@ export function ActiveBookingCard({ booking }: Props) {
       <Card>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing[2] }}>
-            <Badge tone={STATUS_TONE[booking.status]} label={STATUS_LABEL[booking.status]} />
+            <Badge tone={BOOKING_STATUS_TONE[booking.status]} label={BOOKING_STATUS_LABEL[booking.status]} />
             {live && booking.status === 'EN_ROUTE' ? <LiveDot /> : null}
           </View>
           <ChevronRight size={18} color={colors.inkSubtle} />
@@ -70,7 +45,7 @@ export function ActiveBookingCard({ booking }: Props) {
         >
           <MapPin size={14} color={colors.inkSubtle} />
           <Text variant="caption" tone="muted" numberOfLines={1} style={{ flex: 1 }}>
-            {booking.address?.line1 ?? 'Address on file'} \u2022 {formatDateTime(booking.scheduledAt)}
+            {booking.address?.line1 ?? 'Address on file'} • {formatDateTime(booking.scheduledAt)}
           </Text>
         </View>
         {booking.technician ? (

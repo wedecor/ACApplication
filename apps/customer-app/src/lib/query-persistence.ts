@@ -37,7 +37,7 @@ export async function hydrateQueryClient(qc: QueryClient): Promise<void> {
       qc.setQueryData(entry.key, entry.data);
     }
   } catch {
-    /* corrupt cache \u2014 skip */
+    /* corrupt cache — skip */
   }
 }
 
