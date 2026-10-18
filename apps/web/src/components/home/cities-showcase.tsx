@@ -1,7 +1,8 @@
-import Link from 'next/link';
 import { ArrowRight, MapPin } from 'lucide-react';
+import Link from 'next/link';
 
 import { CITIES } from '@/content/cities';
+import { SERVICES } from '@/content/services';
 import { formatNumber } from '@/lib/utils';
 
 export function CitiesShowcase() {
@@ -26,7 +27,7 @@ export function CitiesShowcase() {
         {CITIES.filter((c) => c.isLive).map((city) => (
           <Link
             key={city.slug}
-            href={`/${city.slug}` as never}
+            href={`/${city.slug}`}
             className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
           >
             <header className="flex items-center justify-between">
@@ -38,9 +39,9 @@ export function CitiesShowcase() {
               </span>
             </header>
             <dl className="grid grid-cols-3 gap-2 text-center">
-              <Stat label="Bookings" value={formatNumber(city.completedBookings)} />
+              <Stat label="Areas" value={formatNumber(city.areas.length)} />
               <Stat label="Response" value={`${city.avgResponseMin}m`} />
-              <Stat label="Rating" value={`${city.rating}★`} />
+              <Stat label="Services" value={formatNumber(SERVICES.length)} />
             </dl>
             <p className="text-xs text-muted-foreground line-clamp-2">
               Serving {city.areas

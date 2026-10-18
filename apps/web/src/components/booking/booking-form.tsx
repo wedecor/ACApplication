@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge, Button, Input, Label } from '@ac/ui';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, MessageCircle, Phone, Star } from 'lucide-react';
 import Link from 'next/link';
@@ -8,15 +9,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { Badge, Button, Input, Label } from '@ac/ui';
-
 import { CITIES, getLiveCities } from '@/content/cities';
 import { SERVICES } from '@/content/services';
 import { siteConfig } from '@/env';
 import { captureAttribution, Events, getStoredAttribution, track } from '@/lib/analytics';
 import { submitPublicLead } from '@/lib/public-api';
-import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
+import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 const PHONE_REGEX = /^[+]?\d{8,15}$/;
 
@@ -57,7 +56,8 @@ type StepId = (typeof STEPS)[number]['id'];
  * back and forward without losing inputs. Conversion analytics fires
  * `lead_step_completed` per step + `lead_submitted` on success.
  */
-export function BookingForm() {
+/** `ratingLine` is the real rating summary from the API (null hides it). */
+export function BookingForm({ ratingLine = null }: { ratingLine?: string | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<StepId>('service');
@@ -109,12 +109,12 @@ export function BookingForm() {
     if (!valid) return;
     const next = step === 'service' ? 'contact' : step === 'contact' ? 'schedule' : 'schedule';
     track(Events.LeadStepCompleted, { step });
-    setStep(next as StepId);
+    setStep(next);
   };
 
   const back = () => {
     const prev = step === 'schedule' ? 'contact' : step === 'contact' ? 'service' : 'service';
-    setStep(prev as StepId);
+    setStep(prev);
   };
 
   const onSubmit = async (values: BookingFormValues) => {
@@ -343,9 +343,11 @@ export function BookingForm() {
 
       {/* Trust strip */}
       <aside className="mt-10 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
-        <span className="flex items-center gap-2">
-          <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden /> 4.8 / 5 · 26,400+ reviews
-        </span>
+        {ratingLine ? (
+          <span className="flex items-center gap-2">
+            <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden /> {ratingLine}
+          </span>
+        ) : null}
         <a
           href={buildWhatsAppLink({ message: WhatsAppTemplates.general() })}
           target="_blank"

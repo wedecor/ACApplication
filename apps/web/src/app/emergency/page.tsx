@@ -1,16 +1,16 @@
+import { Badge, Button } from '@ac/ui';
+import { AlertTriangle, MessageCircle, Phone } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { AlertTriangle, MessageCircle, Phone } from 'lucide-react';
 
-import { Badge, Button } from '@ac/ui';
-
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Testimonials } from '@/components/home/testimonials';
 import { TrustStrip } from '@/components/home/trust-strip';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
 import { SITE_FAQS } from '@/content/faqs';
 import { siteConfig } from '@/env';
+import { fetchPublicStats } from '@/lib/public-api';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
@@ -22,7 +22,8 @@ export const metadata: Metadata = buildMetadata({
   keywords: ['emergency ac repair', 'emergency appliance repair', '24x7 appliance service', 'urgent fridge repair'],
 });
 
-export default function EmergencyPage() {
+export default async function EmergencyPage() {
+  const stats = await fetchPublicStats({ revalidate: 300 });
   return (
     <>
       <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'Emergency', href: '/emergency' }]} />
@@ -62,7 +63,7 @@ export default function EmergencyPage() {
         </div>
       </header>
 
-      <TrustStrip />
+      <TrustStrip stats={stats} />
       <Testimonials title="Customers we've helped under pressure" />
       <Faq items={SITE_FAQS} />
       <CtaBand title="Emergency? We're standing by." />

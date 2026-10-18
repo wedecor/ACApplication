@@ -1,5 +1,6 @@
 import { Award, Shield, Star, Users, Zap } from 'lucide-react';
 
+import { aggregateRatingLd, type PublicStats } from '@/lib/public-api';
 import { formatNumber } from '@/lib/utils';
 
 /**
@@ -7,42 +8,23 @@ import { formatNumber } from '@/lib/utils';
  * Server-rendered for SEO (numbers should appear in raw HTML, not
  * after hydration).
  */
-export function TrustStrip(props: {
-  bookings?: number;
-  cities?: number;
-  rating?: number;
-  reviews?: number;
-}) {
+export function TrustStrip({ stats }: { stats: PublicStats }) {
+  // Only real figures from the API are shown; a stat with no data is left out.
+  const rating = aggregateRatingLd(stats);
   const items = [
-    {
-      icon: Users,
-      value: formatNumber(props.bookings ?? 130_000),
-      label: 'Repairs completed',
-    },
-    {
-      icon: Shield,
-      value: '30-day',
-      label: 'Service warranty',
-    },
-    {
-      icon: Star,
-      value: `${props.rating ?? 4.8} / 5`,
-      label: `Across ${formatNumber(props.reviews ?? 26_400)} reviews`,
-    },
-    {
-      icon: Zap,
-      value: '60 min',
-      label: 'Avg. response',
-    },
-    {
-      icon: Award,
-      value: formatNumber(props.cities ?? 3),
-      label: 'Cities live',
-    },
-  ];
+    stats.completedRepairs
+      ? { icon: Users, value: formatNumber(stats.completedRepairs), label: 'Repairs completed' }
+      : null,
+    { icon: Shield, value: '30-day', label: 'Service warranty' },
+    rating
+      ? { icon: Star, value: `${rating.rating.toFixed(1)} / 5`, label: `Across ${formatNumber(rating.count)} reviews` }
+      : null,
+    { icon: Zap, value: '60 min', label: 'Avg. response' },
+    stats.citiesLive ? { icon: Award, value: formatNumber(stats.citiesLive), label: 'Cities live' } : null,
+  ].filter((i): i is NonNullable<typeof i> => i !== null);
   return (
     <section className="border-y border-border bg-muted/30">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:grid-cols-5">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-x-6 gap-y-8 px-4 py-10 sm:grid-cols-3 sm:px-6 lg:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
         {items.map((item) => (
           <div key={item.label} className="flex items-center gap-3">
             <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background text-primary shadow-sm ring-1 ring-border">

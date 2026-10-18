@@ -1,24 +1,22 @@
+import { Badge, Button } from '@ac/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { Badge, Button } from '@ac/ui';
-
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { ServiceProcess } from '@/components/home/service-process';
 import { Testimonials } from '@/components/home/testimonials';
 import { TrustStrip } from '@/components/home/trust-strip';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
 import { JsonLd } from '@/components/seo/json-ld';
 import { BRANDS, getBrandBySlug } from '@/content/brands';
 import { SITE_FAQS } from '@/content/faqs';
-import { aggregateRating } from '@/content/reviews';
 import { getServiceByCategory, type Service } from '@/content/services';
+import { aggregateRatingLd, fetchPublicStats } from '@/lib/public-api';
 import { productJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
-import { formatNumber } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ brand: string }>;
@@ -34,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!b) return {};
   return buildMetadata({
     title: `${b.name} Repair & Service — All Models, 30-Day Warranty`,
-    description: `${b.tagline} ${formatNumber(b.repairsCompleted)}+ ${b.name} appliances serviced. Verified technicians, genuine parts.`,
+    description: `${b.tagline} Verified technicians, genuine parts.`,
     path: `/brands/${b.slug}`,
     keywords: [
       `${b.name.toLowerCase()} ac repair`,
@@ -53,7 +51,7 @@ export default async function BrandPage({ params }: PageProps) {
   const services = brand.services
     .map((cat) => getServiceByCategory(cat))
     .filter((s): s is Service => Boolean(s));
-  const overall = aggregateRating();
+  const stats = await fetchPublicStats({ revalidate: 300 });
 
   return (
     <>
@@ -71,8 +69,7 @@ export default async function BrandPage({ params }: PageProps) {
           {brand.name} repair, installation & service.
         </h1>
         <p className="mt-3 max-w-2xl text-balance text-base text-muted-foreground sm:text-lg">
-          {brand.tagline} {formatNumber(brand.repairsCompleted)}+ {brand.name} appliances
-          serviced across India.
+          {brand.tagline}
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Button asChild size="lg">
@@ -90,12 +87,7 @@ export default async function BrandPage({ params }: PageProps) {
         </div>
       </section>
 
-      <TrustStrip
-        bookings={brand.repairsCompleted}
-        rating={overall.rating}
-        reviews={overall.count * 800}
-        cities={3}
-      />
+      <TrustStrip stats={stats} />
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <h2 className="text-balance text-3xl font-bold tracking-tight">
@@ -105,7 +97,7 @@ export default async function BrandPage({ params }: PageProps) {
           {services.map((service) => (
             <Link
               key={service.slug}
-              href={`/services/${service.slug}` as never}
+              href={`/services/${service.slug}`}
               className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
             >
               <h3 className="font-semibold">{brand.name} {service.name}</h3>
@@ -155,7 +147,7 @@ export default async function BrandPage({ params }: PageProps) {
           description: brand.tagline,
           image: '/og.png',
           url: `/brands/${brand.slug}`,
-          aggregateRating: { rating: overall.rating, count: overall.count * 800 },
+          aggregateRating: aggregateRatingLd(stats),
           offers: services.map((s) => ({
             name: `${brand.name} ${s.name}`,
             price: Number(s.pricing[0]?.price.replace(/[^\d]/g, '') ?? 0),

@@ -1,19 +1,19 @@
 'use client';
 
+import { Button } from '@ac/ui';
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Check, Phone, Shield, Sparkles, Star, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-
-import { Button } from '@ac/ui';
 
 import { OperationalDashboard } from '@/components/home/operational-dashboard';
 import { CITIES, getLiveCities } from '@/content/cities';
 import { SERVICES } from '@/content/services';
 import { siteConfig } from '@/env';
 import { Events, track } from '@/lib/analytics';
-import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
+import { type PublicStats, ratingSummary } from '@/lib/public-api';
 import { cn, formatNumber } from '@/lib/utils';
+import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 const TRUST_CHIPS = [
   { icon: Shield, label: 'No advance payment' },
@@ -32,23 +32,17 @@ const HERO_SERVICES = [
 ] as const;
 
 interface HeroProps {
-  bookingsToday: number;
+  /** Real figures from the API; anything unknown is simply not shown. */
+  stats: PublicStats;
   defaultCitySlug?: string;
   defaultServiceSlug?: string;
-  rating?: number;
-  reviewCount?: number;
   /** Pages that already have their own <h1> (service/city/brand detail) render the hero headline as h2. */
   headingAs?: 'h1' | 'h2';
 }
 
-export function Hero({
-  bookingsToday,
-  defaultCitySlug,
-  defaultServiceSlug,
-  rating = 4.9,
-  reviewCount = 18_000,
-  headingAs = 'h1',
-}: HeroProps) {
+export function Hero({ stats, defaultCitySlug, defaultServiceSlug, headingAs = 'h1' }: HeroProps) {
+  const rating = ratingSummary(stats);
+  const bookingsToday = stats.bookingsToday ?? 0;
   const reduceMotion = useReducedMotion();
   const Heading = headingAs === 'h2' ? motion.h2 : motion.h1;
   // Detail pages reuse the hero above their own content: keep it short on phones.
@@ -120,10 +114,12 @@ export function Hero({
             transition={{ duration: 0.45 }}
             className="flex flex-wrap items-center gap-3"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-100 sm:text-sm">
-              <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden />
-              {rating} · {formatNumber(reviewCount)}+ reviews
-            </span>
+            {rating ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-100 sm:text-sm">
+                <Star className="size-3.5 fill-amber-400 text-amber-400" aria-hidden />
+                {rating}
+              </span>
+            ) : null}
             {bookingsToday > 0 ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-zinc-400 backdrop-blur-sm">
                 <span className="relative flex size-2">

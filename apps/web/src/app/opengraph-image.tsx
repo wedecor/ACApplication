@@ -73,8 +73,6 @@ export default function OpengraphImage() {
           <span>30-day warranty</span>
           <span>·</span>
           <span>60-minute response</span>
-          <span>·</span>
-          <span>4.8 / 5 — 26,400 reviews</span>
         </div>
       </div>
     ),

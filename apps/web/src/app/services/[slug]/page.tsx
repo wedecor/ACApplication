@@ -52,7 +52,7 @@ export default async function ServicePage({ params }: PageProps) {
         pathname={`/services/${service.slug}`}
         heading={service.heading}
         description={service.description}
-        bookingsToday={stats.bookingsToday}
+        stats={stats}
       />
     </>
   );

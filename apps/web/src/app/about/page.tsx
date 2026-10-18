@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { TechnicianShowcase } from '@/components/home/technician-showcase';
 import { TrustStrip } from '@/components/home/trust-strip';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { siteConfig } from '@/env';
+import { aggregateRatingLd, fetchPublicStats } from '@/lib/public-api';
 import { buildMetadata } from '@/lib/seo/metadata';
+import { formatNumber } from '@/lib/utils';
 
 export const metadata: Metadata = buildMetadata({
   title: `About ${siteConfig.name}`,
@@ -13,7 +15,9 @@ export const metadata: Metadata = buildMetadata({
   path: '/about',
 });
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const stats = await fetchPublicStats({ revalidate: 300 });
+  const rating = aggregateRatingLd(stats);
   return (
     <>
       <Breadcrumbs items={[{ name: 'Home', href: '/' }, { name: 'About', href: '/about' }]} />
@@ -42,14 +46,24 @@ export default function AboutPage() {
           maintenance partner.
         </p>
         <p>
-          Today, we serve {' '}
-          <strong className="text-foreground">130,000+ households</strong> across Bengaluru,
-          Mumbai and Delhi NCR, with an average customer rating of <strong>4.8 / 5</strong>.
-          We&apos;re expanding to 15+ cities by 2026.
+          Today we serve{' '}
+          {stats.customersServed ? (
+            <strong className="text-foreground">{formatNumber(stats.customersServed)} households</strong>
+          ) : (
+            'households'
+          )}{' '}
+          across Bengaluru, Mumbai and Delhi NCR
+          {rating ? (
+            <>
+              , with an average customer rating of <strong>{rating.rating.toFixed(1)} / 5</strong> from{' '}
+              {formatNumber(rating.count)} ratings
+            </>
+          ) : null}
+          . We&apos;re expanding to 15+ cities by 2026.
         </p>
       </section>
 
-      <TrustStrip />
+      <TrustStrip stats={stats} />
       <TechnicianShowcase />
       <CtaBand />
     </>

@@ -1,7 +1,3 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,20 +6,24 @@ import {
   ShieldCheck,
   Star,
 } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { BookingForm } from '@/components/booking/booking-form';
-import { Faq } from '@/components/sections/faq';
 import { Testimonials } from '@/components/home/testimonials';
+import { Faq } from '@/components/sections/faq';
 import { JsonLd } from '@/components/seo/json-ld';
 import { getCityBySlug } from '@/content/cities';
 import { SITE_FAQS } from '@/content/faqs';
 import { getAllLandingSlugs, getLandingBySlug } from '@/content/landing-pages';
-import { aggregateRating } from '@/content/reviews';
 import { getServiceByCategory } from '@/content/services';
 import { siteConfig } from '@/env';
+import { aggregateRatingLd, fetchPublicStats, ratingSummary } from '@/lib/public-api';
 import { faqJsonLd, serviceJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
-import { substituteKeyword } from '@/lib/utils';
+import { formatNumber, substituteKeyword } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -54,7 +54,14 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
   const service = getServiceByCategory(lp.serviceCategory);
   const city = lp.citySlug ? getCityBySlug(lp.citySlug) : null;
   const headline = substituteKeyword(lp.heading, kw, lp.dynamicHeadlineFallback);
-  const overall = aggregateRating();
+  const stats = await fetchPublicStats({ revalidate: 300 });
+  const rating = aggregateRatingLd(stats);
+  // Live figures first (only when real data exists), then the page's own badges.
+  const badges = [
+    ...(stats.completedRepairs ? [{ label: `${formatNumber(stats.completedRepairs)} repairs`, sublabel: 'completed' }] : []),
+    ...(rating ? [{ label: `${rating.rating.toFixed(1)} / 5`, sublabel: `across ${formatNumber(rating.count)} reviews` }] : []),
+    ...lp.trustBadges,
+  ];
 
   return (
     <>
@@ -95,7 +102,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
             </p>
 
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {lp.trustBadges.map((badge) => (
+              {badges.map((badge) => (
                 <div key={badge.label} className="rounded-xl border border-border bg-card p-3">
                   <p className="text-sm font-semibold">{badge.label}</p>
                   {badge.sublabel ? (
@@ -106,11 +113,13 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
             </div>
 
             <div className="mt-6 flex items-center gap-4 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
-                <span className="font-semibold text-foreground">{overall.rating}</span> · 26,400
-                reviews
-              </span>
+              {rating ? (
+                <span className="inline-flex items-center gap-1">
+                  <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
+                  <span className="font-semibold text-foreground">{rating.rating.toFixed(1)}</span> ·{' '}
+                  {formatNumber(rating.count)} reviews
+                </span>
+              ) : null}
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck className="size-4 text-emerald-600" aria-hidden /> 30-day warranty
               </span>
@@ -121,7 +130,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
           <aside id="form" className="lg:sticky lg:top-4">
             <div className="rounded-3xl border border-border bg-card p-2 shadow-xl ring-1 ring-primary/10">
               <Suspense fallback={<div className="min-h-[400px]" />}>
-                <BookingForm />
+                <BookingForm ratingLine={ratingSummary(stats)} />
               </Suspense>
             </div>
           </aside>
@@ -239,7 +248,7 @@ export default async function LandingPage({ params, searchParams }: PageProps) {
               service,
               city,
               url: `/lp/${lp.slug}`,
-              aggregateRating: { rating: overall.rating, count: overall.count * 800 },
+              aggregateRating: rating ?? undefined,
             }),
             faqJsonLd(service.faqs.length ? service.faqs : SITE_FAQS),
           ]}

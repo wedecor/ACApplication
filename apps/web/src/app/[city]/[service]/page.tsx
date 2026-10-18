@@ -7,10 +7,9 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { CITIES, getCityBySlug } from '@/content/cities';
 import { RESERVED_TOP_LEVEL_SLUGS } from '@/content/reserved-slugs';
 import { getAllServiceSlugs, getServiceBySlug } from '@/content/services';
-import { fetchPublicStats } from '@/lib/public-api';
+import { aggregateRatingLd, fetchPublicStats } from '@/lib/public-api';
 import { localBusinessJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata, uniqKeywords } from '@/lib/seo/metadata';
-import { formatNumber } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ city: string; service: string }>;
@@ -37,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const service = getServiceBySlug(serviceSlug);
   if (!city || !service) return {};
   const title = `${service.name} in ${city.name} — Same-Day, ₹299 Visit Fee`;
-  const description = `Book ${service.name.toLowerCase()} in ${city.name}. ${formatNumber(city.completedBookings)}+ repairs. Verified technicians, 30-day warranty.`;
+  const description = `Book ${service.name.toLowerCase()} in ${city.name}. Verified technicians, 30-day warranty.`;
   return buildMetadata({
     title,
     description,
@@ -80,9 +79,9 @@ export default async function CityServicePage({ params }: PageProps) {
         pathname={`/${city.slug}/${service.slug}`}
         heading={heading}
         description={description}
-        bookingsToday={stats.bookingsToday}
+        stats={stats}
       />
-      <JsonLd data={localBusinessJsonLd(city)} />
+      <JsonLd data={localBusinessJsonLd(city, aggregateRatingLd(stats))} />
     </>
   );
 }

@@ -39,18 +39,8 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero
-        bookingsToday={stats.bookingsToday}
-        rating={stats.averageRating}
-        reviewCount={26_400}
-      />
-      <SocialProof
-        households={25_000}
-        repairs={130_000}
-        cities={Math.max(stats.citiesLive, 3)}
-        rating={stats.averageRating}
-        reviewCount={18_400}
-      />
+      <Hero stats={stats} />
+      <SocialProof stats={stats} />
       <BrandsMarquee />
       <ServiceGrid />
       <WhyChooseUs />

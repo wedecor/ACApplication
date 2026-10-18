@@ -24,10 +24,10 @@ import type {
   WithContext,
 } from 'schema-dts';
 
-import { siteConfig } from '@/env';
 import type { City } from '@/content/cities';
 import type { CustomerReview } from '@/content/reviews';
 import type { Service as ServiceContent } from '@/content/services';
+import { siteConfig } from '@/env';
 
 const ORG_ID = `${siteConfig.url}#org`;
 
@@ -76,7 +76,7 @@ export function websiteJsonLd(): WithContext<WebSite> {
 }
 
 export function breadcrumbsJsonLd(
-  items: Array<{ name: string; url: string }>,
+  items: { name: string; url: string }[],
 ): WithContext<BreadcrumbList> {
   return {
     '@context': 'https://schema.org',
@@ -91,7 +91,7 @@ export function breadcrumbsJsonLd(
 }
 
 export function faqJsonLd(
-  faqs: Array<{ question: string; answer: string }>,
+  faqs: { question: string; answer: string }[],
 ): WithContext<FAQPage> {
   return {
     '@context': 'https://schema.org',
@@ -145,7 +145,11 @@ export function serviceJsonLd(input: {
   };
 }
 
-export function localBusinessJsonLd(city: City): WithContext<LocalBusiness> {
+/** `aggregateRating` must come from real ratings; omit it when there are none. */
+export function localBusinessJsonLd(
+  city: City,
+  aggregateRating?: { rating: number; count: number } | null,
+): WithContext<LocalBusiness> {
   return {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -171,13 +175,17 @@ export function localBusinessJsonLd(city: City): WithContext<LocalBusiness> {
       '@type': 'Place',
       name: a.name,
     })),
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: city.rating,
-      reviewCount: city.reviewCount,
-      bestRating: 5,
-      worstRating: 1,
-    },
+    ...(aggregateRating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: aggregateRating.rating,
+            reviewCount: aggregateRating.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
     parentOrganization: { '@id': ORG_ID },
     openingHoursSpecification: [
       {
@@ -221,8 +229,9 @@ export function productJsonLd(input: {
   description: string;
   image: string;
   url: string;
-  aggregateRating: { rating: number; count: number };
-  offers: Array<{ price: number; name: string }>;
+  /** Real ratings only; omitted from the output when absent. */
+  aggregateRating?: { rating: number; count: number } | null;
+  offers: { price: number; name: string }[];
 }): WithContext<Product> {
   return {
     '@context': 'https://schema.org',
@@ -231,13 +240,17 @@ export function productJsonLd(input: {
     description: input.description,
     image: input.image,
     url: new URL(input.url, siteConfig.url).toString(),
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: input.aggregateRating.rating,
-      reviewCount: input.aggregateRating.count,
-      bestRating: 5,
-      worstRating: 1,
-    },
+    ...(input.aggregateRating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: input.aggregateRating.rating,
+            reviewCount: input.aggregateRating.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
     offers: input.offers.map((o) => ({
       '@type': 'Offer',
       name: o.name,
@@ -277,7 +290,7 @@ export function articleJsonLd(input: {
  * that case.
  */
 function extractPrice(display: string): number {
-  const match = display.match(/[\d,]+/);
+  const match = /[\d,]+/.exec(display);
   if (!match) return 0;
   return Number(match[0].replace(/,/g, ''));
 }

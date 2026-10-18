@@ -30,9 +30,10 @@ export interface LandingPage {
   /** Hero CTA copy. */
   primaryCta: string;
   /** Trust badges shown above the form. */
-  trustBadges: Array<{ label: string; sublabel?: string }>;
+  /** Static badges. Ratings and repair counts are added live by the page — don't hard-code them here. */
+  trustBadges: { label: string; sublabel?: string }[];
   /** Three or four step "how it works" copy. */
-  steps: Array<{ title: string; description: string }>;
+  steps: { title: string; description: string }[];
   /** Before / after content with image references. */
   beforeAfter?: {
     title: string;
@@ -44,7 +45,7 @@ export interface LandingPage {
   /** GA / Meta conversion event names. */
   conversionEvents: { lead: string; whatsapp: string };
   /** Brief pricing strip — usually 2-3 bands. */
-  pricingHighlights: Array<{ label: string; price: string; note?: string }>;
+  pricingHighlights: { label: string; price: string; note?: string }[];
   /** SEO metadata. */
   seo: {
     title: string;
@@ -63,8 +64,6 @@ export const LANDING_PAGES: LandingPage[] = [
       'Trained technicians, genuine parts, transparent quote on WhatsApp before any work starts. 30-day service warranty.',
     primaryCta: 'Book a Free Diagnosis',
     trustBadges: [
-      { label: '48,200+ AC repairs', sublabel: 'in Bengaluru' },
-      { label: '4.8 / 5', sublabel: 'across 12,450 reviews' },
       { label: '30-day warranty', sublabel: 'on labour & parts' },
     ],
     steps: [
@@ -107,8 +106,6 @@ export const LANDING_PAGES: LandingPage[] = [
       'Fridge not cooling? Gas leak? Excess frost? Certified technicians fix every brand, same day.',
     primaryCta: 'Get an Instant Quote on WhatsApp',
     trustBadges: [
-      { label: '23,000+ fridges serviced' },
-      { label: '4.7 / 5', sublabel: 'across cities' },
       { label: 'Genuine parts', sublabel: 'Brand-OEM' },
     ],
     steps: [

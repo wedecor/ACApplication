@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export function generateStaticParams() {
-  const out: Array<{ brand: string; service: string }> = [];
+  const out: { brand: string; service: string }[] = [];
   const allServices = getAllServiceSlugs();
   for (const brand of BRANDS) {
     for (const cat of brand.services) {
@@ -70,7 +70,7 @@ export default async function BrandServicePage({ params }: PageProps) {
         pathname={`/brands/${brand.slug}/${service.slug}`}
         heading={`${brand.name} ${service.name} — Authorised-Grade Service`}
         description={`Same-day ${brand.name} ${service.name.toLowerCase()} by certified technicians. ${service.description}`}
-        bookingsToday={stats.bookingsToday}
+        stats={stats}
       />
     </>
   );

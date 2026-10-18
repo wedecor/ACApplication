@@ -1,14 +1,13 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { MapPin } from 'lucide-react';
-
 import { Badge } from '@ac/ui';
+import { MapPin } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { ServiceGrid } from '@/components/home/service-grid';
 import { Testimonials } from '@/components/home/testimonials';
 import { TrustStrip } from '@/components/home/trust-strip';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
 import { JsonLd } from '@/components/seo/json-ld';
@@ -17,7 +16,7 @@ import {
   getAllCityAreaSlugs,
 } from '@/content/cities';
 import { SITE_FAQS } from '@/content/faqs';
-import { aggregateRating } from '@/content/reviews';
+import { aggregateRatingLd, fetchPublicStats } from '@/lib/public-api';
 import { localBusinessJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
 
@@ -53,7 +52,7 @@ export default async function AreaPage({ params }: PageProps) {
   const found = findAreaAnywhere(area);
   if (!found) return notFound();
   const { city, area: a } = found;
-  const overall = aggregateRating();
+  const stats = await fetchPublicStats({ revalidate: 300 });
 
   return (
     <>
@@ -82,7 +81,7 @@ export default async function AreaPage({ params }: PageProps) {
             .slice(0, 6)
             .map((o, idx, arr) => (
               <span key={o.slug}>
-                <Link href={`/areas/${o.slug}` as never} className="underline hover:text-foreground">
+                <Link href={`/areas/${o.slug}`} className="underline hover:text-foreground">
                   {o.name}
                 </Link>
                 {idx < arr.length - 1 ? ', ' : ''}
@@ -91,18 +90,13 @@ export default async function AreaPage({ params }: PageProps) {
         </p>
       </section>
 
-      <TrustStrip
-        bookings={Math.round(city.completedBookings / Math.max(city.areas.length, 1))}
-        rating={overall.rating}
-        reviews={Math.round(city.reviewCount / Math.max(city.areas.length, 1))}
-        cities={3}
-      />
+      <TrustStrip stats={stats} />
 
       <ServiceGrid />
       <Testimonials title={`Reviews from ${city.name}`} />
       <Faq items={SITE_FAQS} />
       <CtaBand title={`Book appliance repair in ${a.name} today`} />
-      <JsonLd data={localBusinessJsonLd(city)} />
+      <JsonLd data={localBusinessJsonLd(city, aggregateRatingLd(stats))} />
     </>
   );
 }

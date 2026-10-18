@@ -1,22 +1,22 @@
+import { Badge, Button } from '@ac/ui';
 import { Check, ShieldCheck, Star } from 'lucide-react';
 import Link from 'next/link';
 
-import { Badge, Button } from '@ac/ui';
-
-import type { City } from '@/content/cities';
-import { aggregateRating, getReviewsFor } from '@/content/reviews';
-import type { Service } from '@/content/services';
+import { TrackedLink } from '@/components/analytics/tracked-link';
 import { Hero } from '@/components/home/hero';
 import { ServiceProcess } from '@/components/home/service-process';
 import { Testimonials } from '@/components/home/testimonials';
 import { TrustStrip } from '@/components/home/trust-strip';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
-import { SITE_FAQS } from '@/content/faqs';
 import { JsonLd } from '@/components/seo/json-ld';
-import { faqJsonLd, serviceJsonLd } from '@/lib/seo/json-ld';
-import { TrackedLink } from '@/components/analytics/tracked-link';
+import type { City } from '@/content/cities';
+import { SITE_FAQS } from '@/content/faqs';
+import { getReviewsFor } from '@/content/reviews';
+import type { Service } from '@/content/services';
 import { Events } from '@/lib/analytics';
+import { aggregateRatingLd, type PublicStats } from '@/lib/public-api';
+import { faqJsonLd, serviceJsonLd } from '@/lib/seo/json-ld';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 /**
@@ -35,14 +35,15 @@ export function ServiceDetail({
   pathname,
   heading,
   description,
-  bookingsToday,
+  stats,
 }: {
   service: Service;
   city?: City | null;
   pathname: string;
   heading: string;
   description: string;
-  bookingsToday: number;
+  /** Real figures from the API (ratings, totals); unknown ones are hidden. */
+  stats: PublicStats;
 }) {
   const reviews = getReviewsFor({
     citySlug: city?.slug ?? null,
@@ -52,24 +53,19 @@ export function ServiceDetail({
   const fallbackReviews = reviews.length === 0
     ? getReviewsFor({ serviceSlug: service.slug, limit: 6 })
     : reviews;
-  const overall = aggregateRating();
+  const rating = aggregateRatingLd(stats);
   const faqs = service.faqs.length ? service.faqs : SITE_FAQS;
 
   return (
     <>
       <Hero
-        bookingsToday={bookingsToday}
+        stats={stats}
         defaultCitySlug={city?.slug}
         defaultServiceSlug={service.slug}
         headingAs="h2"
       />
 
-      <TrustStrip
-        bookings={130_000}
-        cities={3}
-        rating={overall.rating}
-        reviews={overall.count * 800}
-      />
+      <TrustStrip stats={stats} />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-20">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[2fr_1fr]">
@@ -146,7 +142,7 @@ export function ServiceDetail({
                   {service.brandSlugs.map((slug) => (
                     <Link
                       key={slug}
-                      href={`/brands/${slug}` as never}
+                      href={`/brands/${slug}`}
                       className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-medium hover:border-primary/40 hover:text-primary"
                     >
                       {slug.toUpperCase()}
@@ -164,9 +160,16 @@ export function ServiceDetail({
                 Book this service
               </p>
               <div className="flex items-center gap-1.5 text-sm">
-                <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
-                <span className="font-semibold">{overall.rating}</span>
-                <span className="text-muted-foreground">· 30-day warranty</span>
+                {rating ? (
+                  <>
+                    <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
+                    <span className="font-semibold">{rating.rating.toFixed(1)}</span>
+                    <span className="text-muted-foreground">·</span>
+                  </>
+                ) : (
+                  <ShieldCheck className="size-4 text-primary" aria-hidden />
+                )}
+                <span className="text-muted-foreground">30-day warranty</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Starting at{' '}
@@ -229,7 +232,7 @@ export function ServiceDetail({
             service,
             city,
             url: pathname,
-            aggregateRating: { rating: overall.rating, count: overall.count * 800 },
+            aggregateRating: rating ?? undefined,
           }),
           faqJsonLd(faqs),
         ]}

@@ -1,27 +1,25 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowRight, MapPin } from 'lucide-react';
-
 import { Badge } from '@ac/ui';
+import { ArrowRight, MapPin } from 'lucide-react';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { Hero } from '@/components/home/hero';
 import { ServiceProcess } from '@/components/home/service-process';
 import { Testimonials } from '@/components/home/testimonials';
 import { TrustStrip } from '@/components/home/trust-strip';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
 import { JsonLd } from '@/components/seo/json-ld';
 import { CITIES, getCityBySlug } from '@/content/cities';
 import { SITE_FAQS } from '@/content/faqs';
-import { getReviewsFor } from '@/content/reviews';
 import { RESERVED_TOP_LEVEL_SLUGS } from '@/content/reserved-slugs';
+import { getReviewsFor } from '@/content/reviews';
 import { SERVICES } from '@/content/services';
-import { fetchPublicStats } from '@/lib/public-api';
+import { aggregateRatingLd, fetchPublicStats } from '@/lib/public-api';
 import { localBusinessJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
-import { formatNumber } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{ city: string }>;
@@ -38,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!c) return {};
   return buildMetadata({
     title: `Home Appliance Repair in ${c.name} — Same-Day, Verified Technicians`,
-    description: `Book AC, fridge, washing machine, microwave and chimney repair in ${c.name}. ${formatNumber(c.completedBookings)}+ services completed. 30-day warranty.`,
+    description: `Book AC, fridge, washing machine, microwave and chimney repair in ${c.name}. Verified technicians, 30-day warranty.`,
     path: `/${c.slug}`,
     keywords: [
       `appliance repair ${c.name.toLowerCase()}`,
@@ -66,13 +64,8 @@ export default async function CityPage({ params }: PageProps) {
           { name: city.name, href: `/${city.slug}` },
         ]}
       />
-      <Hero bookingsToday={stats.bookingsToday} defaultCitySlug={city.slug} />
-      <TrustStrip
-        bookings={city.completedBookings}
-        rating={city.rating}
-        reviews={city.reviewCount}
-        cities={3}
-      />
+      <Hero stats={stats} defaultCitySlug={city.slug} />
+      <TrustStrip stats={stats} />
 
       {/* City-specific service grid — same components, contextualised copy */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
@@ -84,15 +77,14 @@ export default async function CityPage({ params }: PageProps) {
             Trusted appliance service in {city.name}
           </h2>
           <p className="mt-3 text-base text-muted-foreground">
-            We&apos;ve completed {formatNumber(city.completedBookings)} repairs across{' '}
-            {city.areas.length} neighbourhoods including {city.areas.slice(0, 4).map((a) => a.name).join(', ')}.
+            We cover {city.areas.length} neighbourhoods including {city.areas.slice(0, 4).map((a) => a.name).join(', ')}.
           </p>
         </div>
         <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICES.map((s) => (
             <Link
               key={s.slug}
-              href={`/${city.slug}/${s.slug}` as never}
+              href={`/${city.slug}/${s.slug}`}
               className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
             >
               <div>
@@ -120,7 +112,7 @@ export default async function CityPage({ params }: PageProps) {
           {city.areas.map((area) => (
             <Link
               key={area.slug}
-              href={`/areas/${area.slug}` as never}
+              href={`/areas/${area.slug}`}
               className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-sm transition-colors hover:border-primary/40 hover:text-primary"
             >
               {area.name}
@@ -141,7 +133,7 @@ export default async function CityPage({ params }: PageProps) {
         description={`Median response time: ${city.avgResponseMin} minutes.`}
       />
 
-      <JsonLd data={localBusinessJsonLd(city)} />
+      <JsonLd data={localBusinessJsonLd(city, aggregateRatingLd(stats))} />
     </>
   );
 }

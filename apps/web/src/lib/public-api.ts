@@ -66,39 +66,76 @@ export async function submitPublicLead(input: PublicLeadInput): Promise<PublicLe
 }
 
 /**
- * Fetch live "social proof" stats. Used by the homepage and hero strip.
- * Hits a cached endpoint — falls back to a sensible default if the API
- * is unreachable so SSR never blocks on it.
+ * Live "social proof" figures from the API — the only source for ratings,
+ * review counts and repair/customer totals shown on the site. Every field is
+ * null when unknown (API down, or no data yet) so pages hide the figure
+ * instead of showing an invented one.
  */
 export interface PublicStats {
-  bookingsToday: number;
-  techniciansLive: number;
-  averageRating: number;
-  citiesLive: number;
+  bookingsToday: number | null;
+  techniciansLive: number | null;
+  citiesLive: number | null;
+  completedRepairs: number | null;
+  customersServed: number | null;
+  /** Mean of real booking ratings; null until there is at least one. */
+  averageRating: number | null;
+  ratingCount: number | null;
+}
+
+export const EMPTY_STATS: PublicStats = {
+  bookingsToday: null,
+  techniciansLive: null,
+  citiesLive: null,
+  completedRepairs: null,
+  customersServed: null,
+  averageRating: null,
+  ratingCount: null,
+};
+
+/** Keep only finite, non-negative numbers from the API payload. */
+export function parsePublicStats(data: unknown): PublicStats {
+  if (!data || typeof data !== 'object') return EMPTY_STATS;
+  const d = data as Record<string, unknown>;
+  const num = (k: keyof PublicStats) => {
+    const v = d[k];
+    return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
+  };
+  const ratingCount = num('ratingCount');
+  return {
+    bookingsToday: num('bookingsToday'),
+    techniciansLive: num('techniciansLive'),
+    citiesLive: num('citiesLive'),
+    completedRepairs: num('completedRepairs'),
+    customersServed: num('customersServed'),
+    averageRating: ratingCount ? num('averageRating') : null,
+    ratingCount,
+  };
 }
 
 export async function fetchPublicStats(opts?: { revalidate?: number }): Promise<PublicStats> {
-  const fallback: PublicStats = {
-    bookingsToday: 412,
-    techniciansLive: 78,
-    averageRating: 4.8,
-    citiesLive: 3,
-  };
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_API_URL}/api/v1/public/stats`, {
-      // Cache for 60s by default — the counter is a vanity metric, not a
-      // financial number.
+      // Cache for 60s by default — marketing counters, not financial numbers.
       next: { revalidate: opts?.revalidate ?? 60 },
     });
-    if (!res.ok) return fallback;
-    const json = await res.json();
-    if (json && typeof json === 'object' && 'data' in json) {
-      return { ...fallback, ...(json as { data: PublicStats }).data };
-    }
-    return fallback;
+    if (!res.ok) return EMPTY_STATS;
+    const json = (await res.json()) as { data?: unknown } | null;
+    return parsePublicStats(json?.data);
   } catch {
-    return fallback;
+    return EMPTY_STATS;
   }
+}
+
+/** schema.org AggregateRating from real ratings only; null hides it from JSON-LD. */
+export function aggregateRatingLd(stats: PublicStats): { rating: number; count: number } | null {
+  return stats.averageRating != null && stats.ratingCount ? { rating: stats.averageRating, count: stats.ratingCount } : null;
+}
+
+/** "4.4 / 5 · 37 reviews", or null when there are no real ratings yet. */
+export function ratingSummary(stats: PublicStats): string | null {
+  const agg = aggregateRatingLd(stats);
+  if (!agg) return null;
+  return `${agg.rating.toFixed(1)} / 5 · ${agg.count.toLocaleString('en-IN')} review${agg.count === 1 ? '' : 's'}`;
 }
 
 /** Used by the WhatsApp builder to format the default support number. */
