@@ -145,9 +145,15 @@ export class PublicIntakeService {
     const tenantId = await this.resolveTenantId(tenantSlug);
     const startOfDay = new Date();
     startOfDay.setUTCHours(0, 0, 0, 0);
-    const [bookingsToday, techniciansLive, citiesLive] = await Promise.all([
+    const [bookingsToday, completedRepairs, customersServed, techniciansLive, citiesLive] = await Promise.all([
       this.prisma.client.booking
         .count({ where: { tenantId, createdAt: { gte: startOfDay } } })
+        .catch(() => 0),
+      this.prisma.client.booking
+        .count({ where: { tenantId, status: 'COMPLETED', deletedAt: null } })
+        .catch(() => 0),
+      this.prisma.client.customer
+        .count({ where: { tenantId, deletedAt: null, bookings: { some: { status: 'COMPLETED', deletedAt: null } } } })
         .catch(() => 0),
       this.prisma.client.technician
         .count({
@@ -161,6 +167,10 @@ export class PublicIntakeService {
 
     return {
       bookingsToday,
+      /** All-time completed visits — the real figure behind "repairs done". */
+      completedRepairs,
+      /** Customers with at least one completed visit. */
+      customersServed,
       techniciansLive,
       citiesLive,
       ...(await this.ratingSummary(tenantId)),
