@@ -32,10 +32,20 @@ describe('quotationStage', () => {
 });
 
 describe('isTaskPage', () => {
-  it('flags quotation approval pages only', async () => {
+  it('flags quotation and rating pages only', async () => {
     const { isTaskPage } = await import('../routes');
     expect(isTaskPage('/quotations/abc')).toBe(true);
+    expect(isTaskPage('/rate/abc.def')).toBe(true);
     expect(isTaskPage('/book')).toBe(false);
     expect(isTaskPage(null)).toBe(false);
+  });
+});
+
+describe('normaliseReferralCode', () => {
+  it('upper-cases valid codes and rejects anything unsafe', async () => {
+    const { normaliseReferralCode } = await import('../routes');
+    expect(normaliseReferralCode('aarav101')).toBe('AARAV101');
+    expect(normaliseReferralCode('%3Cscript%3E')).toBeNull();
+    expect(normaliseReferralCode('ab')).toBeNull();
   });
 });

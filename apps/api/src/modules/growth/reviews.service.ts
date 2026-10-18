@@ -14,6 +14,7 @@ import { BookingStatus } from '@ac/types';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { APP_CONFIG } from '../../common/config/config.module';
+import { signRatingToken } from '../../common/links/rating-link';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { GROWTH_CONFIG, type GrowthConfig } from './growth.config';
@@ -102,7 +103,7 @@ export class ReviewsService {
             data: {
               customerName: b.customer.fullName,
               bookingCode: b.code,
-              rateUrl: `${this.env.WEB_URL.replace(/\/+$/, '')}/bookings/${b.id}/rate`,
+              rateUrl: `${this.env.WEB_URL.replace(/\/+$/, '')}/rate/${signRatingToken(this.env.JWT_SECRET, b.id)}`,
             },
             idempotencyKey: `review-request:${b.id}`,
           },

@@ -1,6 +1,7 @@
 import { CampaignsService } from '../campaigns.service';
 import type { GrowthConfig } from '../growth.config';
 import { ReviewsService } from '../reviews.service';
+import { verifyRatingToken } from '../../../common/links/rating-link';
 
 const config: GrowthConfig = {
   referralRewardMinor: 0,
@@ -102,7 +103,7 @@ describe('ReviewsService', () => {
       },
     };
     const notifications = { enqueue: jest.fn().mockResolvedValue(['n']) };
-    const service = new ReviewsService(prisma as never, notifications as never, config, { WEB_URL: 'https://w.test' } as never);
+    const service = new ReviewsService(prisma as never, notifications as never, config, { WEB_URL: 'https://w.test', JWT_SECRET: 'test-secret-that-is-long-enough-000000' } as never);
     return { service, prisma: prisma.client, notifications };
   }
 
@@ -136,6 +137,10 @@ describe('ReviewsService', () => {
       expect.objectContaining({ template: 'growth.review_request', idempotencyKey: 'review-request:due' }),
     );
     expect(prisma.bookingRating.update).toHaveBeenCalledWith({ where: { id: 'r4' }, data: { reviewRequestedAt: now } });
+    // The link is a signed token for the website's rating page, not a raw booking id.
+    const rateUrl = (notifications.enqueue.mock.calls[0][3] as { data: { rateUrl: string } }).data.rateUrl;
+    expect(rateUrl).toMatch(/^https:\/\/w\.test\/rate\/[\w-]+\.[\w-]{22}$/);
+    expect(verifyRatingToken('test-secret-that-is-long-enough-000000', rateUrl.split('/rate/')[1]!)).toBe('due');
   });
 
   it('follows up 4–5 star ratings with the Google review link', async () => {

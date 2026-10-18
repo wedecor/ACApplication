@@ -28,6 +28,8 @@ import {
   StaffUploadsController,
   SupportFaqsController,
 } from './me-profile.controller';
+import { PublicRatingsController } from './public-ratings.controller';
+import { PublicRatingsService } from './public-ratings.service';
 
 /**
  * Customer self-service surface (`/v1/me/*`) consumed by the customer app,
@@ -47,6 +49,7 @@ import {
   ],
   controllers: [
     MeBookingsController,
+    PublicRatingsController,
     MeInvoicesController,
     MePaymentMethodsController,
     MeAmcController,
@@ -60,6 +63,7 @@ import {
   ],
   providers: [
     MeContextService,
+    PublicRatingsService,
     MeBookingsService,
     MeInvoicesService,
     MePaymentMethodsService,
