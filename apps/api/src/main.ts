@@ -35,7 +35,9 @@ async function bootstrap() {
   await app.register(compress);
   await app.register(cors, {
     origin: (origin, cb) => {
-      const allow = [process.env['WEB_URL'], process.env['ADMIN_URL']].filter(Boolean) as string[];
+      // CORS_EXTRA_ORIGINS: comma-separated, e.g. Expo web previews on http://localhost:8081.
+      const extra = (process.env['CORS_EXTRA_ORIGINS'] ?? '').split(',').map((o) => o.trim());
+      const allow = [process.env['WEB_URL'], process.env['ADMIN_URL'], ...extra].filter(Boolean) as string[];
       if (!origin || allow.includes(origin)) cb(null, true);
       else cb(new Error(`Origin ${origin} not allowed`), false);
     },
