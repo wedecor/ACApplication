@@ -59,7 +59,7 @@ function build(row: Record<string, unknown> | null) {
       paymentTransaction: { findFirst: jest.fn().mockResolvedValue(null) },
     },
   };
-  const invoices = { createFromLineItems: jest.fn(), applyPayment: jest.fn() };
+  const invoices = { createFromLineItems: jest.fn(), applyPayment: jest.fn(), send: jest.fn() };
   const payments = {
     createPaymentLink: jest.fn().mockResolvedValue({
       transaction: { id: 'ptx1', status: 'PENDING' },
@@ -145,6 +145,14 @@ describe('FieldBillingService.createInvoice', () => {
     expect(customerId).toBe('c1');
     expect(lines).toEqual([expect.objectContaining({ unitPriceMinor: 150_000, quantity: 1 })]);
     expect(opts).toEqual(expect.objectContaining({ bookingId: 'b1' }));
+  });
+
+  it('issues the new invoice so payments land on a SENT invoice', async () => {
+    const { svc, invoices, prisma } = build(booking({ finalAmountMinor: 150_000, status: 'COMPLETED' }));
+    prisma.client.invoice.findFirst.mockResolvedValueOnce({ id: 'inv_new' });
+    await svc.createInvoice(tech, 'b1');
+    expect(prisma.client.invoice.findFirst.mock.calls[0][0].where).toMatchObject({ bookingId: 'b1', status: 'DRAFT' });
+    expect(invoices.send).toHaveBeenCalledWith(tech, 'inv_new');
   });
 
   it('refuses when there is nothing to invoice', async () => {

@@ -4,18 +4,21 @@ function buildPrisma(latestNumber: string | null) {
   const findFirst = jest.fn().mockResolvedValue(
     latestNumber ? { number: latestNumber } : null,
   );
-  const executeRawUnsafe = jest.fn().mockResolvedValue(0);
+  // Echo the seed back, as the INSERT … ON CONFLICT does for a new counter row.
+  const queryRaw = jest.fn(async (_sql: TemplateStringsArray, ...values: unknown[]) => [
+    { lastValue: values[3] as number },
+  ]);
   const tx = {
     supportTicket: { findFirst },
     callLog: { findFirst },
-    $executeRawUnsafe: executeRawUnsafe,
+    $queryRaw: queryRaw,
   };
   const prisma = {
     client: {
       $transaction: jest.fn(async (fn: (tx: typeof tx) => Promise<unknown>) => fn(tx)),
     },
   };
-  return { prisma, findFirst, executeRawUnsafe };
+  return { prisma, findFirst, queryRaw };
 }
 
 describe('nextSupportNumber', () => {
@@ -39,15 +42,16 @@ describe('nextSupportNumber', () => {
     expect(out).toBe('TKT-2025-000043');
   });
 
-  it('takes an advisory lock before reading the latest row', async () => {
-    const { prisma, executeRawUnsafe } = buildPrisma(null);
+  it('allocates through the atomic per-tenant counter', async () => {
+    const { prisma, queryRaw } = buildPrisma(null);
     await nextSupportNumber(prisma as never, 'tenant_x', {
       prefix: 'CALL',
       table: 'callLog',
       year: 2025,
     });
-    expect(executeRawUnsafe).toHaveBeenCalledTimes(1);
-    expect(executeRawUnsafe.mock.calls[0][0]).toContain('pg_advisory_xact_lock');
+    expect(queryRaw).toHaveBeenCalledTimes(1);
+    expect(queryRaw.mock.calls[0][0].join('?')).toContain('ON CONFLICT');
+    expect(queryRaw.mock.calls[0].slice(1, 5)).toEqual(['tenant_x', 'CALL', 2025, 1]);
   });
 
   it('throws when the model name is unknown', async () => {

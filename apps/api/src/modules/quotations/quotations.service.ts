@@ -93,6 +93,7 @@ export class QuotationsService {
         taxMinor: computed.totals.taxMinor,
         totalMinor: computed.totals.totalMinor,
         gstEnabled: ctx.gstEnabled,
+        placeOfSupply: dto.placeOfSupply ?? null,
         notes: dto.notes ?? null,
         terms: dto.terms ?? null,
         lineItems: {
@@ -249,6 +250,8 @@ export class QuotationsService {
         hsnSacCode: l.hsnSacCode ?? undefined,
       })),
       gstEnabled: q.gstEnabled,
+      // Keeps the CGST/SGST vs IGST split the customer approved.
+      placeOfSupply: q.placeOfSupply ?? undefined,
       notes: q.notes ?? undefined,
       terms: q.terms ?? undefined,
     });

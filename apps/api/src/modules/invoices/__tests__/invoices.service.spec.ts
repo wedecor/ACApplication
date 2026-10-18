@@ -19,7 +19,7 @@ import {
 
 import type { CreateInvoiceDto } from '../dto/create-invoice.dto';
 import type { ListInvoicesDto } from '../dto/list-invoices.dto';
-import { InvoicesService } from '../invoices.service';
+import { InvoicesService, refundedBalance } from '../invoices.service';
 
 /**
  * Unit tests for InvoicesService. Prisma is fully mocked:
@@ -27,7 +27,7 @@ import { InvoicesService } from '../invoices.service';
  *  - `prisma.client.$transaction(fn)` invokes `fn(tx)` with a separate `tx`
  *    mock, mirroring the interactive-transaction API. `nextDocumentNumber`
  *    also goes through `$transaction`, so the numbering lookup lands on
- *    `tx.<table>.findFirst` and the advisory lock on `tx.$executeRawUnsafe`.
+ *    `tx.<table>.findFirst` and the counter upsert on `tx.$queryRaw`.
  */
 
 const HOME_STATE = (process.env.GST_HOME_STATE ?? 'KA').toUpperCase();
@@ -54,7 +54,7 @@ function model() {
 
 function buildService() {
   const tx = {
-    $executeRawUnsafe: jest.fn().mockResolvedValue(1),
+    $queryRaw: jest.fn(async (_sql: TemplateStringsArray, ...values: unknown[]) => [{ lastValue: values[3] as number }]),
     invoice: model(),
     invoiceLineItem: model(),
     payment: model(),
@@ -184,7 +184,7 @@ describe('InvoicesService.create', () => {
 
     const { data } = createArgs(client);
     expect(data.number).toBe(`INV-${YEAR}-000042`);
-    expect(tx.$executeRawUnsafe).toHaveBeenCalledWith(expect.stringContaining('pg_advisory_xact_lock'));
+    expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
     expect(data.status).toBe(InvoiceStatus.DRAFT);
     // line 1: 2*50_000 - 10_000 = 90_000 → 18% = 16_200; line 2: 20_000, no tax
     expect(data.subtotalMinor).toBe(110_000);
@@ -748,15 +748,33 @@ describe('InvoicesService.applyPayment', () => {
     expect(tx.payment.create).not.toHaveBeenCalled();
   });
 
-  it('currently accepts payment against a DRAFT invoice (no issue-time DEBIT was posted)', async () => {
-    // NOTE: documents current behaviour; DRAFT is not considered closed, so a
-    // payment CREDIT hits the ledger without the matching invoice DEBIT that
-    // `send()` would post. See report.
+  it('issues a DRAFT before applying captured money, so the DEBIT precedes the CREDIT', async () => {
     const { svc, tx, ledger } = buildService();
     tx.invoice.findFirst.mockResolvedValue({ ...open, status: InvoiceStatus.DRAFT });
     await svc.applyPayment('inv_1', input);
+
+    expect(tx.invoice.update.mock.calls[0][0].data).toMatchObject({ status: InvoiceStatus.SENT });
+    expect(tx.invoice.update.mock.calls[0][0].data.issueDate).toBeInstanceOf(Date);
+    expect(ledger.post).toHaveBeenCalledTimes(2);
+    expect(ledger.post.mock.calls[0][0]).toMatchObject({
+      entryType: LedgerEntryType.INVOICE,
+      direction: LedgerEntryDirection.DEBIT,
+      amountMinor: 10_000,
+      externalRef: 'invoice:inv_1:issued',
+    });
+    expect(ledger.post.mock.calls[1][0]).toMatchObject({
+      entryType: LedgerEntryType.PAYMENT,
+      direction: LedgerEntryDirection.CREDIT,
+    });
     expect(tx.payment.create).toHaveBeenCalled();
-    expect(ledger.post).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a DRAFT when onDraft is 'reject' and records nothing", async () => {
+    const { svc, tx, ledger } = buildService();
+    tx.invoice.findFirst.mockResolvedValue({ ...open, status: InvoiceStatus.DRAFT });
+    await expect(svc.applyPayment('inv_1', { ...input, onDraft: 'reject' })).rejects.toThrow(/still a draft/);
+    expect(tx.payment.create).not.toHaveBeenCalled();
+    expect(ledger.post).not.toHaveBeenCalled();
   });
 });
 
@@ -772,6 +790,7 @@ describe('InvoicesService.recordManualPayment', () => {
       method: PaymentMethod.CASH,
       gatewayRef: null,
       idempotencyKey: expect.stringMatching(/^manual:user_1:inv_1:\d+$/),
+      onDraft: 'reject',
     });
   });
 });
@@ -784,6 +803,7 @@ describe('InvoicesService.refund', () => {
     status: InvoiceStatus.PAID,
     customerId: 'cust_1',
     currency: 'INR',
+    totalMinor: 10_000,
     amountPaidMinor: 10_000,
     amountRefundedMinor: 0,
     dueAmountMinor: 0,
@@ -793,8 +813,9 @@ describe('InvoicesService.refund', () => {
     ],
   };
 
-  function setup(inv = invoice, alreadyRefunded: number | null = null) {
+  function setup(inv = invoice, alreadyRefunded: number | null = null, creditedMinor: number | null = null) {
     const ctx = buildService();
+    ctx.tx.creditNote.aggregate.mockResolvedValue({ _sum: { amountMinor: creditedMinor } });
     ctx.tx.invoice.findFirst.mockResolvedValue(inv);
     ctx.tx.refund.aggregate.mockResolvedValue({ _sum: { amountMinor: alreadyRefunded } });
     ctx.tx.creditNote.findFirst.mockResolvedValue({ number: `CN-${YEAR}-000009` });
@@ -827,7 +848,7 @@ describe('InvoicesService.refund', () => {
   });
 
   it('partial refund with credit note keeps status, posts DEBIT and emits events', async () => {
-    const { svc, tx, ledger, events } = setup();
+    const { svc, tx, ledger, events } = setup(invoice, null, 2_000);
     const res = await svc.refund(actor, 'inv_1', { amountMinor: 2_000, reason: 'faulty part', paymentId: 'pay_2' });
 
     expect(tx.creditNote.create.mock.calls[0][0].data).toMatchObject({
@@ -868,13 +889,31 @@ describe('InvoicesService.refund', () => {
     expect(res.creditNote).toEqual({ id: 'cn_1', number: `CN-${YEAR}-000010` });
   });
 
-  it('flips to REFUNDED and zeroes due once refunds cover amountPaid', async () => {
-    const { svc, tx } = setup({ ...invoice, amountRefundedMinor: 4_000 });
+  it('flips to REFUNDED once a fully paid invoice is refunded and credited in full', async () => {
+    const { svc, tx } = setup({ ...invoice, amountRefundedMinor: 4_000 }, null, 10_000);
     await svc.refund(actor, 'inv_1', { amountMinor: 6_000 });
     expect(tx.invoice.update.mock.calls[0][0].data).toEqual({
       amountRefundedMinor: 10_000,
       status: InvoiceStatus.REFUNDED,
       dueAmountMinor: 0,
+    });
+  });
+
+  it('keeps the unpaid remainder owed when a part-paid invoice is refunded in full', async () => {
+    // ₹100 invoice, ₹40 paid, ₹40 refunded with a ₹40 credit note → ₹60 still due.
+    const partPaid = {
+      ...invoice,
+      status: InvoiceStatus.PARTIALLY_PAID,
+      amountPaidMinor: 4_000,
+      dueAmountMinor: 6_000,
+      payments: [{ id: 'pay_1', amountMinor: 4_000 }],
+    };
+    const { svc, tx } = setup(partPaid, null, 4_000);
+    await svc.refund(actor, 'inv_1', { amountMinor: 4_000 });
+    expect(tx.invoice.update.mock.calls[0][0].data).toEqual({
+      amountRefundedMinor: 4_000,
+      status: InvoiceStatus.SENT,
+      dueAmountMinor: 6_000,
     });
   });
 
@@ -886,6 +925,29 @@ describe('InvoicesService.refund', () => {
     expect(ledger.post.mock.calls[0][0].creditNoteId).toBeNull();
     expect(events.publish).not.toHaveBeenCalledWith(DomainEventName.CreditNoteIssued, expect.anything());
     expect(res.creditNote).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe('refundedBalance', () => {
+  const base = { totalMinor: 10_000, amountPaidMinor: 10_000, amountRefundedMinor: 0, creditedMinor: 0, status: InvoiceStatus.PAID };
+
+  it('a refund without a credit note re-opens the refunded amount', () => {
+    expect(refundedBalance({ ...base, amountRefundedMinor: 2_000 })).toEqual({ dueAmountMinor: 2_000, status: InvoiceStatus.PARTIALLY_PAID });
+  });
+
+  it('a credited partial refund stays PAID with nothing due', () => {
+    expect(refundedBalance({ ...base, amountRefundedMinor: 2_000, creditedMinor: 2_000 })).toEqual({ dueAmountMinor: 0, status: InvoiceStatus.PAID });
+  });
+
+  it('is REFUNDED only when nothing is retained and nothing is owed', () => {
+    expect(refundedBalance({ ...base, amountRefundedMinor: 10_000, creditedMinor: 10_000 })).toEqual({ dueAmountMinor: 0, status: InvoiceStatus.REFUNDED });
+  });
+
+  it('keeps an OVERDUE invoice overdue when its payment is refunded', () => {
+    expect(
+      refundedBalance({ ...base, amountPaidMinor: 3_000, amountRefundedMinor: 3_000, creditedMinor: 0, status: InvoiceStatus.OVERDUE }),
+    ).toEqual({ dueAmountMinor: 10_000, status: InvoiceStatus.OVERDUE });
   });
 });
 

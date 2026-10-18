@@ -340,27 +340,7 @@ export class InvoicesService {
         throw new ConflictException(`Cannot send an invoice in ${invoice.status} state`);
       }
 
-      const updated = await tx.invoice.update({
-        where: { id },
-        data: {
-          status: InvoiceStatus.SENT,
-          issueDate: new Date(),
-          sentAt: new Date(),
-        },
-      });
-      await this.ledger.post(
-        {
-          tenantId: actor.tenantId,
-          customerId: invoice.customerId,
-          entryType: LedgerEntryType.INVOICE,
-          direction: LedgerEntryDirection.DEBIT,
-          amountMinor: invoice.totalMinor,
-          description: `Invoice ${invoice.number}`,
-          invoiceId: invoice.id,
-          externalRef: `invoice:${invoice.id}:issued`,
-        },
-        tx,
-      );
+      const updated = await this.issueInTx(tx, actor.tenantId, invoice, { sentAt: new Date() });
       this.events.publish(DomainEventName.InvoiceSent, {
         invoiceId: invoice.id,
         customerId: invoice.customerId,
@@ -423,6 +403,36 @@ export class InvoicesService {
    * Idempotent: passing a `paymentTransactionId` we've already booked is
    * silently skipped so webhook retries don't double-credit.
    */
+  /**
+   * DRAFT → SENT inside the caller's transaction: stamps the issue date and
+   * posts the invoice DEBIT (idempotent on its external ref).
+   */
+  private async issueInTx(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    invoice: { id: string; customerId: string; totalMinor: number; number: string },
+    extra: { sentAt?: Date } = {},
+  ) {
+    const updated = await tx.invoice.update({
+      where: { id: invoice.id },
+      data: { status: InvoiceStatus.SENT, issueDate: new Date(), ...extra },
+    });
+    await this.ledger.post(
+      {
+        tenantId,
+        customerId: invoice.customerId,
+        entryType: LedgerEntryType.INVOICE,
+        direction: LedgerEntryDirection.DEBIT,
+        amountMinor: invoice.totalMinor,
+        description: `Invoice ${invoice.number}`,
+        invoiceId: invoice.id,
+        externalRef: `invoice:${invoice.id}:issued`,
+      },
+      tx,
+    );
+    return updated;
+  }
+
   async applyPayment(
     invoiceId: string,
     input: {
@@ -433,6 +443,13 @@ export class InvoicesService {
       transactionId?: string | null;
       idempotencyKey?: string | null;
       capturedAt?: Date;
+      /**
+       * What to do when the invoice is still a DRAFT. `issue` (default) issues
+       * it first so the ledger gets its DEBIT before the payment CREDIT — used
+       * where money is already in hand (gateway capture, on-site collection).
+       * `reject` refuses, for payments an operator records by hand.
+       */
+      onDraft?: 'issue' | 'reject';
     },
   ) {
     ensureInteger(input.amountMinor, 'amountMinor');
@@ -454,6 +471,14 @@ export class InvoicesService {
       if (!invoice) throw new NotFoundException('Invoice not found');
       if (TERMINAL_STATUSES.has(invoice.status as InvoiceStatus)) {
         throw new ConflictException('Cannot settle a closed invoice');
+      }
+      if (invoice.status === InvoiceStatus.DRAFT) {
+        if (input.onDraft === 'reject') {
+          throw new ConflictException(
+            `Invoice ${invoice.number} is still a draft; issue it before recording a payment`,
+          );
+        }
+        await this.issueInTx(tx, input.tenantId, invoice);
       }
 
       if (input.transactionId) {
@@ -547,6 +572,7 @@ export class InvoicesService {
       method: dto.method,
       gatewayRef: dto.gatewayRef ?? null,
       idempotencyKey: `manual:${actor.userId}:${invoiceId}:${Date.now()}`,
+      onDraft: 'reject',
     });
   }
 
@@ -622,18 +648,30 @@ export class InvoicesService {
         },
       });
 
-      // Status & balance updates
+      // A refund returns money; only credit notes reduce what the invoice is
+      // worth. So the balance is total − credited − (paid − refunded), and a
+      // part-paid invoice keeps owing its unpaid remainder.
       const newRefunded = invoice.amountRefundedMinor + dto.amountMinor;
-      const newStatus =
-        newRefunded >= invoice.amountPaidMinor ? InvoiceStatus.REFUNDED : invoice.status;
+      const credited = await tx.creditNote.aggregate({
+        where: {
+          invoiceId: invoice.id,
+          status: { in: [CreditNoteStatus.ISSUED, CreditNoteStatus.APPLIED] },
+        },
+        _sum: { amountMinor: true },
+      });
+      const balance = refundedBalance({
+        totalMinor: invoice.totalMinor,
+        amountPaidMinor: invoice.amountPaidMinor,
+        amountRefundedMinor: newRefunded,
+        creditedMinor: credited._sum.amountMinor ?? 0,
+        status: invoice.status as InvoiceStatus,
+      });
       const updated = await tx.invoice.update({
         where: { id: invoice.id },
         data: {
           amountRefundedMinor: newRefunded,
-          status: newStatus,
-          // Refunds re-open the dueAmount conceptually but typically with a credit note
-          dueAmountMinor:
-            newStatus === InvoiceStatus.REFUNDED ? 0 : invoice.dueAmountMinor,
+          status: balance.status,
+          dueAmountMinor: balance.dueAmountMinor,
         },
       });
 
@@ -768,4 +806,28 @@ export class InvoicesService {
   static linkToken(): string {
     return randomBytes(12).toString('base64url');
   }
+}
+
+/**
+ * Balance after a refund. Refunds give money back; credit notes reduce the
+ * invoice's value. The invoice is REFUNDED only when nothing is retained and
+ * nothing is owed (fully paid, refunded and credited).
+ */
+export function refundedBalance(input: {
+  totalMinor: number;
+  amountPaidMinor: number;
+  amountRefundedMinor: number;
+  creditedMinor: number;
+  status: InvoiceStatus;
+}): { dueAmountMinor: number; status: InvoiceStatus } {
+  const netPaid = Math.max(0, input.amountPaidMinor - input.amountRefundedMinor);
+  const dueAmountMinor = Math.max(0, input.totalMinor - input.creditedMinor - netPaid);
+  if (dueAmountMinor === 0) {
+    return { dueAmountMinor, status: netPaid === 0 ? InvoiceStatus.REFUNDED : InvoiceStatus.PAID };
+  }
+  if (netPaid > 0) return { dueAmountMinor, status: InvoiceStatus.PARTIALLY_PAID };
+  return {
+    dueAmountMinor,
+    status: input.status === InvoiceStatus.OVERDUE ? InvoiceStatus.OVERDUE : InvoiceStatus.SENT,
+  };
 }

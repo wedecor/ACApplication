@@ -8,26 +8,18 @@
  *   - **Barcodes** are EAN-13 candidates from a tenant-scoped prefix; we
  *     compute the checksum digit so any commodity barcode scanner accepts
  *     them.
- *   - **Document numbers** (POs, GRNs, Transfers) use the same year-bucketed
- *     advisory-lock numbering used elsewhere in the API, but here we
- *     dispatch by Prisma model name so the inventory module doesn't have to
- *     fork the finance helper.
- *
- * Concurrency: all numbering paths run inside a serialisable transaction
- * with `pg_advisory_xact_lock` keyed on `(tenantId, prefix)`. The lock is
- * scoped to the transaction so a long PDF render can't block the entire
- * tenant.
+ *   - **Document numbers** (POs, GRNs, Transfers) come from the shared
+ *     atomic counter in `common/numbering`.
  */
+import { allocateDocumentNumber } from '../numbering/document-sequence';
 import type { PrismaService } from '../prisma/prisma.service';
 
-const ADVISORY_NAMESPACE = 0x49_4e_56_4e; // "INVN"
 
 function stableHash(input: string): number {
   let h = 5381;
   for (let i = 0; i < input.length; i += 1) {
     h = ((h << 5) + h + input.charCodeAt(i)) | 0;
   }
-  // pg_advisory_xact_lock(int4, int4): keep the key a non-negative int4.
   return h & 0x7fffffff;
 }
 
@@ -43,30 +35,7 @@ export async function nextInventoryNumber(
   tenantId: string,
   opts: InventoryNumberOptions,
 ): Promise<string> {
-  const year = opts.year ?? new Date().getUTCFullYear();
-  const width = opts.width ?? 6;
-  const prefix = `${opts.prefix}-${year}-`;
-
-  return prisma.client.$transaction(async (tx) => {
-    const lockKey = stableHash(`${tenantId}:${opts.prefix}:${year}`);
-    await tx.$executeRawUnsafe(
-      `SELECT pg_advisory_xact_lock(${ADVISORY_NAMESPACE}::int, ${lockKey}::int)`,
-    );
-    const model = (tx as unknown as Record<string, { findFirst: Function }>)[opts.table];
-    if (!model) throw new Error(`Unknown numbering model: ${opts.table}`);
-    const latest = (await model.findFirst({
-      where: { tenantId, number: { startsWith: prefix } },
-      orderBy: { number: 'desc' },
-      select: { number: true },
-    })) as { number: string } | null;
-    let seq = 1;
-    if (latest?.number) {
-      const tail = latest.number.slice(prefix.length);
-      const parsed = Number.parseInt(tail, 10);
-      if (Number.isFinite(parsed)) seq = parsed + 1;
-    }
-    return `${prefix}${seq.toString().padStart(width, '0')}`;
-  });
+  return allocateDocumentNumber(prisma, tenantId, opts);
 }
 
 /**

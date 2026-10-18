@@ -1042,7 +1042,7 @@ model Invoice {
   id                String        @id @default(cuid())
   tenantId          String
   /// Sequential, tenant-scoped invoice number, e.g. "INV-2025-000123".
-  number            String        @unique
+  number            String
   /// Optional — invoices may be raised for AMC charges with no booking.
   bookingId         String?       @unique
   amcSubscriptionId String?
@@ -1101,6 +1101,8 @@ model Invoice {
   creditNotes         CreditNote[]
   ledgerEntries       CustomerLedgerEntry[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([tenantId, dueDate])
   @@index([customerId, status])
@@ -1267,7 +1269,7 @@ model Refund {
 model CreditNote {
   id          String           @id @default(cuid())
   tenantId    String
-  number      String           @unique
+  number      String
   customerId  String
   invoiceId   String?
   status      CreditNoteStatus @default(DRAFT)
@@ -1289,6 +1291,8 @@ model CreditNote {
   invoice  Invoice? @relation(fields: [invoiceId], references: [id])
   refund   Refund?
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([customerId])
   @@map("credit_notes")
@@ -1336,7 +1340,7 @@ model CustomerLedgerEntry {
 model Quotation {
   id                 String          @id @default(cuid())
   tenantId           String
-  number             String          @unique
+  number             String
   bookingId          String?         @unique
   leadId             String?
   customerId         String
@@ -1355,6 +1359,8 @@ model Quotation {
   totalMinor         Int             @default(0)
   currency           String          @default("INR")
   gstEnabled         Boolean         @default(true)
+  /// GST place-of-supply state code; carried onto the invoice on conversion.
+  placeOfSupply      String?
   notes              String?
   terms              String?
   pdfUrl             String?
@@ -1371,6 +1377,8 @@ model Quotation {
   booking   Booking?            @relation(fields: [bookingId], references: [id])
   lineItems QuotationLineItem[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([customerId])
   @@index([expiresAt])
@@ -1442,7 +1450,7 @@ model AMCPlan {
 model AMCSubscription {
   id                 String                @id @default(cuid())
   tenantId           String
-  number             String                @unique
+  number             String
   customerId         String
   planId             String
   status             AMCSubscriptionStatus @default(PENDING_PAYMENT)
@@ -1476,6 +1484,8 @@ model AMCSubscription {
   paymentTransactions PaymentTransaction[]
   supportTickets      SupportTicket[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status, endsAt])
   @@index([customerId, status])
   @@map("amc_subscriptions")
@@ -2345,7 +2355,7 @@ model PurchaseOrder {
   id          String              @id @default(cuid())
   tenantId    String
   /// Tenant-unique PO number, e.g. "PO-2025-000123".
-  number      String              @unique
+  number      String
   vendorId    String
   warehouseId String
   status      PurchaseOrderStatus @default(DRAFT)
@@ -2386,6 +2396,8 @@ model PurchaseOrder {
   items     PurchaseOrderItem[]
   receipts  GoodsReceipt[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([tenantId, vendorId])
   @@index([tenantId, warehouseId])
@@ -2421,7 +2433,7 @@ model GoodsReceipt {
   id              String             @id @default(cuid())
   tenantId        String
   /// GRN number, tenant-unique, e.g. "GRN-2025-000123".
-  number          String             @unique
+  number          String
   purchaseOrderId String
   warehouseId     String
   status          GoodsReceiptStatus @default(POSTED)
@@ -2438,6 +2450,8 @@ model GoodsReceipt {
   warehouse     Warehouse          @relation(fields: [warehouseId], references: [id])
   items         GoodsReceiptItem[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, receivedAt])
   @@index([purchaseOrderId])
   @@map("goods_receipts")
@@ -2472,7 +2486,7 @@ model StockTransfer {
   id                String              @id @default(cuid())
   tenantId          String
   /// Tenant-unique transfer number, e.g. "TRN-2025-000123".
-  number            String              @unique
+  number            String
   sourceWarehouseId String
   destWarehouseId   String
   status            StockTransferStatus @default(REQUESTED)
@@ -2498,6 +2512,8 @@ model StockTransfer {
   destWarehouse   Warehouse           @relation("WarehouseTransferDestination", fields: [destWarehouseId], references: [id])
   items           StockTransferItem[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status])
   @@index([tenantId, sourceWarehouseId])
   @@index([tenantId, destWarehouseId])
@@ -2820,7 +2836,7 @@ model SupportTicket {
   id                  String         @id @default(cuid())
   tenantId            String
   /// Short human-readable code, e.g. "TKT-2025-000123".
-  number              String         @unique
+  number              String
   customerId          String?
   /// Stable identifier for anonymous web-chat visitors (cookie / device id).
   anonymousIdentifier String?
@@ -2880,6 +2896,8 @@ model SupportTicket {
   conversations   Conversation[]
   calls           CallLog[]
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status, priority])
   @@index([tenantId, assignedAgentId, status])
   @@index([tenantId, customerId])
@@ -3078,7 +3096,7 @@ model CallLog {
   id               String           @id @default(cuid())
   tenantId         String
   /// Short identifier surfaced in UI (e.g. "CALL-2025-000123").
-  number           String           @unique
+  number           String
   direction        CallDirection
   status           CallStatus       @default(QUEUED)
   customerId       String?
@@ -3120,6 +3138,8 @@ model CallLog {
   recordings CallRecording[]
 
   @@unique([tenantId, provider, externalCallId])
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status, direction])
   @@index([tenantId, agentUserId, status])
   @@index([tenantId, customerId])
@@ -3716,7 +3736,7 @@ model JobCard {
 model WarrantyClaim {
   id                 String              @id @default(cuid())
   tenantId           String
-  number             String              @unique
+  number             String
   type               WarrantyClaimType
   status             WarrantyClaimStatus @default(OPEN)
   customerId         String
@@ -3745,6 +3765,8 @@ model WarrantyClaim {
   originalBooking Booking?           @relation("WarrantyClaimOriginal", fields: [originalBookingId], references: [id])
   revisitBooking  Booking?           @relation("WarrantyClaimRevisit", fields: [revisitBookingId], references: [id])
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status, createdAt])
   @@index([tenantId, type, status])
   @@index([customerId])
@@ -3755,7 +3777,7 @@ model WarrantyClaim {
 model WorkshopJob {
   id                  String            @id @default(cuid())
   tenantId            String
-  number              String            @unique
+  number              String
   bookingId           String            @unique
   /// Workshop location (a Warehouse row).
   warehouseId         String?
@@ -3785,6 +3807,8 @@ model WorkshopJob {
 
   booking Booking @relation(fields: [bookingId], references: [id])
 
+  /// Document numbers are sequential per tenant.
+  @@unique([tenantId, number])
   @@index([tenantId, status, updatedAt])
   @@map("workshop_jobs")
 }
@@ -4191,4 +4215,22 @@ model CustomFieldDefinition {
 
   @@unique([tenantId, entity, key])
   @@map("custom_field_definitions")
+}
+
+/// Per-tenant counters behind document numbers (INV-2026-000123 etc.).
+/// Incremented atomically with INSERT … ON CONFLICT so concurrent writers
+/// never receive the same number.
+model DocumentSequence {
+  tenantId  String
+  /// Document prefix, e.g. "INV", "QTN", "TKT".
+  prefix    String
+  year      Int
+  lastValue Int
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@id([tenantId, prefix, year])
+  @@map("document_sequences")
 }

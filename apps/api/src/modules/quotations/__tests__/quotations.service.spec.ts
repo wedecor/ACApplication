@@ -37,7 +37,7 @@ function model() {
 
 function buildService() {
   const tx = {
-    $executeRawUnsafe: jest.fn().mockResolvedValue(1),
+    $queryRaw: jest.fn(async (_sql: TemplateStringsArray, ...values: unknown[]) => [{ lastValue: values[3] as number }]),
     quotation: model(),
   };
   const client = {
@@ -85,6 +85,7 @@ function stored(o: Record<string, unknown> = {}) {
     viewToken: 'vt_abc',
     expiresAt: future(),
     gstEnabled: true,
+    placeOfSupply: null as string | null,
     notes: null as string | null,
     terms: null as string | null,
     currency: 'INR',
@@ -164,15 +165,18 @@ describe('QuotationsService.create', () => {
     expect(data).toMatchObject({ gstEnabled: false, taxMinor: 0, totalMinor: 100_000, bookingId: 'bk_1' });
   });
 
-  it('computes the same tax total intra-state, but persists no place of supply / GST split', async () => {
-    // NOTE: current behaviour — the Quotation model has no placeOfSupply or
-    // cgst/sgst/igst columns, so the split is computed and then discarded.
+  it('persists the place of supply so conversion keeps the GST split', async () => {
     const { svc, client } = buildService();
     await svc.create(actor, dto({ placeOfSupply: HOME_STATE }));
     const { data } = client.quotation.create.mock.calls[0][0];
     expect(data.taxMinor).toBe(18_000);
-    expect(data).not.toHaveProperty('placeOfSupply');
-    expect(data.lineItems.create[0]).not.toHaveProperty('cgstMinor');
+    expect(data.placeOfSupply).toBe(HOME_STATE);
+  });
+
+  it('stores a null place of supply when none is given', async () => {
+    const { svc, client } = buildService();
+    await svc.create(actor, dto());
+    expect(client.quotation.create.mock.calls[0][0].data.placeOfSupply).toBeNull();
   });
 });
 
@@ -400,7 +404,14 @@ describe('QuotationsService.convertToInvoice', () => {
     },
   );
 
-  it('maps null optional fields to undefined and passes no placeOfSupply', async () => {
+  it('carries the stored place of supply onto the invoice', async () => {
+    const { svc, client, invoices } = buildService();
+    client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.APPROVED, placeOfSupply: 'MH' }));
+    await svc.convertToInvoice(actor, 'q_1');
+    expect(invoices.create.mock.calls[0][1].placeOfSupply).toBe('MH');
+  });
+
+  it('maps null optional fields to undefined', async () => {
     const { svc, client, invoices } = buildService();
     client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.APPROVED }));
     await svc.convertToInvoice(actor, 'q_1');
@@ -409,7 +420,7 @@ describe('QuotationsService.convertToInvoice', () => {
     expect(payload.notes).toBeUndefined();
     expect(payload.terms).toBeUndefined();
     expect(payload.lineItems[0].hsnSacCode).toBeUndefined();
-    expect(payload).not.toHaveProperty('placeOfSupply');
+    expect(payload.placeOfSupply).toBeUndefined();
   });
 
   it('does not mark the quotation converted if invoice creation fails', async () => {

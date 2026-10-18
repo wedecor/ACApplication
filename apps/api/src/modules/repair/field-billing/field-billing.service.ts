@@ -101,6 +101,13 @@ export class FieldBillingService {
           notes: `Field invoice for booking ${booking.code}`,
         });
       }
+      // The technician hands this invoice to the customer on-site, so issue it now
+      // (posts the ledger DEBIT before any payment is collected against it).
+      const raised = await this.prisma.client.invoice.findFirst({
+        where: { bookingId, tenantId: actor.tenantId, status: 'DRAFT' },
+        select: { id: true },
+      });
+      if (raised) await this.invoices.send(actor, raised.id);
     } catch (err) {
       // Lost a race with a concurrent request — the invoice exists now, which is what we want.
       if (!(err instanceof ConflictException)) throw err;
