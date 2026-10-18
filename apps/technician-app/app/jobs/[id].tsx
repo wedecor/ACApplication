@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
 import { ApplianceCard } from '../../src/components/ApplianceCard';
 import { Badge, Button, colors, SectionTitle } from '../../src/components/ui';
 import { apiErrorMessage } from '../../src/lib/api';
+import { formatPhone, humanizeStatus } from '../../src/lib/format';
 import { formatMinor } from '../../src/lib/money';
 import { technicianApi } from '../../src/lib/technician-api';
 
@@ -63,7 +64,7 @@ export default function JobScreen() {
     );
   }
   const j = job.data;
-  const go = (path: string) => router.push(path);
+  const go = (path: Href) => router.push(path);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
@@ -72,13 +73,13 @@ export default function JobScreen() {
           <Text style={{ color: colors.subtle, fontSize: 12 }}>{j.code}</Text>
           <View style={{ flexDirection: 'row', gap: 6 }}>
             {j.isWarrantyRevisit ? <Badge label="Warranty revisit" tone="danger" /> : null}
-            <Badge label={j.status.replace(/_/g, ' ')} tone="info" />
+            <Badge label={humanizeStatus(j.status)} tone="info" />
           </View>
         </View>
-        <Text style={{ fontSize: 20, fontWeight: '700' }}>{j.serviceType ?? j.category}</Text>
+        <Text style={{ fontSize: 20, fontWeight: '700' }}>{j.serviceType ?? humanizeStatus(j.category)}</Text>
         <Text style={{ color: '#475569' }}>
-          {j.applianceBrand ?? ''} • {j.applianceType ?? ''}
-          {j.serviceMode ? ` • ${j.serviceMode.replace(/_/g, ' ').toLowerCase()}` : ''}
+          {[j.applianceBrand, j.applianceType].filter(Boolean).join(' · ')}
+          {j.serviceMode ? ` · ${humanizeStatus(j.serviceMode).toLowerCase()}` : ''}
         </Text>
         <Text style={{ color: '#475569' }}>{j.issueDescription}</Text>
         {j.estimatedAmountMinor > 0 ? (
@@ -87,7 +88,7 @@ export default function JobScreen() {
         <View style={{ marginTop: 8 }}>
           <Text style={{ fontWeight: '600' }}>{j.customer.fullName}</Text>
           <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`tel:${j.customer.phone}`)}>
-            <Text style={{ color: colors.brand, marginTop: 2 }}>{j.customer.phone}</Text>
+            <Text style={{ color: colors.brand, marginTop: 2 }}>{formatPhone(j.customer.phone)}</Text>
           </Pressable>
         </View>
       </View>
@@ -134,6 +135,7 @@ export default function JobScreen() {
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
               <TextInput
                 placeholder="Enter 6-digit OTP"
+                accessibilityLabel="Customer OTP"
                 keyboardType="number-pad"
                 maxLength={6}
                 value={otp}
@@ -205,6 +207,7 @@ export default function JobScreen() {
           onChangeText={setNote}
           multiline
           placeholder="What did you find on-site?"
+          accessibilityLabel="Job note"
           style={{
             backgroundColor: '#fff',
             padding: 12,

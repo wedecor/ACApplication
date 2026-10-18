@@ -49,6 +49,7 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="index" options={{ title: 'AC Technician' }} />
+            <Stack.Screen name="login" options={{ title: 'Sign in' }} />
             <Stack.Screen name="jobs/[id]" options={{ title: 'Job details' }} />
             <Stack.Screen name="inventory/index" options={{ title: 'Van inventory' }} />
             <Stack.Screen name="inventory/scan" options={{ title: 'Scan SKU' }} />

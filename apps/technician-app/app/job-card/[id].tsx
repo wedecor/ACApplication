@@ -26,6 +26,7 @@ import {
   isNetworkError,
   isNotFound,
 } from '../../src/lib/api';
+import { humanizeStatus } from '../../src/lib/format';
 import {
   clearJobCardDraft,
   loadJobCardDraft,
@@ -277,11 +278,11 @@ export default function JobCardScreen() {
             <Text style={{ color: colors.subtle, fontSize: 12 }}>{b?.code ?? id}</Text>
             <Text style={{ fontSize: 20, fontWeight: '800' }}>Job card</Text>
             <Text style={{ color: colors.muted }}>
-              {[brand, category].filter(Boolean).join(' · ') || 'Appliance not linked'}
+              {[brand, category ? humanizeStatus(category) : null].filter(Boolean).join(' · ') || 'Appliance not linked'}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end', gap: 6 }}>
-            <Badge label={serverStatus.replace('_', ' ')} tone={readOnly ? 'success' : 'info'} />
+            <Badge label={humanizeStatus(serverStatus)} tone={readOnly ? 'success' : 'info'} />
             <Badge label={SYNC_LABEL[sync].label} tone={SYNC_LABEL[sync].tone} />
           </View>
         </View>
@@ -363,6 +364,7 @@ export default function JobCardScreen() {
                           accessibilityRole="button"
                           accessibilityLabel={`Remove ${code}`}
                           onPress={() => update((f) => ({ ...f, faultCodes: f.faultCodes.filter((c) => c !== code) }))}
+                          style={{ minHeight: 44, minWidth: 44, justifyContent: 'center', alignItems: 'flex-end' }}
                         >
                           <Text style={{ color: colors.danger, fontWeight: '700', padding: 4 }}>Remove</Text>
                         </Pressable>
@@ -514,6 +516,7 @@ export default function JobCardScreen() {
                   value={otherPart}
                   onChangeText={setOtherPart}
                   placeholder="Other part (not in van)"
+                  accessibilityLabel="Other part (not in van)"
                   placeholderTextColor={colors.subtle}
                   style={{
                     flex: 1,

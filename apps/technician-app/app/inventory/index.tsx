@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 import { getTechnicianId } from '../../src/lib/auth';
+import { humanizeStatus } from '../../src/lib/format';
 import { inventoryApi, type VanInventoryRow } from '../../src/lib/inventory-api';
 import { getSocket } from '../../src/lib/socket';
 
@@ -245,6 +246,7 @@ function AllocationCard({ row }: { row: VanInventoryRow }) {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TextInput
               placeholder="Use qty"
+              accessibilityLabel={`Quantity of ${row.item.name} used`}
               keyboardType="number-pad"
               value={useQty}
               onChangeText={setUseQty}
@@ -261,8 +263,11 @@ function AllocationCard({ row }: { row: VanInventoryRow }) {
                 use.mutate(n);
               }}
               disabled={use.isPending}
+              accessibilityRole="button"
               style={{
                 paddingHorizontal: 16,
+                minWidth: 128,
+                alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#0061C4',
                 borderRadius: 10,
@@ -275,6 +280,7 @@ function AllocationCard({ row }: { row: VanInventoryRow }) {
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <TextInput
               placeholder="Return qty"
+              accessibilityLabel={`Quantity of ${row.item.name} to return`}
               keyboardType="number-pad"
               value={returnQty}
               onChangeText={setReturnQty}
@@ -291,8 +297,11 @@ function AllocationCard({ row }: { row: VanInventoryRow }) {
                 ret.mutate(n);
               }}
               disabled={ret.isPending}
+              accessibilityRole="button"
               style={{
                 paddingHorizontal: 16,
+                minWidth: 128,
+                alignItems: 'center',
                 justifyContent: 'center',
                 backgroundColor: '#92400E',
                 borderRadius: 10,
@@ -361,9 +370,7 @@ function StatusPill({ status }: { status: VanInventoryRow['status'] }) {
         borderRadius: 999,
       }}
     >
-      <Text style={{ color: p.fg, fontSize: 11, fontWeight: '700' }}>
-        {status.replace(/_/g, ' ')}
-      </Text>
+      <Text style={{ color: p.fg, fontSize: 12, fontWeight: '700' }}>{humanizeStatus(status)}</Text>
     </View>
   );
 }

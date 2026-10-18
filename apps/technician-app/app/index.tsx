@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'expo-router';
+import { Link, Redirect, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,7 +12,8 @@ import {
   View,
 } from 'react-native';
 
-import { getTechnicianId } from '../src/lib/auth';
+import { clearAuthSession, getTechnicianId } from '../src/lib/auth';
+import { formatJobWhen, formatPhone, humanizeStatus } from '../src/lib/format';
 import {
   flushQueue,
   startBackgroundTracking,
@@ -36,7 +37,8 @@ export default function HomeScreen() {
   const qc = useQueryClient();
   const [online, setOnline] = useState(false);
   const [pending, setPending] = useState(false);
-  const [techId, setTechId] = useState<string | null>(null);
+  // undefined while the stored session loads; null means signed out.
+  const [techId, setTechId] = useState<string | null | undefined>(undefined);
   const [queueSize, setQueueSize] = useState(0);
 
   useEffect(() => {
@@ -85,6 +87,8 @@ export default function HomeScreen() {
     onError: (err: Error) => Alert.alert('Status change failed', err.message),
   });
 
+  if (techId === null) return <Redirect href="/login" />;
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#F5F7FA' }}
@@ -111,6 +115,7 @@ export default function HomeScreen() {
           </Text>
           <Switch
             value={online}
+            accessibilityLabel="Available for jobs"
             disabled={toggle.isPending}
             onValueChange={(v) => {
               setOnline(v);
@@ -134,21 +139,23 @@ export default function HomeScreen() {
             const writes = await flushWriteQueue().catch(() => ({ flushed: 0, remaining: 0, dropped: 0 }));
             setQueueSize(out.remaining + writes.remaining);
             Alert.alert(
-              'Queue flushed',
+              'Sync complete',
               `Location: sent ${out.flushed}, remaining ${out.remaining}.\nJob updates: sent ${writes.flushed}, remaining ${writes.remaining}${writes.dropped ? `, failed ${writes.dropped}` : ''}.`,
             );
           }}
           style={{
             flex: 1,
             paddingVertical: 12,
+            minHeight: 64,
             backgroundColor: '#fff',
             borderRadius: 12,
             alignItems: 'center',
+            justifyContent: 'center',
             borderWidth: 1,
             borderColor: '#E2E8F0',
           }}
         >
-          <Text style={{ fontWeight: '600' }}>Flush offline queue</Text>
+          <Text style={{ fontWeight: '600' }}>Sync offline updates</Text>
           {queueSize > 0 ? (
             <Text style={{ color: '#92400E', marginTop: 2 }}>{queueSize} pending</Text>
           ) : null}
@@ -158,9 +165,11 @@ export default function HomeScreen() {
             style={{
               flex: 1,
               paddingVertical: 12,
+              minHeight: 64,
               backgroundColor: '#fff',
               borderRadius: 12,
               alignItems: 'center',
+              justifyContent: 'center',
               borderWidth: 1,
               borderColor: '#E2E8F0',
             }}
@@ -175,7 +184,7 @@ export default function HomeScreen() {
 
       <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
         <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B', textTransform: 'uppercase' }}>
-          Today&apos;s jobs
+          My active jobs
         </Text>
         <View style={{ height: 12 }} />
         {jobs.isLoading ? (
@@ -184,10 +193,35 @@ export default function HomeScreen() {
           jobs.data.map((job) => <JobCard key={job.id} job={job} />)
         ) : (
           <View style={{ padding: 24, backgroundColor: '#fff', borderRadius: 12, alignItems: 'center' }}>
-            <Text style={{ color: '#64748B' }}>No jobs assigned yet.</Text>
+            <Text style={{ color: '#64748B' }}>No open jobs. New assignments appear here.</Text>
           </View>
         )}
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          Alert.alert('Sign out?', 'Go offline and sign out of this device.', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Sign out',
+              style: 'destructive',
+              onPress: () => {
+                void (async () => {
+                  if (online && techId) await technicianApi.setStatus(techId, 'OFFLINE').catch(() => undefined);
+                  await stopAllTracking().catch(() => undefined);
+                  await clearAuthSession();
+                  qc.clear();
+                  router.replace('/login');
+                })();
+              },
+            },
+          ])
+        }
+        style={{ marginTop: 24, marginHorizontal: 16, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <Text style={{ color: '#B91C1C', fontWeight: '600' }}>Sign out</Text>
+      </Pressable>
 
       <View style={{ height: 32 }} />
     </ScrollView>
@@ -207,23 +241,20 @@ function JobCard({ job }: { job: JobSummary }) {
           borderColor: '#E2E8F0',
         }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '700' }}>{job.code}</Text>
-            <Text style={{ color: '#475569', marginTop: 2 }}>
-              {job.customer.fullName} • {job.customer.phone}
-            </Text>
-            <Text style={{ color: '#64748B', marginTop: 2 }}>
-              {job.serviceType ?? job.category}
-              {job.applianceBrand ? ` • ${job.applianceBrand}` : ''}
-            </Text>
-            <Text style={{ color: '#94A3B8', marginTop: 6, fontSize: 12 }}>
-              {new Date(job.scheduledAt).toLocaleString()}
-              {job.scheduledTimeSlot ? ` • ${job.scheduledTimeSlot}` : ''}
-            </Text>
-          </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <Text style={{ fontWeight: '700', flexShrink: 1 }}>{job.code}</Text>
           <StatusPill status={job.status} />
         </View>
+        <Text style={{ color: '#0F172A', marginTop: 6, fontSize: 16, fontWeight: '600' }}>
+          {job.serviceType ?? humanizeStatus(job.category)}
+          {job.applianceBrand ? ` · ${job.applianceBrand}` : ''}
+        </Text>
+        <Text style={{ color: '#475569', marginTop: 2 }}>
+          {job.customer.fullName} · {formatPhone(job.customer.phone)}
+        </Text>
+        <Text style={{ color: '#64748B', marginTop: 6, fontSize: 13 }}>
+          {formatJobWhen(job.scheduledAt, job.scheduledTimeSlot)}
+        </Text>
       </Pressable>
     </Link>
   );
@@ -248,9 +279,7 @@ function StatusPill({ status }: { status: string }) {
         borderRadius: 999,
       }}
     >
-      <Text style={{ color: p.fg, fontSize: 11, fontWeight: '700' }}>
-        {status.replace(/_/g, ' ')}
-      </Text>
+      <Text style={{ color: p.fg, fontSize: 12, fontWeight: '700' }}>{humanizeStatus(status)}</Text>
     </View>
   );
 }

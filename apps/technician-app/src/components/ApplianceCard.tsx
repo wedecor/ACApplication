@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { apiErrorMessage } from '../lib/api';
+import { formatDate, humanizeStatus } from '../lib/format';
 import { summarizeWarranty } from '../lib/jobcard-logic';
 import { repairApi } from '../lib/repair-api';
 import type { BookingDetail } from '../lib/technician-api';
 import { Badge, Banner, Card, colors, EmptyNote, Row, SectionTitle } from './ui';
 
-const fmt = (iso: string | null | undefined) => (iso ? new Date(iso).toLocaleDateString('en-IN') : '—');
+const fmt = formatDate;
 
 /** Appliance details, warranty status and service history for the job screen. */
 export function ApplianceCard({ booking }: { booking: BookingDetail }) {
@@ -55,7 +56,7 @@ export function ApplianceCard({ booking }: { booking: BookingDetail }) {
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <Text style={{ fontSize: 16, fontWeight: '700', flexShrink: 1 }}>
-                {a ? `${a.brand} ${a.category}` : 'Linked appliance'}
+                {a ? `${a.brand} ${humanizeStatus(a.category)}` : 'Linked appliance'}
               </Text>
               {warranty.isLoading ? null : (
                 <Badge label={w.headline} tone={w.covered ? 'success' : warranty.data ? 'neutral' : 'warning'} />
@@ -99,7 +100,7 @@ export function ApplianceCard({ booking }: { booking: BookingDetail }) {
               <View key={h.id} style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 2 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                   <Text style={{ fontWeight: '600', flexShrink: 1 }}>
-                    {fmt(h.completedAt ?? h.scheduledAt)} · {h.serviceType ?? h.category ?? 'Service'}
+                    {fmt(h.completedAt ?? h.scheduledAt)} · {h.serviceType ?? (h.category ? humanizeStatus(h.category) : 'Service')}
                   </Text>
                   {h.isWarrantyRevisit ? <Badge label="Revisit" tone="warning" /> : null}
                 </View>

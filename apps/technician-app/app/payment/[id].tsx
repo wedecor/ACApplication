@@ -6,6 +6,7 @@ import QRCode from 'react-native-qrcode-svg';
 
 import { Badge, Banner, Button, Card, Chip, colors, EmptyNote, Field, Row, SectionTitle } from '../../src/components/ui';
 import { apiErrorCode, apiErrorMessage } from '../../src/lib/api';
+import { formatDate, humanizeStatus } from '../../src/lib/format';
 import { formatMinor, minorToRupeesInput, rupeesToMinor } from '../../src/lib/money';
 import { fieldBillingApi } from '../../src/lib/repair-api';
 import type { FieldBillingSummary, FieldPaymentMethod } from '../../src/lib/repair-types';
@@ -161,7 +162,7 @@ export default function PaymentCollectionScreen() {
 
       {inv ? (
         <>
-          <SectionTitle right={<Badge label={inv.status.replace(/_/g, ' ')} tone={INVOICE_TONE[inv.status] ?? 'neutral'} />}>
+          <SectionTitle right={<Badge label={humanizeStatus(inv.status)} tone={INVOICE_TONE[inv.status] ?? 'neutral'} />}>
             Invoice {inv.number}
           </SectionTitle>
           <Card>
@@ -247,7 +248,7 @@ export default function PaymentCollectionScreen() {
             {(billing.data?.payments ?? []).map((p) => (
               <Row
                 key={p.id}
-                label={`${p.method} · ${new Date(p.createdAt).toLocaleString('en-IN')}`}
+                label={`${humanizeStatus(p.method)} · ${formatDate(p.createdAt)}`}
                 value={`${formatMinor(p.amountMinor)} ${p.status}`}
               />
             ))}

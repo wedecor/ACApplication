@@ -57,6 +57,7 @@ export function VanPartsPicker({
           value={q}
           onChangeText={setQ}
           placeholder="Search name or SKU"
+          accessibilityLabel="Search van parts"
           placeholderTextColor={colors.subtle}
           style={{
             backgroundColor: '#fff',

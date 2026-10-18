@@ -269,6 +269,7 @@ export default function OnSiteQuoteScreen() {
                 value={labourDesc}
                 onChangeText={setLabourDesc}
                 placeholder="e.g. Gas top-up labour"
+                accessibilityLabel="Labour description"
                 placeholderTextColor={colors.subtle}
                 style={[inputStyle, { flex: 2 }]}
               />
@@ -276,6 +277,7 @@ export default function OnSiteQuoteScreen() {
                 value={labourAmount}
                 onChangeText={setLabourAmount}
                 placeholder="₹"
+                accessibilityLabel="Labour amount in rupees"
                 keyboardType="decimal-pad"
                 placeholderTextColor={colors.subtle}
                 style={[inputStyle, { flex: 1 }]}
@@ -302,7 +304,7 @@ export default function OnSiteQuoteScreen() {
           <Card>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text>Apply GST</Text>
-              <Switch value={gstEnabled} onValueChange={setGstEnabled} />
+              <Switch value={gstEnabled} onValueChange={setGstEnabled} accessibilityLabel="Apply GST" />
             </View>
             <Row label="Subtotal" value={formatMinor(totals.subtotalMinor)} />
             {totals.discountMinor > 0 ? <Row label="Discounts" value={`-${formatMinor(totals.discountMinor)}`} /> : null}
@@ -389,6 +391,9 @@ function ApprovalActions({
 }
 
 const inputStyle = {
+  // minWidth 0 lets the field shrink inside flex rows (web inputs have an intrinsic width).
+  minWidth: 0,
+  minHeight: 44,
   borderWidth: 1,
   borderColor: colors.border,
   borderRadius: 10,
@@ -498,7 +503,7 @@ function CatalogPicker({
           <Text style={{ fontSize: 20, fontWeight: '800' }}>Services</Text>
           <Button small variant="outline" label="Close" onPress={onClose} />
         </View>
-        <TextInput value={q} onChangeText={setQ} placeholder="Search services" placeholderTextColor={colors.subtle} style={inputStyle} />
+        <TextInput value={q} onChangeText={setQ} placeholder="Search services" accessibilityLabel="Search services" placeholderTextColor={colors.subtle} style={inputStyle} />
         {catalog.isLoading ? (
           <ActivityIndicator />
         ) : catalog.isError ? (

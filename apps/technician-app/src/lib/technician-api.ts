@@ -89,7 +89,12 @@ export const technicianApi = {
     const technicianId = await getTechnicianId();
     if (!technicianId) return [];
     const res = await api<{ items: JobSummary[] }>(`/bookings`, {
-      query: { technicianId, pageSize: 30, sortBy: 'scheduledAt:asc' },
+      query: {
+        technicianId,
+        status: 'ASSIGNED,TECHNICIAN_EN_ROUTE,IN_PROGRESS,WAITING_PARTS,RESCHEDULED',
+        pageSize: 30,
+        sort: 'scheduledAt:asc',
+      },
     });
     return res.items;
   },

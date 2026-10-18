@@ -3,7 +3,7 @@
  * existing screens (white cards on #F5F7FA, brand green #0E7A4A, slate text)
  * and keeps touch targets ≥ 44pt for gloved / one-handed use.
  */
-import type { ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -175,16 +175,18 @@ export function Badge({
   );
 }
 
-export function Field({
-  label,
-  hint,
-  ...input
-}: TextInputProps & { label: string; hint?: string }) {
+export const Field = forwardRef<TextInput, TextInputProps & { label: string; hint?: string }>(function Field(
+  { label, hint, ...input },
+  ref,
+) {
   return (
     <View style={{ gap: 4 }}>
       <Text style={{ fontWeight: '600', color: colors.text }}>{label}</Text>
       <TextInput
+        ref={ref}
         placeholderTextColor={colors.subtle}
+        accessibilityLabel={label}
+        accessibilityHint={hint}
         {...input}
         style={[
           {
@@ -204,7 +206,7 @@ export function Field({
       {hint ? <Text style={{ color: colors.muted, fontSize: 12 }}>{hint}</Text> : null}
     </View>
   );
-}
+});
 
 /** Explicit Yes / No (unanswered is distinct from "No" for checklists). */
 export function YesNo({

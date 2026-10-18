@@ -4,6 +4,7 @@
  *
  * No React Native imports — unit-tested in `__tests__/jobcard-logic.test.ts`.
  */
+import { formatDate } from './format';
 import type {
   ChecklistEntry,
   ChecklistTemplate,
@@ -281,11 +282,7 @@ export interface WarrantySummary {
   lines: string[];
 }
 
-function fmtDate(iso: string | null): string {
-  if (!iso) return '—';
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : d.toISOString().slice(0, 10);
-}
+const fmtDate = formatDate;
 
 export function summarizeWarranty(w: WarrantyStatus | null | undefined): WarrantySummary {
   if (!w) return { covered: false, headline: 'Warranty unknown', lines: [] };

@@ -44,6 +44,7 @@ export default function ScanScreen() {
             value={code}
             onChangeText={setCode}
             placeholder="Scan or type code"
+            accessibilityLabel="SKU or barcode"
             placeholderTextColor="#94A3B8"
             autoCapitalize="characters"
             autoCorrect={false}

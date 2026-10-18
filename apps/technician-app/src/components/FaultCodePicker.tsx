@@ -59,6 +59,7 @@ export function FaultCodePicker({
           value={q}
           onChangeText={setQ}
           placeholder="Search code or description (e.g. E4, low gas)"
+          accessibilityLabel="Search fault codes"
           placeholderTextColor={colors.subtle}
           autoCapitalize="characters"
           style={{

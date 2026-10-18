@@ -98,7 +98,7 @@ function ChecklistItemRow({
       return (
         <View style={[rowStyle, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
           <ItemLabel item={item} />
-          <NumberInput value={typeof value === 'number' ? value : undefined} unit={item.unit} disabled={disabled} onChange={onChange} />
+          <NumberInput label={item.label} value={typeof value === 'number' ? value : undefined} unit={item.unit} disabled={disabled} onChange={onChange} />
         </View>
       );
     case 'text':
@@ -110,6 +110,7 @@ function ChecklistItemRow({
             value={typeof value === 'string' ? value : ''}
             onChangeText={(t) => onChange(t === '' ? undefined : t)}
             placeholder="Type here"
+            accessibilityLabel={item.label}
             placeholderTextColor={colors.subtle}
             style={{
               borderWidth: 1,
@@ -139,11 +140,13 @@ function ChecklistItemRow({
 }
 
 function NumberInput({
+  label,
   value,
   unit,
   disabled,
   onChange,
 }: {
+  label: string;
   value: number | undefined;
   unit: string | undefined;
   disabled: boolean;
@@ -154,6 +157,7 @@ function NumberInput({
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       <TextInput
+        accessibilityLabel={unit ? `${label} (${unit})` : label}
         editable={!disabled}
         value={text}
         keyboardType="decimal-pad"

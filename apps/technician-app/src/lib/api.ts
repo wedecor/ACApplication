@@ -1,11 +1,11 @@
 import Constants from 'expo-constants';
 
-import { getAuthToken } from './auth';
+import { clearAuthSession, getAuthToken, getRefreshToken, updateTokens } from './auth';
 
 const API_URL =
   (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
   process.env.EXPO_PUBLIC_API_URL ??
-  'http://localhost:3001';
+  'http://localhost:4000';
 
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -13,6 +13,8 @@ interface ApiOptions {
   query?: Record<string, unknown>;
   /** Throw on auth error (default true). Set false for best-effort calls. */
   throwOnAuthError?: boolean;
+  /** Bearer token to use instead of the stored session (sign-in bootstrap). */
+  token?: string;
 }
 
 /**
@@ -108,35 +110,75 @@ function serialiseQueryValue(v: unknown): string {
   return JSON.stringify(v);
 }
 
+let refreshing: Promise<string | null> | null = null;
+
+/**
+ * Exchange the stored refresh token for a new pair. Concurrent 401s share one
+ * refresh; a rejected refresh clears the session so the app returns to sign-in.
+ */
+function refreshAccessToken(): Promise<string | null> {
+  refreshing ??= (async () => {
+    const refreshToken = await getRefreshToken();
+    if (!refreshToken) return null;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        if (res.status === 401) await clearAuthSession();
+        return null;
+      }
+      const json = (await res.json()) as { data: { accessToken: string; refreshToken: string } };
+      await updateTokens(json.data.accessToken, json.data.refreshToken);
+      return json.data.accessToken;
+    } catch {
+      return null;
+    }
+  })().finally(() => {
+    refreshing = null;
+  });
+  return refreshing;
+}
+
 export async function api<T>(path: string, opts: ApiOptions = {}): Promise<T> {
-  const token = await getAuthToken();
   const url = new URL(`${API_URL}/api/v1${path}`);
   for (const [k, v] of Object.entries(opts.query ?? {})) {
     if (v == null || v === '') continue;
     url.searchParams.set(k, serialiseQueryValue(v));
   }
 
-  const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), 8_000);
-  try {
-    const res = await fetch(url.toString(), {
-      method: opts.method ?? 'GET',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(opts.body ? { 'content-type': 'application/json' } : {}),
-      },
-      body: opts.body ? JSON.stringify(opts.body) : undefined,
-      signal: ac.signal,
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new ApiError(text || `HTTP ${res.status}`, res.status);
+  const send = async (token: string | null): Promise<Response> => {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 8_000);
+    try {
+      return await fetch(url.toString(), {
+        method: opts.method ?? 'GET',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          ...(opts.body ? { 'content-type': 'application/json' } : {}),
+        },
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+        signal: ac.signal,
+      });
+    } finally {
+      clearTimeout(timer);
     }
-    const json = (await res.json()) as { data: T };
-    return json.data;
-  } finally {
-    clearTimeout(timer);
+  };
+
+  const token = opts.token ?? (await getAuthToken());
+  let res = await send(token);
+  if (res.status === 401 && token && !opts.token) {
+    const fresh = await refreshAccessToken();
+    if (fresh) res = await send(fresh);
   }
+  if (!res.ok) {
+    const text = await res.text();
+    throw new ApiError(text || `HTTP ${res.status}`, res.status);
+  }
+  const json = (await res.json()) as { data: T };
+  return json.data;
 }
 
 export { API_URL };
