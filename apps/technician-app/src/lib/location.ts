@@ -6,6 +6,7 @@ import * as TaskManager from 'expo-task-manager';
 
 import { api } from './api';
 import { getLocationSignKey, getOrCreateDeviceId, getTechnicianId } from './auth';
+import { hmacSha256Hex } from './hmac';
 
 export const FOREGROUND_TASK = 'ac-location-foreground';
 export const BACKGROUND_TASK = 'ac-location-background';
@@ -45,11 +46,9 @@ export interface QueuedPing {
  */
 export async function ensurePermissions(): Promise<{ foreground: boolean; background: boolean }> {
   const fg = await Location.requestForegroundPermissionsAsync();
-  let bg = { status: 'denied' } as Awaited<ReturnType<typeof Location.requestBackgroundPermissionsAsync>>;
-  if (fg.status === 'granted') {
-    bg = await Location.requestBackgroundPermissionsAsync();
-  }
-  return { foreground: fg.status === 'granted', background: bg.status === 'granted' };
+  const granted = Location.PermissionStatus.GRANTED;
+  const bg = fg.status === granted ? await Location.requestBackgroundPermissionsAsync() : null;
+  return { foreground: fg.status === granted, background: bg?.status === granted };
 }
 
 export async function startForegroundTracking(): Promise<void> {
@@ -146,7 +145,7 @@ export async function flushQueue(): Promise<{ flushed: number; remaining: number
       flushed += batch.length;
       remaining = remaining.slice(batch.length);
       await writeQueue(remaining);
-    } catch (err) {
+    } catch {
       // Leave the rest in place — we'll retry on the next tick.
       await writeQueue(remaining);
       return { flushed, remaining: remaining.length };
@@ -184,17 +183,9 @@ export async function handleLocations(
   await flushQueue().catch(() => undefined);
 }
 
+/** HMAC-SHA256 hex — the exact construction `LocationSigner.verify` checks on the server. */
 async function sign(payload: string, secret: string): Promise<string> {
-  // Expo doesn't ship a native HMAC, so we use the WebCrypto-like helper
-  // from expo-crypto. SHA-256 + a `keyed-hash` shape (concat-then-hash) is a
-  // simplification — the production app should ship a JSI HMAC. The server
-  // accepts both modes (signature presence is enforced when locationSignKey
-  // is set; format consistency is checked server-side).
-  const digest = await Crypto.digestStringAsync(
-    Crypto.CryptoDigestAlgorithm.SHA256,
-    `${secret}|${payload}`,
-  );
-  return digest;
+  return hmacSha256Hex(secret, payload, (data) => Crypto.digest(Crypto.CryptoDigestAlgorithm.SHA256, data));
 }
 
 /**
@@ -204,17 +195,19 @@ async function sign(payload: string, secret: string): Promise<string> {
  */
 export function registerLocationTasks(): void {
   if (!TaskManager.isTaskDefined(FOREGROUND_TASK)) {
-    TaskManager.defineTask(FOREGROUND_TASK, async ({ data, error }) => {
+    TaskManager.defineTask(FOREGROUND_TASK, ({ data, error }) => {
       if (error) return;
-      const locations = (data as { locations?: Location.LocationObject[] })?.locations ?? [];
-      await handleLocations(locations, false, false).catch(() => undefined);
+      const locations = (data as { locations?: Location.LocationObject[] } | undefined)?.locations ?? [];
+      // The executor is typed void; handleLocations queues pings and swallows its own errors.
+      void handleLocations(locations, false, false).catch(() => undefined);
     });
   }
   if (!TaskManager.isTaskDefined(BACKGROUND_TASK)) {
-    TaskManager.defineTask(BACKGROUND_TASK, async ({ data, error }) => {
+    TaskManager.defineTask(BACKGROUND_TASK, ({ data, error }) => {
       if (error) return;
-      const locations = (data as { locations?: Location.LocationObject[] })?.locations ?? [];
-      await handleLocations(locations, true, false).catch(() => undefined);
+      const locations = (data as { locations?: Location.LocationObject[] } | undefined)?.locations ?? [];
+      // The executor is typed void; handleLocations queues pings and swallows its own errors.
+      void handleLocations(locations, true, false).catch(() => undefined);
     });
   }
 }

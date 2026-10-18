@@ -74,19 +74,9 @@ export class TrackingService {
         rejected += 1;
         continue;
       }
-      // Signature check is mandatory when the tech has a sign key provisioned.
-      if (tech.locationSignKey && ping.signature && ping.deviceId) {
-        const payload = LocationSigner.buildPayload({
-          technicianId: tech.id,
-          deviceId: ping.deviceId,
-          latitude: ping.latitude,
-          longitude: ping.longitude,
-          recordedAt: ping.recordedAt,
-        });
-        if (!this.signer.verify(tech.locationSignKey, payload, ping.signature)) {
-          rejected += 1;
-          continue;
-        }
+      if (!pingSignatureOk(this.signer, tech, ping)) {
+        rejected += 1;
+        continue;
       }
       // Device fingerprint guard — if registered, every ping must match.
       if (tech.deviceFingerprint && ping.deviceId && ping.deviceId !== tech.deviceFingerprint) {
@@ -306,4 +296,26 @@ export class TrackingService {
       }),
     ]).catch((err) => this.logger.warn({ err }, 'bootstrap ping failed'));
   }
+}
+
+/**
+ * Once a technician has a sign key, every ping must carry a device id and a
+ * valid HMAC — an unsigned ping is rejected rather than waved through.
+ * Without a key (dev / not yet provisioned) pings are accepted unsigned.
+ */
+export function pingSignatureOk(
+  signer: Pick<LocationSigner, 'verify'>,
+  tech: { id: string; locationSignKey: string | null },
+  ping: Pick<LocationPingDto, 'deviceId' | 'signature' | 'latitude' | 'longitude' | 'recordedAt'>,
+): boolean {
+  if (!tech.locationSignKey) return true;
+  if (!ping.signature || !ping.deviceId) return false;
+  const payload = LocationSigner.buildPayload({
+    technicianId: tech.id,
+    deviceId: ping.deviceId,
+    latitude: ping.latitude,
+    longitude: ping.longitude,
+    recordedAt: ping.recordedAt,
+  });
+  return signer.verify(tech.locationSignKey, payload, ping.signature);
 }
