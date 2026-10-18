@@ -46,6 +46,8 @@ export interface FieldBillingSummary {
     status: string;
     totalMinor: number;
     viewToken?: string;
+    /** Customer approval page to share (set once the quotation has a view token). */
+    approvalUrl?: string;
   } | null;
   payments: { id: string; amountMinor: number; method: string; status: string; createdAt: Date }[];
   paymentLink: { id: string; url: string; status: string } | null;
@@ -189,6 +191,7 @@ export class FieldBillingService {
       status: q.status,
       totalMinor: q.totalMinor,
       viewToken: q.viewToken,
+      approvalUrl: this.quotations.approvalUrl(q.viewToken),
     };
   }
 
@@ -287,7 +290,7 @@ export class FieldBillingService {
       : [[], null];
     return {
       invoice,
-      quotation,
+      quotation: quotation ? { ...quotation, approvalUrl: this.quotations.approvalUrl(quotation.viewToken) } : null,
       payments,
       paymentLink: link?.hostedLink ? { id: link.id, url: link.hostedLink, status: link.status } : null,
     };

@@ -1,12 +1,13 @@
 'use client';
 
+import { Button } from '@ac/ui';
 import { Sparkles, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { Button } from '@ac/ui';
-
 import { Events, track } from '@/lib/analytics';
+import { isTaskPage } from '@/lib/routes';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 const STORAGE_KEY = 'ac:exit-intent:dismissed';
@@ -22,6 +23,7 @@ const STORAGE_KEY = 'ac:exit-intent:dismissed';
 export function ExitIntentSheet() {
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(true);
+  const onTaskPage = isTaskPage(usePathname());
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -33,7 +35,7 @@ export function ExitIntentSheet() {
   }, []);
 
   useEffect(() => {
-    if (seen) return;
+    if (seen || onTaskPage) return;
     if (typeof window === 'undefined') return;
     if (window.innerWidth < 1024) return;
 
@@ -56,7 +58,7 @@ export function ExitIntentSheet() {
       window.clearTimeout(timer);
       document.removeEventListener('mouseout', onMouseOut);
     };
-  }, [seen]);
+  }, [seen, onTaskPage]);
 
   if (!open) return null;
 

@@ -15,6 +15,7 @@ import {
   BadRequestException,
   ConflictException,
   ForbiddenException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -23,7 +24,9 @@ import type { Prisma } from '@prisma/client';
 
 import { DomainEventName, QuotationStatus, TERMINAL_QUOTATION_STATUSES } from '@ac/types';
 import type { AuthPrincipal } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
 
+import { APP_CONFIG } from '../../common/config/config.module';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import {
@@ -47,7 +50,13 @@ export class QuotationsService {
     private readonly events: DomainEventBus,
     private readonly invoices: InvoicesService,
     private readonly pdf: PdfService,
+    @Inject(APP_CONFIG) private readonly env: LoadedServerEnv,
   ) {}
+
+  /** Customer approval page on the public website for this view token. */
+  approvalUrl(viewToken: string): string {
+    return `${this.env.WEB_URL.replace(/\/+$/, '')}/quotations/${encodeURIComponent(viewToken)}`;
+  }
 
   async create(actor: AuthPrincipal, dto: CreateQuotationDto) {
     const customer = await this.prisma.client.customer.findFirst({
@@ -166,34 +175,36 @@ export class QuotationsService {
     return updated;
   }
 
-  /** Public lookup — used by the customer landing page (no auth). */
-  async getByViewToken(viewToken: string) {
-    const q = await this.prisma.client.quotation.findFirst({
-      where: { viewToken },
-      include: { lineItems: true, customer: { select: { fullName: true, email: true } } },
-    });
-    if (!q) throw new NotFoundException('Quotation not found');
+  /**
+   * Public lookup for the customer approval page (no auth; the view token is
+   * the credential). Drafts are not visible until sent, and only the fields
+   * the customer needs are returned.
+   */
+  async getByViewToken(viewToken: string): Promise<PublicQuotation> {
+    const q = await this.findPublic(viewToken);
 
     // Auto-bump SENT → VIEWED so sales sees an engagement signal.
-    if (q.status === QuotationStatus.SENT) {
+    let status = q.status as QuotationStatus;
+    if (status === QuotationStatus.SENT) {
+      const viewedAt = new Date();
       await this.prisma.client.quotation.update({
         where: { id: q.id },
-        data: { status: QuotationStatus.VIEWED, viewedAt: new Date() },
+        data: { status: QuotationStatus.VIEWED, viewedAt },
       });
       this.events.publish(DomainEventName.QuotationViewed, {
         quotationId: q.id,
-        viewedAt: new Date().toISOString(),
+        viewedAt: viewedAt.toISOString(),
       } as never);
+      status = QuotationStatus.VIEWED;
     }
-    return q;
+    return toPublicQuotation({ ...q, status });
   }
 
-  async customerApprove(viewToken: string) {
-    const q = await this.prisma.client.quotation.findFirst({ where: { viewToken } });
-    if (!q) throw new NotFoundException('Quotation not found');
-    if (TERMINAL_QUOTATION_STATUSES.has(q.status as QuotationStatus)) {
-      throw new ConflictException('Quotation is in a terminal state');
-    }
+  async customerApprove(viewToken: string): Promise<PublicQuotation> {
+    const q = await this.findPublic(viewToken);
+    // A second tap (or a retried request) is a no-op, not an error.
+    if (q.status === QuotationStatus.APPROVED) return toPublicQuotation(q);
+    this.assertAwaitingDecision(q.status as QuotationStatus);
     if (q.expiresAt < new Date()) {
       throw new ForbiddenException('Quotation has expired');
     }
@@ -205,28 +216,48 @@ export class QuotationsService {
       quotationId: q.id,
       customerId: q.customerId,
     } as never);
-    return updated;
+    return toPublicQuotation({ ...q, status: updated.status, approvedAt: updated.approvedAt });
   }
 
-  async customerReject(viewToken: string, reason?: string) {
-    const q = await this.prisma.client.quotation.findFirst({ where: { viewToken } });
-    if (!q) throw new NotFoundException('Quotation not found');
-    if (TERMINAL_QUOTATION_STATUSES.has(q.status as QuotationStatus)) {
-      throw new ConflictException('Quotation is in a terminal state');
-    }
+  async customerReject(viewToken: string, reason?: string): Promise<PublicQuotation> {
+    const q = await this.findPublic(viewToken);
+    this.assertAwaitingDecision(q.status as QuotationStatus);
+    const trimmed = reason?.trim() || null;
     const updated = await this.prisma.client.quotation.update({
       where: { id: q.id },
       data: {
         status: QuotationStatus.REJECTED,
         rejectedAt: new Date(),
-        rejectedReason: reason ?? null,
+        rejectedReason: trimmed,
       },
     });
     this.events.publish(DomainEventName.QuotationRejected, {
       quotationId: q.id,
-      reason: reason ?? null,
+      reason: trimmed,
     } as never);
-    return updated;
+    return toPublicQuotation({ ...q, status: updated.status, rejectedAt: updated.rejectedAt });
+  }
+
+  private async findPublic(viewToken: string) {
+    const q = await this.prisma.client.quotation.findFirst({
+      where: { viewToken, deletedAt: null, status: { not: QuotationStatus.DRAFT } },
+      include: {
+        lineItems: true,
+        customer: { select: { fullName: true } },
+        booking: { select: { code: true } },
+      },
+    });
+    if (!q) throw new NotFoundException('Quotation not found');
+    return q;
+  }
+
+  /** Only a quotation the customer has been sent can be approved or declined. */
+  private assertAwaitingDecision(status: QuotationStatus): void {
+    if (status === QuotationStatus.SENT || status === QuotationStatus.VIEWED) return;
+    if (TERMINAL_QUOTATION_STATUSES.has(status) || status === QuotationStatus.APPROVED) {
+      throw new ConflictException(`This quotation is already ${status.toLowerCase()}`);
+    }
+    throw new ConflictException(`Quotation is not awaiting a decision (${status})`);
   }
 
   async convertToInvoice(actor: AuthPrincipal, id: string) {
@@ -316,7 +347,86 @@ export class QuotationsService {
         taxMinor: l.taxMinor,
         totalMinor: l.totalMinor,
       })),
-      qrPayload: `${process.env.WEB_BASE_URL ?? 'https://app.ac-platform.io'}/q/${q.viewToken}`,
+      qrPayload: this.approvalUrl(q.viewToken),
     });
   }
+}
+
+/** What the customer approval page sees — no internal ids, contact details or audit fields. */
+export interface PublicQuotation {
+  number: string;
+  status: QuotationStatus;
+  expiresAt: Date;
+  approvedAt: Date | null;
+  rejectedAt: Date | null;
+  currency: string;
+  gstEnabled: boolean;
+  subtotalMinor: number;
+  discountMinor: number;
+  taxMinor: number;
+  totalMinor: number;
+  notes: string | null;
+  terms: string | null;
+  customerFirstName: string | null;
+  bookingCode: string | null;
+  lineItems: {
+    description: string;
+    quantity: number;
+    unitPriceMinor: number;
+    discountMinor: number;
+    taxRateBps: number;
+    totalMinor: number;
+  }[];
+}
+
+export function toPublicQuotation(q: {
+  number: string;
+  status: string;
+  expiresAt: Date;
+  approvedAt: Date | null;
+  rejectedAt: Date | null;
+  currency: string;
+  gstEnabled: boolean;
+  subtotalMinor: number;
+  discountMinor: number;
+  taxMinor: number;
+  totalMinor: number;
+  notes: string | null;
+  terms: string | null;
+  customer: { fullName: string } | null;
+  booking: { code: string } | null;
+  lineItems: {
+    description: string;
+    quantity: number;
+    unitPriceMinor: number;
+    discountMinor: number;
+    taxRateBps: number;
+    totalMinor: number;
+  }[];
+}): PublicQuotation {
+  return {
+    number: q.number,
+    status: q.status as QuotationStatus,
+    expiresAt: q.expiresAt,
+    approvedAt: q.approvedAt,
+    rejectedAt: q.rejectedAt,
+    currency: q.currency,
+    gstEnabled: q.gstEnabled,
+    subtotalMinor: q.subtotalMinor,
+    discountMinor: q.discountMinor,
+    taxMinor: q.taxMinor,
+    totalMinor: q.totalMinor,
+    notes: q.notes,
+    terms: q.terms,
+    customerFirstName: q.customer?.fullName.trim().split(/\s+/)[0] ?? null,
+    bookingCode: q.booking?.code ?? null,
+    lineItems: q.lineItems.map((l) => ({
+      description: l.description,
+      quantity: l.quantity,
+      unitPriceMinor: l.unitPriceMinor,
+      discountMinor: l.discountMinor,
+      taxRateBps: l.taxRateBps,
+      totalMinor: l.totalMinor,
+    })),
+  };
 }

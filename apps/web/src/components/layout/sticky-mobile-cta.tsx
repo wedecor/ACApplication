@@ -1,17 +1,21 @@
 'use client';
 
-import Link from 'next/link';
-import { CalendarDays, MessageCircle, Phone } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { CalendarDays, MessageCircle, Phone } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 import { siteConfig } from '@/env';
 import { Events, track } from '@/lib/analytics';
+import { isTaskPage } from '@/lib/routes';
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 /**
  * Premium mobile sticky bar — thumb-friendly, WhatsApp-first.
  */
 export function StickyMobileCta() {
+  const pathname = usePathname();
+  if (isTaskPage(pathname)) return null;
   return (
     <motion.div
       initial={{ y: 100 }}

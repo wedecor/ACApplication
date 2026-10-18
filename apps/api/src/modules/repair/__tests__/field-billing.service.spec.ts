@@ -66,7 +66,11 @@ function build(row: Record<string, unknown> | null) {
       hostedLink: 'https://pay/x',
     }),
   };
-  const quotations = { convertToInvoice: jest.fn(), send: jest.fn() };
+  const quotations = {
+    convertToInvoice: jest.fn(),
+    send: jest.fn(),
+    approvalUrl: jest.fn((token: string) => `https://example.test/quotations/${token}`),
+  };
   const svc = new FieldBillingService(
     prisma as never,
     new RepairAccessService(prisma as never),

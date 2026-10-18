@@ -160,6 +160,8 @@ export interface FieldBillingQuotation {
   status: string;
   totalMinor: number;
   viewToken?: string;
+  /** Customer approval page on the website, built by the API from WEB_URL. */
+  approvalUrl?: string;
 }
 
 export interface FieldBillingPayment {

@@ -62,10 +62,11 @@ const CUSTOMER_PORTAL_URL =
   null;
 
 /**
- * Link the customer opens to approve / reject. Uses the customer portal
- * when configured, otherwise the API's public quotation endpoint.
+ * Link the customer opens to approve / reject: the API-provided approval page
+ * when present, else the configured customer portal, else the raw public API.
  */
-export function quotationApprovalUrl(q: Pick<Quotation, 'viewToken'>): string {
+export function quotationApprovalUrl(q: Pick<Quotation, 'viewToken'> & { approvalUrl?: string }): string {
+  if (q.approvalUrl) return q.approvalUrl;
   return CUSTOMER_PORTAL_URL
     ? `${CUSTOMER_PORTAL_URL.replace(/\/$/, '')}/quotations/${q.viewToken}`
     : `${API_URL}/api/v1/quotations/public/${q.viewToken}`;

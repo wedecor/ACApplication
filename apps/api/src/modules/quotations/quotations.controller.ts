@@ -20,6 +20,7 @@ import { CurrentUser, Public, RequirePermissions } from '../../common/decorators
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
 import { CreateQuotationDto } from './dto/create-quotation.dto';
 import { ListQuotationsDto } from './dto/list-quotations.dto';
+import { RejectQuotationDto } from './dto/reject-quotation.dto';
 import { QuotationsService } from './quotations.service';
 
 @ApiTags('quotations')
@@ -92,6 +93,7 @@ export class QuotationsController {
   @Post('public/:viewToken/approve')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Customer approves a sent quotation (idempotent).' })
   publicApprove(@Param('viewToken') viewToken: string) {
     return this.quotations.customerApprove(viewToken);
   }
@@ -99,7 +101,8 @@ export class QuotationsController {
   @Post('public/:viewToken/reject')
   @Public()
   @HttpCode(HttpStatus.OK)
-  publicReject(@Param('viewToken') viewToken: string, @Body() body: { reason?: string }) {
+  @ApiOperation({ summary: 'Customer declines a sent quotation, optionally with a reason.' })
+  publicReject(@Param('viewToken') viewToken: string, @Body() body: RejectQuotationDto) {
     return this.quotations.customerReject(viewToken, body.reason);
   }
 }

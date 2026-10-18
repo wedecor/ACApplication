@@ -60,7 +60,8 @@ function buildService() {
   const events = { publish: jest.fn(), emit: jest.fn() };
   const invoices = { create: jest.fn().mockResolvedValue({ id: 'inv_9' }) };
   const pdf = { quotation: jest.fn(), invoice: jest.fn() };
-  const svc = new QuotationsService(prisma as never, events as never, invoices as never, pdf as never);
+  const env = { WEB_URL: 'https://example.test/' };
+  const svc = new QuotationsService(prisma as never, events as never, invoices as never, pdf as never, env as never);
   return { svc, client, tx, events, invoices, pdf };
 }
 
@@ -93,7 +94,10 @@ function stored(o: Record<string, unknown> = {}) {
     discountMinor: 0,
     taxMinor: 18_000,
     totalMinor: 118_000,
+    approvedAt: null as Date | null,
+    rejectedAt: null as Date | null,
     customer: { fullName: 'Test Customer', email: 'test@example.com', phone: '+910000000000' },
+    booking: null as { code: string } | null,
     lineItems: [
       { description: 'Split AC install', quantity: 1, unitPriceMinor: 100_000, discountMinor: 0, taxRateBps: 1800, hsnSacCode: null as string | null, subtotalMinor: 100_000, taxMinor: 18_000, totalMinor: 118_000 },
     ],
@@ -238,18 +242,29 @@ describe('QuotationsService.send', () => {
 });
 
 // ---------------------------------------------------------------------------
+describe('QuotationsService.approvalUrl', () => {
+  it('points at the website approval page', () => {
+    const { svc } = buildService();
+    expect(svc.approvalUrl('vt abc')).toBe('https://example.test/quotations/vt%20abc');
+  });
+});
+
+// ---------------------------------------------------------------------------
 describe('QuotationsService.getByViewToken (public)', () => {
-  it('404s for an unknown token', async () => {
+  it('404s for an unknown token and never exposes drafts', async () => {
     const { svc, client } = buildService();
     client.quotation.findFirst.mockResolvedValue(null);
     await expect(svc.getByViewToken('nope')).rejects.toBeInstanceOf(NotFoundException);
-    expect(client.quotation.findFirst.mock.calls[0][0].where).toEqual({ viewToken: 'nope' });
+    expect(client.quotation.findFirst.mock.calls[0][0].where).toEqual({
+      viewToken: 'nope',
+      deletedAt: null,
+      status: { not: QuotationStatus.DRAFT },
+    });
   });
 
-  it('bumps SENT → VIEWED and emits QuotationViewed', async () => {
+  it('bumps SENT → VIEWED, emits QuotationViewed and returns the new status', async () => {
     const { svc, client, events } = buildService();
-    const q = stored({ status: QuotationStatus.SENT });
-    client.quotation.findFirst.mockResolvedValue(q);
+    client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.SENT }));
     const res = await svc.getByViewToken('vt_abc');
     const args = client.quotation.update.mock.calls[0][0];
     expect(args.where).toEqual({ id: 'q_1' });
@@ -259,11 +274,22 @@ describe('QuotationsService.getByViewToken (public)', () => {
       DomainEventName.QuotationViewed,
       expect.objectContaining({ quotationId: 'q_1', viewedAt: expect.any(String) }),
     );
-    // NOTE: current behaviour — returns the pre-update row (status still SENT).
-    expect(res.status).toBe(QuotationStatus.SENT);
+    expect(res.status).toBe(QuotationStatus.VIEWED);
   });
 
-  it.each([QuotationStatus.DRAFT, QuotationStatus.VIEWED, QuotationStatus.APPROVED, QuotationStatus.EXPIRED])(
+  it('returns only customer-facing fields', async () => {
+    const { svc, client } = buildService();
+    client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.VIEWED, booking: { code: 'ACB-1' } }));
+    const res = await svc.getByViewToken('vt_abc');
+    expect(res).toMatchObject({ number: `QTN-${YEAR}-000001`, totalMinor: 118_000, customerFirstName: 'Test', bookingCode: 'ACB-1' });
+    expect(res).not.toHaveProperty('id');
+    expect(res).not.toHaveProperty('customerId');
+    expect(res).not.toHaveProperty('viewToken');
+    expect(JSON.stringify(res)).not.toContain('test@example.com');
+    expect(res.lineItems[0]).toEqual({ description: 'Split AC install', quantity: 1, unitPriceMinor: 100_000, discountMinor: 0, taxRateBps: 1800, totalMinor: 118_000 });
+  });
+
+  it.each([QuotationStatus.VIEWED, QuotationStatus.APPROVED, QuotationStatus.EXPIRED])(
     'does not update when status is %s',
     async (status) => {
       const { svc, client, events } = buildService();
@@ -304,19 +330,17 @@ describe('QuotationsService.customerApprove (public)', () => {
     const { svc, client, events } = buildService();
     client.quotation.findFirst.mockResolvedValue(stored({ status }));
     const res = await svc.customerApprove('vt_abc');
-    expect(client.quotation.findFirst.mock.calls[0][0]).toEqual({ where: { viewToken: 'vt_abc' } });
     expect(res.status).toBe(QuotationStatus.APPROVED);
     expect(client.quotation.update.mock.calls[0][0].data.approvedAt).toBeInstanceOf(Date);
     expect(events.publish).toHaveBeenCalledWith(DomainEventName.QuotationApproved, { quotationId: 'q_1', customerId: 'cust_1' });
   });
 
-  it('currently also approves a DRAFT (never sent) and re-approves an APPROVED quotation', async () => {
-    // NOTE: current behaviour — only REJECTED/EXPIRED/CONVERTED are blocked.
-    for (const status of [QuotationStatus.DRAFT, QuotationStatus.APPROVED]) {
-      const { svc, client } = buildService();
-      client.quotation.findFirst.mockResolvedValue(stored({ status }));
-      await expect(svc.customerApprove('vt_abc')).resolves.toMatchObject({ status: QuotationStatus.APPROVED });
-    }
+  it('treats a repeat approval as a no-op', async () => {
+    const { svc, client, events } = buildService();
+    client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.APPROVED }));
+    await expect(svc.customerApprove('vt_abc')).resolves.toMatchObject({ status: QuotationStatus.APPROVED });
+    expect(client.quotation.update).not.toHaveBeenCalled();
+    expect(events.publish).not.toHaveBeenCalled();
   });
 });
 
@@ -328,16 +352,17 @@ describe('QuotationsService.customerReject (public)', () => {
     await expect(svc.customerReject('nope')).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('409s when terminal', async () => {
+  it.each([QuotationStatus.CONVERTED, QuotationStatus.APPROVED])('409s when %s', async (status) => {
     const { svc, client } = buildService();
-    client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.CONVERTED }));
+    client.quotation.findFirst.mockResolvedValue(stored({ status }));
     await expect(svc.customerReject('vt_abc', 'too pricey')).rejects.toBeInstanceOf(ConflictException);
+    expect(client.quotation.update).not.toHaveBeenCalled();
   });
 
-  it('rejects with a reason and emits QuotationRejected', async () => {
+  it('rejects with a trimmed reason and emits QuotationRejected', async () => {
     const { svc, client, events } = buildService();
     client.quotation.findFirst.mockResolvedValue(stored({ status: QuotationStatus.VIEWED }));
-    const res = await svc.customerReject('vt_abc', 'too pricey');
+    const res = await svc.customerReject('vt_abc', '  too pricey ');
     expect(res.status).toBe(QuotationStatus.REJECTED);
     const { data } = client.quotation.update.mock.calls[0][0];
     expect(data.rejectedReason).toBe('too pricey');
@@ -465,31 +490,15 @@ describe('QuotationsService.expireOverdue', () => {
 
 // ---------------------------------------------------------------------------
 describe('QuotationsService.renderPdf', () => {
-  const OLD_ENV = process.env.WEB_BASE_URL;
-  afterEach(() => {
-    if (OLD_ENV === undefined) delete process.env.WEB_BASE_URL;
-    else process.env.WEB_BASE_URL = OLD_ENV;
-  });
-
-  it('renders with customer + lines and a view-token QR link', async () => {
-    process.env.WEB_BASE_URL = 'https://example.test';
+  it('renders with customer + lines and a QR code for the approval page', async () => {
     const { svc, client, pdf } = buildService();
     client.quotation.findFirst.mockResolvedValue(stored());
     pdf.quotation.mockResolvedValue({ hash: 'h' });
     await expect(svc.renderPdf(actor, 'q_1')).resolves.toEqual({ hash: 'h' });
     const payload = pdf.quotation.mock.calls[0][0];
-    expect(payload.qrPayload).toBe('https://example.test/q/vt_abc');
+    expect(payload.qrPayload).toBe('https://example.test/quotations/vt_abc');
     expect(payload.customer).toEqual({ name: 'Test Customer', email: 'test@example.com', phone: '+910000000000' });
     expect(payload.quotation).toMatchObject({ number: `QTN-${YEAR}-000001`, totalMinor: 118_000, currency: 'INR' });
     expect(payload.lines).toHaveLength(1);
-  });
-
-  it('falls back to the default web base URL', async () => {
-    delete process.env.WEB_BASE_URL;
-    const { svc, client, pdf } = buildService();
-    client.quotation.findFirst.mockResolvedValue(stored());
-    pdf.quotation.mockResolvedValue({ hash: 'h' });
-    await svc.renderPdf(actor, 'q_1');
-    expect(pdf.quotation.mock.calls[0][0].qrPayload).toBe('https://app.ac-platform.io/q/vt_abc');
   });
 });
