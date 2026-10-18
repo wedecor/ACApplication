@@ -3,7 +3,7 @@ import { Permission } from '@ac/types';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser, RequirePermissions } from '../../common/decorators';
+import { AllowAuthenticated, CurrentUser, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
 import {
   CreateTechnicianDto,
@@ -28,6 +28,13 @@ import { TechniciansService } from './technicians.service';
 @Controller({ path: 'technicians', version: '1' })
 export class TechniciansController {
   constructor(private readonly technicians: TechniciansService) {}
+
+  @Get('me')
+  @AllowAuthenticated()
+  @ApiOperation({ summary: "The signed-in user's own technician profile (field-app session bootstrap)." })
+  me(@CurrentUser() actor: AuthPrincipal) {
+    return this.technicians.getSelf(actor);
+  }
 
   @Get('form-options')
   @RequirePermissions(Permission.TECHNICIAN_READ)

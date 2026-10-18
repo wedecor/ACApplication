@@ -484,6 +484,23 @@ export class TechniciansService {
     return { technicianId: id, isDefault: true, rule: null };
   }
 
+  /** The caller's own technician row; 404 when the signed-in user is not a technician. */
+  async getSelf(actor: AuthPrincipal) {
+    const tech = await this.prisma.client.technician.findFirst({
+      where: { userId: actor.userId, tenantId: actor.tenantId, deletedAt: null },
+      select: {
+        id: true,
+        employeeCode: true,
+        fullName: true,
+        phone: true,
+        status: true,
+        city: { select: { id: true, name: true } },
+      },
+    });
+    if (!tech) throw new NotFoundException('No technician profile for this account');
+    return tech;
+  }
+
   // --------------------------------------------------------------- helpers
   private async assertExists(actor: AuthPrincipal, id: string): Promise<void> {
     const found = await this.prisma.client.technician.findFirst({

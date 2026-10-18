@@ -52,6 +52,25 @@ function build() {
 }
 
 describe('TechniciansService', () => {
+  describe('getSelf', () => {
+    it("returns the caller's technician row scoped to their user and tenant", async () => {
+      const { service, client } = build();
+      client.technician.findFirst.mockResolvedValue({ id: 'tech_1', fullName: 'Ravi Kumar' });
+
+      await expect(service.getSelf(actor as never)).resolves.toMatchObject({ id: 'tech_1' });
+      expect(client.technician.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { userId: 'admin_1', tenantId: 'tenant_1', deletedAt: null } }),
+      );
+    });
+
+    it('throws NotFound when the user has no technician profile', async () => {
+      const { service, client } = build();
+      client.technician.findFirst.mockResolvedValue(null);
+
+      await expect(service.getSelf(actor as never)).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
   describe('create', () => {
     const dto = {
       firstName: 'Ravi',
