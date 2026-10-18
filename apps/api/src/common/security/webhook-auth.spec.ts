@@ -14,3 +14,20 @@ describe('webhook-auth', () => {
     expect(verifyHmacSha256(body, sig, secret)).toBe(true);
   });
 });
+
+describe('verifyHmacSha256 without a secret', () => {
+  const prev = process.env.NODE_ENV;
+  afterEach(() => {
+    process.env.NODE_ENV = prev;
+  });
+
+  it('fails closed on staging even when dev skip is allowed', () => {
+    process.env.NODE_ENV = 'staging';
+    expect(verifyHmacSha256('{}', undefined, undefined, { allowDevSkip: true })).toBe(false);
+  });
+
+  it('skips only in local development', () => {
+    process.env.NODE_ENV = 'development';
+    expect(verifyHmacSha256('{}', undefined, undefined, { allowDevSkip: true })).toBe(true);
+  });
+});

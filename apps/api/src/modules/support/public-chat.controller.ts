@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  NotFoundException,
   Body,
   Controller,
   Get,
@@ -19,6 +20,17 @@ import { ConversationChannel } from '@ac/types';
 import { Public } from '../../common/decorators';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { ConversationsService } from './conversations.service';
+
+/**
+ * Public sessions are only ever the random ids issued by `start`. Rejecting
+ * anything else stops callers addressing other WEB_CHAT threads (e.g. ones
+ * staff opened, which are keyed by the customer's phone number).
+ */
+const SESSION_ID = /^web-chat:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+export function assertPublicSessionId(sessionId: string): void {
+  if (!SESSION_ID.test(sessionId)) throw new NotFoundException('Chat session not found');
+}
 
 class StartChatDto {
   @IsString() @MinLength(1) @MaxLength(120)
@@ -54,10 +66,8 @@ class PostChatMessageDto {
  * portal widget when WebSockets are unavailable (corporate proxies,
  * lossy mobile networks). Sessions are anonymous and rate-limited.
  *
- * The companion `LiveChatGateway` handles real-time delivery; this
- * controller is a degraded long-poll fallback that calls into the
- * exact same `ConversationsService.ingestInbound` codepath, so both
- * stay consistent.
+ * The website widget uses these endpoints (send + long-poll), which call
+ * the same `ConversationsService.ingestInbound` codepath as other channels.
  */
 @ApiTags('public:web-chat')
 @Controller({ path: 'public/web-chat', version: '1' })
@@ -114,7 +124,19 @@ export class PublicWebChatController {
       return { ok: true, messageId: null };
     }
     if (!tenantSlug) throw new BadRequestException('tenantSlug is required');
+    assertPublicSessionId(sessionId);
     const tenantId = await this.resolveTenantId(tenantSlug);
+    // Only existing sessions accept messages; this endpoint must not open new threads.
+    const existing = await this.prisma.client.conversation.findFirst({
+      where: {
+        tenantId,
+        channel: ConversationChannel.WEB_CHAT,
+        externalThreadKey: `web_chat:${sessionId}`,
+        deletedAt: null,
+      },
+      select: { id: true },
+    });
+    if (!existing) throw new NotFoundException('Chat session not found');
     const r = await this.conversations.ingestInbound({
       tenantId,
       channel: ConversationChannel.WEB_CHAT,
@@ -139,6 +161,7 @@ export class PublicWebChatController {
     @Query('after') after?: string,
   ) {
     if (!tenantSlug) throw new BadRequestException('tenantSlug is required');
+    assertPublicSessionId(sessionId);
     const tenantId = await this.resolveTenantId(tenantSlug);
     const conversation = await this.prisma.client.conversation.findFirst({
       where: {
@@ -154,7 +177,7 @@ export class PublicWebChatController {
       where: {
         conversationId: conversation.id,
         deletedAt: null,
-        ...(after ? { createdAt: { gt: new Date(after) } } : {}),
+        ...(after && !Number.isNaN(Date.parse(after)) ? { createdAt: { gt: new Date(after) } } : {}),
       },
       orderBy: { createdAt: 'asc' },
       take: 200,

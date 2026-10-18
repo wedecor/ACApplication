@@ -147,10 +147,22 @@ describe('WhatsAppInboxService', () => {
   });
 
   describe('verifySignature', () => {
-    it('returns true when WHATSAPP_APP_SECRET is unset', () => {
+    it('rejects unsigned webhooks when WHATSAPP_APP_SECRET is unset (fail closed)', () => {
       delete process.env.WHATSAPP_APP_SECRET;
+      const prev = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'staging';
+      const local = new WhatsAppInboxService(conversations as never);
+      expect(local.verifySignature('{}', undefined)).toBe(false);
+      process.env.NODE_ENV = prev;
+    });
+
+    it('accepts unsigned webhooks only in local development', () => {
+      delete process.env.WHATSAPP_APP_SECRET;
+      const prev = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
       const local = new WhatsAppInboxService(conversations as never);
       expect(local.verifySignature('{}', undefined)).toBe(true);
+      process.env.NODE_ENV = prev;
     });
   });
 });

@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
-import { verifyHmacSha256 } from '../../common/security/webhook-auth';
+import { isLocalDevelopment, verifyHmacSha256 } from '../../common/security/webhook-auth';
 import { APP_CONFIG } from '../../common/config/config.module';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationRepository } from './notification.repository';
@@ -45,7 +45,7 @@ export class NotificationWebhooksService {
   }
 
   verifyResendSignature(rawBody: string, signature: string | undefined): boolean {
-    if (!this.env.RESEND_WEBHOOK_SECRET || !signature) return this.env.NODE_ENV === 'development';
+    if (!this.env.RESEND_WEBHOOK_SECRET || !signature) return isLocalDevelopment() && !this.env.RESEND_WEBHOOK_SECRET;
     const expected = createHmac('sha256', this.env.RESEND_WEBHOOK_SECRET).update(rawBody).digest('hex');
     try {
       return timingSafeEqual(Buffer.from(expected), Buffer.from(signature.replace(/^sha256=/, '')));

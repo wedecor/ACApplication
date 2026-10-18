@@ -15,7 +15,6 @@ import {
   PublicKnowledgeBaseController,
 } from './knowledge-base.controller';
 import { KnowledgeBaseService } from './knowledge-base.service';
-import { LiveChatGateway } from './live-chat.gateway';
 import { MeSupportController } from './me-support.controller';
 import { PublicWebChatController } from './public-chat.controller';
 import { SlaController } from './sla.controller';
@@ -64,7 +63,6 @@ import { WhatsAppWebhookController } from './whatsapp.controller';
     CustomerContextService,
     SupportAiHooksService,
     SupportNotificationListener,
-    LiveChatGateway,
   ],
   controllers: [
     TicketsController,

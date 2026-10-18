@@ -17,7 +17,7 @@ import type { AuthPrincipal } from '@ac/auth';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { CurrentUser, Public, RequirePermissions } from '../../common/decorators';
-import { verifyBearerSecret } from '../../common/security/webhook-auth';
+import { isLocalDevelopment, verifyBearerSecret } from '../../common/security/webhook-auth';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
 import {
   AddRecordingDto,
@@ -109,17 +109,10 @@ export class CallWebhookController {
   ) {}
 
   private assertCallWebhookAuth(authorization: string | undefined): void {
-    if (
-      process.env['NODE_ENV'] === 'production' &&
-      !verifyBearerSecret(authorization, this.env.CALL_WEBHOOK_SECRET)
-    ) {
+    // Enforced everywhere except local development (staging used to accept anyone).
+    if (isLocalDevelopment() && !this.env.CALL_WEBHOOK_SECRET) return;
+    if (!verifyBearerSecret(authorization, this.env.CALL_WEBHOOK_SECRET)) {
       throw new UnauthorizedException('Invalid call webhook credentials');
-    }
-    if (
-      process.env['NODE_ENV'] === 'production' &&
-      !this.env.CALL_WEBHOOK_SECRET
-    ) {
-      throw new UnauthorizedException('Call webhook secret not configured');
     }
   }
 

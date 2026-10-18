@@ -3,6 +3,7 @@ import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConversationChannel, MessageStatus } from '@ac/types';
 import { WhatsAppClient } from '@ac/whatsapp';
 
+import { isLocalDevelopment } from '../../common/security/webhook-auth';
 import { ConversationsService } from './conversations.service';
 
 /**
@@ -50,11 +51,14 @@ export class WhatsAppInboxService {
 
   /** Validate Meta's X-Hub-Signature-256 header against the raw body. */
   verifySignature(rawBody: string, header: string | undefined): boolean {
-    if (!this.appSecret) {
-      this.logger.warn('WHATSAPP_APP_SECRET unset — signature verification skipped');
-      return true;
+    // Fail closed: without the app secret anyone could post forged inbound messages.
+    if (!this.appSecret || !this.client) {
+      if (isLocalDevelopment()) {
+        this.logger.warn('WHATSAPP_APP_SECRET unset — accepting unsigned webhook (development only)');
+        return true;
+      }
+      return false;
     }
-    if (!this.client) return true;
     return this.client.verifySignature(rawBody, header, this.appSecret);
   }
 

@@ -9,10 +9,8 @@ export function verifyHmacSha256(
   opts?: { prefix?: string; allowDevSkip?: boolean },
 ): boolean {
   if (!secret) {
-    if (opts?.allowDevSkip && process.env['NODE_ENV'] !== 'production') {
-      return true;
-    }
-    return false;
+    // Only local development may run without a secret; staging/production fail closed.
+    return Boolean(opts?.allowDevSkip) && isLocalDevelopment();
   }
   if (!signatureHeader) return false;
 
@@ -46,4 +44,9 @@ export function verifyBearerSecret(
   } catch {
     return false;
   }
+}
+
+/** True only for NODE_ENV=development — staging and test environments must verify webhooks. */
+export function isLocalDevelopment(): boolean {
+  return process.env['NODE_ENV'] === 'development';
 }
