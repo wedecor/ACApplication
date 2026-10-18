@@ -32,7 +32,7 @@ export class MeInvoicesController {
 
   @Post(':id/pay')
   @RequirePermissions(Permission.SELF_SERVICE)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ global: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Start a hosted checkout (Razorpay / Stripe) for my invoice.' })
   pay(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string, @Body() dto: PayMyInvoiceDto) {
     return this.svc.pay(actor, id, dto);
@@ -51,7 +51,7 @@ export class MeInvoicesController {
 
   @Public()
   @Get(':id/pdf')
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Throttle({ global: { limit: 20, ttl: 60_000 } })
   @ApiOperation({ summary: 'Download an invoice PDF via a signed, expiring link (no bearer needed).' })
   async pdf(@Param('id') id: string, @Query() q: InvoicePdfQueryDto, @Res() reply: FastifyReply) {
     const { buffer, hash } = await this.svc.renderSignedPdf(id, q.t, q.exp, q.sig);

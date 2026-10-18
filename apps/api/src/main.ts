@@ -14,6 +14,7 @@ import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { parseTrustProxy } from './common/http/trust-proxy';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { installBigIntJson } from './common/serialization/bigint-json';
 
@@ -23,7 +24,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     // 6 MiB body limit: CSV imports (data-io) accept up to 5 MB of text.
-    new FastifyAdapter({ trustProxy: true, logger: false, bodyLimit: 6 * 1024 * 1024 }),
+    new FastifyAdapter({ trustProxy: parseTrustProxy(process.env['TRUST_PROXY']), logger: false, bodyLimit: 6 * 1024 * 1024 }),
     { bufferLogs: true, rawBody: true },
   );
 

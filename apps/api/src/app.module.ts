@@ -3,6 +3,9 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 
+import { RedisService } from './common/redis/redis.service';
+import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage';
+
 import { ActivityModule } from './modules/activity/activity.module';
 import { AmcModule } from './modules/amc/amc.module';
 import { AssignmentModule } from './modules/assignment/assignment.module';
@@ -67,14 +70,21 @@ import { TracingInterceptor } from './common/interceptors/tracing.interceptor';
     RedisModule,
     EventsModule,
 
-    // Distributed rate limiting (Redis-backed when REDIS_URL is set).
-    ThrottlerModule.forRoot([
-      {
-        name: 'global',
-        ttl: 1000,
-        limit: Number(process.env['RATE_LIMIT_GLOBAL_RPS'] ?? 100),
-      },
-    ]),
+    // Rate limiting with Redis-backed counters, so limits hold across instances.
+    // Per-route @Throttle overrides must use the `global` name to take effect.
+    ThrottlerModule.forRootAsync({
+      inject: [RedisService],
+      useFactory: (redis: RedisService) => ({
+        throttlers: [
+          {
+            name: 'global',
+            ttl: 1000,
+            limit: Number(process.env['RATE_LIMIT_GLOBAL_RPS'] ?? 100),
+          },
+        ],
+        storage: new RedisThrottlerStorage(redis),
+      }),
+    }),
 
     // Cross-cutting & domain modules.
     HealthModule,

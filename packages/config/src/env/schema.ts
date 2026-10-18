@@ -50,6 +50,10 @@ export const serverEnvSchema = z.object({
   OTP_TTL_SECONDS: z.coerce.number().int().min(60).default(300),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().min(1).default(5),
   OTP_LENGTH: z.coerce.number().int().min(4).max(8).default(6),
+  /** Max OTPs issued to one destination per OTP_LOCK_WINDOW_SECONDS. */
+  OTP_ISSUE_LIMIT: z.coerce.number().int().min(1).default(5),
+  /** Window for the issue limit and the failed-attempt lock. */
+  OTP_LOCK_WINDOW_SECONDS: z.coerce.number().int().min(60).default(900),
 
   // App URLs (used for absolute links, CORS, emails)
   API_URL: urlSchema,
@@ -145,9 +149,37 @@ export const serverEnvSchema = z.object({
 
   // Rate limiting
   RATE_LIMIT_GLOBAL_RPS: z.coerce.number().int().min(1).default(100),
+  /**
+   * Which proxies to trust for the client IP (rate limits, audit). "false" =
+   * use the socket address; a number = trusted hop count; otherwise a
+   * comma-separated list of proxy IPs/CIDRs. Never "true" — that lets clients
+   * spoof X-Forwarded-For.
+   */
+  TRUST_PROXY: z
+    .string()
+    .default('false')
+    .refine((v) => v !== 'true', 'TRUST_PROXY=true trusts client-supplied X-Forwarded-For; use a hop count or CIDR list'),
   RATE_LIMIT_AUTH_RPS: z.coerce.number().int().min(1).default(5),
 }).superRefine((env, ctx) => {
   if (env.NODE_ENV !== 'production') return;
+
+  // Placeholder secrets copied from .env.example would let anyone forge tokens.
+  for (const field of ['JWT_SECRET', 'JWT_REFRESH_SECRET'] as const) {
+    if (/change-me|replace-with|example|placeholder/i.test(env[field])) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${field} is a placeholder value`, path: [field] });
+    }
+  }
+  if (env.JWT_SECRET === env.JWT_REFRESH_SECRET) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'JWT_SECRET and JWT_REFRESH_SECRET must differ',
+      path: ['JWT_REFRESH_SECRET'],
+    });
+  }
+  // The console transports print message bodies (including OTP codes) to logs.
+  if (env.SMS_PROVIDER === 'console') {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'SMS_PROVIDER=console is not allowed in production', path: ['SMS_PROVIDER'] });
+  }
 
   const requireFields = (fields: Array<keyof typeof env>, message: string) => {
     for (const field of fields) {
@@ -187,7 +219,7 @@ export const serverEnvSchema = z.object({
   }
   if (env.WHATSAPP_PHONE_NUMBER_ID || env.WHATSAPP_ACCESS_TOKEN) {
     requireFields(
-      ['WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_ACCESS_TOKEN', 'WHATSAPP_VERIFY_TOKEN'],
+      ['WHATSAPP_PHONE_NUMBER_ID', 'WHATSAPP_ACCESS_TOKEN', 'WHATSAPP_VERIFY_TOKEN', 'WHATSAPP_APP_SECRET'],
       'WhatsApp requires phone number id, access token, and verify token',
     );
   }

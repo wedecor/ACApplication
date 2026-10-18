@@ -37,7 +37,7 @@ export class AuthController {
   @Public()
   @Post('otp/request')
   @HttpCode(HttpStatus.ACCEPTED)
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Throttle({ global: { limit: 5, ttl: 60_000 } })
   @ApiOperation({ summary: 'Request an OTP for the given destination.' })
   async requestOtp(@Body() dto: RequestOtpDto) {
     const result = await this.auth.otp.issue(dto.destination, dto.purpose ?? 'LOGIN');
@@ -67,7 +67,7 @@ export class AuthController {
           {
             template: 'auth.otp',
             data: { code: result.code },
-            idempotencyKey: IdempotencyKeys.otp(dto.destination, dto.purpose ?? 'LOGIN'),
+            idempotencyKey: IdempotencyKeys.otp(dto.destination, dto.purpose ?? 'LOGIN', result.issueId),
           },
         );
       }
@@ -82,7 +82,7 @@ export class AuthController {
 
   @Public()
   @Post('otp/verify')
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ global: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Verify an OTP and issue access + refresh tokens.' })
   async verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.auth.verifyOtpAndIssueTokens(dto.destination, dto.code, dto.device ? sessionDeviceFor(dto.device.platform) : undefined, dto.device?.deviceId);
@@ -91,7 +91,7 @@ export class AuthController {
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ global: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Exchange a refresh token for a new access token.' })
   refresh(@Body() dto: RefreshSessionDto) {
     return this.auth.refreshWithOpaqueToken(dto.refreshToken);

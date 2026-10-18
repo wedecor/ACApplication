@@ -13,7 +13,7 @@ export class PublicRatingsController {
 
   @Get(':token')
   @Public()
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ global: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Visit summary for the signed "rate your visit" link.' })
   view(@Param('token') token: string) {
     return this.ratings.view(token);
@@ -22,7 +22,7 @@ export class PublicRatingsController {
   @Post(':token')
   @Public()
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ global: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Rate a completed visit from the signed review-request link.' })
   rate(@Param('token') token: string, @Body() dto: PublicRateBookingDto) {
     return this.ratings.rate(token, dto);

@@ -201,7 +201,7 @@ export class MeUploadsController {
 
   @Post('presign')
   @RequirePermissions(Permission.SELF_SERVICE)
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ global: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Presigned PUT for a customer photo / PDF (images + pdf only, size-capped).' })
   presign(@CurrentUser() actor: AuthPrincipal, @Body() dto: PresignUploadDto) {
     return this.storage.presignUpload({ ...dto, tenantId: actor.tenantId, scope: 'customer' });
@@ -217,7 +217,7 @@ export class StaffUploadsController {
 
   @Post('presign')
   @AllowAuthenticated()
-  @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  @Throttle({ global: { limit: 60, ttl: 60_000 } })
   @ApiOperation({ summary: 'Presigned PUT for staff / technician uploads → { uploadUrl, publicUrl }.' })
   presign(@CurrentUser() actor: AuthPrincipal, @Body() dto: PresignUploadDto) {
     return this.storage.presignUpload({ ...dto, tenantId: actor.tenantId, scope: 'staff' });

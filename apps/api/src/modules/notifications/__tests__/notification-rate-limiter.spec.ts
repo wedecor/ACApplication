@@ -35,4 +35,21 @@ describe('NotificationRateLimiterService', () => {
       }),
     ).rejects.toMatchObject({ status: 429 });
   });
+
+  it('keys the OTP limit on the destination, not a shared anonymous bucket', async () => {
+    redis.default.incr.mockResolvedValue(1);
+    await limiter.assertDispatchAllowed({ tenantId: 't1', destination: '+919000000001', template: 'auth.otp' });
+    expect(redis.default.incr).toHaveBeenCalledWith('notif:rl:otp:+919000000001');
+    expect(redis.default.incr.mock.calls.flat()).not.toContain('notif:rl:otp:anon');
+  });
+
+  it('counts storms per tenant', async () => {
+    redis.default.incr.mockResolvedValue(1);
+    await limiter.assertDispatchAllowed({ tenantId: 't9', userId: 'u1', template: 'booking.confirmed' });
+    expect(redis.default.incr.mock.calls.map((c) => c[0] as string).some((k) => k.startsWith('notif:storm:minute:t9:'))).toBe(true);
+  });
+
+  it('refuses an OTP with no recipient to key on', async () => {
+    await expect(limiter.assertDispatchAllowed({ tenantId: 't1', template: 'auth.otp' })).rejects.toMatchObject({ status: 400 });
+  });
 });

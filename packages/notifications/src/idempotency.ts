@@ -5,7 +5,8 @@ export const IdempotencyKeys = {
   bookingConfirmed: (bookingId: string, channel: NotificationChannel) =>
     `booking-confirmed:${bookingId}:${channel.toLowerCase()}`,
   bookingOtp: (bookingId: string) => `booking-otp:${bookingId}:sms`,
-  otp: (destination: string, purpose: string) => `otp:${destination}:${purpose}`,
+  /** Per issued code — a static key would make every later OTP look like a duplicate. */
+  otp: (destination: string, purpose: string, issueId: string) => `otp:${destination}:${purpose}:${issueId}`,
   invoiceReminder: (invoiceId: string, channel: NotificationChannel) =>
     `invoice-reminder:${invoiceId}:${channel.toLowerCase()}`,
   paymentReceipt: (invoiceId: string) => `payment-receipt:${invoiceId}:push`,

@@ -49,6 +49,7 @@ export class NotificationsService implements OnModuleInit {
     await this.rateLimiter.assertDispatchAllowed({
       tenantId,
       userId: recipient.userId,
+      destination: recipient.phone ?? recipient.email ?? undefined,
       template: message.template,
       ip: opts?.ip,
     });

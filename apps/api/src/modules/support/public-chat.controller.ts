@@ -75,7 +75,7 @@ export class PublicWebChatController {
   @Public()
   @Post('start')
   @HttpCode(HttpStatus.CREATED)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ global: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Open a new anonymous web-chat session.' })
   async start(@Body() dto: StartChatDto) {
     if (dto.hp_url && dto.hp_url.length > 0) {
@@ -103,7 +103,7 @@ export class PublicWebChatController {
 
   @Public()
   @Post(':sessionId/messages')
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Throttle({ global: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Post a message into an existing web-chat session.' })
   async post(
     @Param('sessionId') sessionId: string,
@@ -132,7 +132,7 @@ export class PublicWebChatController {
    */
   @Public()
   @Get(':sessionId/messages')
-  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  @Throttle({ global: { limit: 120, ttl: 60_000 } })
   async list(
     @Param('sessionId') sessionId: string,
     @Query('tenantSlug') tenantSlug: string,

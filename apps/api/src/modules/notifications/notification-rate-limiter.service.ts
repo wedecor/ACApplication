@@ -6,6 +6,7 @@ import { RedisService } from '../../common/redis/redis.service';
 
 const KILL_KEY_GLOBAL = 'notif:kill:switch';
 const killKeyForTenant = (tenantId: string) => `notif:kill:switch:${tenantId}`;
+/** Per-tenant: one tenant (or anonymous OTP traffic) must not stop everyone's notifications. */
 const STORM_KEY = 'notif:storm:minute';
 
 @Injectable()
@@ -18,6 +19,8 @@ export class NotificationRateLimiterService {
   async assertDispatchAllowed(opts: {
     tenantId: string;
     userId?: string;
+    /** Phone/email the message goes to — the OTP limit is keyed on this. */
+    destination?: string;
     template: string;
     ip?: string;
   }): Promise<void> {
@@ -32,11 +35,15 @@ export class NotificationRateLimiterService {
       throw new HttpException('Notification dispatch disabled (kill switch)', HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    await this.assertStormLimit();
-
     if (opts.template === 'auth.otp' || opts.template.startsWith('auth.')) {
-      await this.assertLimit(`notif:rl:otp:${opts.userId ?? opts.ip ?? 'anon'}`, this.env.NOTIFICATION_OTP_RATE_LIMIT_PER_HOUR, 3600);
+      // Keyed per destination: a shared anonymous bucket let a handful of requests
+      // block every user's login. Checked before the storm counter is touched.
+      const who = opts.destination ?? opts.userId ?? opts.ip;
+      if (!who) throw new HttpException('OTP recipient required', HttpStatus.BAD_REQUEST);
+      await this.assertLimit(`notif:rl:otp:${who}`, this.env.NOTIFICATION_OTP_RATE_LIMIT_PER_HOUR, 3600);
     }
+
+    await this.assertStormLimit(opts.tenantId);
 
     if (opts.userId) {
       await this.assertLimit(
@@ -77,9 +84,9 @@ export class NotificationRateLimiterService {
     return globalKill === '1' || tenantKill === '1';
   }
 
-  private async assertStormLimit(): Promise<void> {
+  private async assertStormLimit(tenantId: string): Promise<void> {
     const minute = Math.floor(Date.now() / 60_000);
-    const key = `${STORM_KEY}:${minute}`;
+    const key = `${STORM_KEY}:${tenantId}:${minute}`;
     const count = await this.redis.default.incr(key);
     if (count === 1) await this.redis.default.expire(key, 120);
     if (count > this.env.NOTIFICATION_STORM_LIMIT_PER_MINUTE) {

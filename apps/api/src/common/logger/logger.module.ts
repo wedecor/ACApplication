@@ -2,6 +2,8 @@ import { Global, Module } from '@nestjs/common';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 import { randomUUID } from 'node:crypto';
 
+import { redactUrl } from './redact-url';
+
 /**
  * Pino structured logger with request id correlation and dev-time pretty
  * printing. In production we emit JSON for ingestion by Loki/Datadog/etc.
@@ -25,7 +27,7 @@ import { randomUUID } from 'node:crypto';
             return {
               id: req.id,
               method: req.method,
-              url: req.url,
+              url: redactUrl(req.url),
               userAgent: req.headers['user-agent'],
             };
           },
@@ -41,6 +43,14 @@ import { randomUUID } from 'node:crypto';
             '*.passwordHash',
             '*.refreshToken',
             '*.accessToken',
+            'req.headers["x-internal-token"]',
+            '*.token',
+            '*.code',
+            '*.otp',
+            '*.devCode',
+            '*.gatewayToken',
+            '*.signature',
+            '*.data.code',
           ],
           censor: '[REDACTED]',
         },

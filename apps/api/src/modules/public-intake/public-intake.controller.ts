@@ -26,7 +26,7 @@ export class PublicIntakeController {
   @Public()
   @HttpCode(HttpStatus.ACCEPTED)
   @Throttle({
-    default: {
+    global: {
       limit: Number(process.env['RATE_LIMIT_PUBLIC_LEAD_RPM'] ?? 5),
       ttl: 60_000,
     },
