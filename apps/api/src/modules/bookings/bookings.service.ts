@@ -26,6 +26,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { ActivityService } from '../activity/activity.service';
 import { AssignmentService } from '../assignment/assignment.service';
 import { LeadsRepository } from '../leads/leads.repository';
+import { isFieldTechnician } from '../repair/domain/access';
 import { computeRepairWarrantyUntil, isWindowActive } from '../repair/domain/warranty';
 import { createWorkshopJobTx } from '../repair/workshop/workshop-job.factory';
 import { BookingsRepository } from './bookings.repository';
@@ -236,14 +237,35 @@ export class BookingsService {
     return booking;
   }
 
-  list(actor: AuthPrincipal, query: ListBookingsDto) {
+  async list(actor: AuthPrincipal, query: ListBookingsDto) {
+    // Field technicians only ever see their own assignments, whatever filter they send.
+    const techId = await this.fieldTechnicianId(actor);
+    // Override on the DTO instance itself: pagination getters (skip/take) live on the class.
+    if (techId) query.technicianId = techId;
     return this.repo.list(actor.tenantId, query);
   }
 
+  /**
+   * Tenant-scoped lookup used by every per-booking action. A field technician
+   * gets a 404 for bookings not assigned to them (no existence leak).
+   */
   async getById(actor: AuthPrincipal, id: string) {
     const booking = await this.repo.findById(actor.tenantId, id);
     if (!booking) throw new NotFoundException('Booking not found');
+    const techId = await this.fieldTechnicianId(actor);
+    if (techId && booking.technicianId !== techId) throw new NotFoundException('Booking not found');
     return booking;
+  }
+
+  /** Technician id when the actor is a field technician (no back-office role), else null. */
+  private async fieldTechnicianId(actor: AuthPrincipal): Promise<string | null> {
+    if (!isFieldTechnician(actor)) return null;
+    const tech = await this.prisma.client.technician.findFirst({
+      where: { userId: actor.userId, tenantId: actor.tenantId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!tech) throw new ForbiddenException('No technician profile linked to this user');
+    return tech.id;
   }
 
   /** Booking detail plus a computed warranty summary for the repair panels. */
@@ -266,6 +288,8 @@ export class BookingsService {
   }
 
   async update(actor: AuthPrincipal, id: string, dto: UpdateBookingDto) {
+    // Price, schedule and customer details are back-office edits, not field actions.
+    if (isFieldTechnician(actor)) throw new ForbiddenException('Technicians cannot edit booking details');
     const booking = await this.getById(actor, id);
     if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Booking is closed and cannot be edited');
@@ -428,6 +452,7 @@ export class BookingsService {
         `Cannot transition booking from ${booking.status} to ${dto.status}`,
       );
     }
+    if (isFieldTechnician(actor)) assertTechnicianTransition(booking, dto.status);
 
     const now = new Date();
     const stamps: Record<string, Date> = {};
@@ -722,7 +747,8 @@ export class BookingsService {
     return note;
   }
 
-  listNotes(_actor: AuthPrincipal, id: string) {
+  async listNotes(actor: AuthPrincipal, id: string) {
+    await this.getById(actor, id);
     return this.repo.listNotes(id);
   }
 
@@ -757,7 +783,8 @@ export class BookingsService {
     return att;
   }
 
-  listAttachments(_actor: AuthPrincipal, id: string) {
+  async listAttachments(actor: AuthPrincipal, id: string) {
+    await this.getById(actor, id);
     return this.repo.listAttachments(id);
   }
 
@@ -788,7 +815,8 @@ export class BookingsService {
     return updated;
   }
 
-  listActivities(_actor: AuthPrincipal, id: string) {
+  async listActivities(actor: AuthPrincipal, id: string) {
+    await this.getById(actor, id);
     return this.activity.listBookingActivities(id);
   }
 
@@ -878,4 +906,30 @@ function describeAppliance(
   if (!appliance) return null;
   const label = [appliance.capacity, appliance.modelNumber].filter(Boolean).join(' ');
   return label || null;
+}
+
+/** Statuses a field technician may set from the app. */
+const TECHNICIAN_SETTABLE = new Set<BookingStatus>([
+  BookingStatus.TECHNICIAN_EN_ROUTE,
+  BookingStatus.IN_PROGRESS,
+  BookingStatus.WAITING_PARTS,
+  BookingStatus.COMPLETED,
+]);
+
+/**
+ * Field rules on top of the state machine: technicians can't cancel or mark
+ * no-shows, and work can only start (or resume) once the customer's arrival
+ * OTP has been verified — so the OTP step can't be skipped. (COMPLETED is
+ * only reachable from IN_PROGRESS in the state machine.)
+ */
+export function assertTechnicianTransition(
+  booking: { status: string; otpVerifiedAt: Date | null },
+  next: BookingStatus,
+): void {
+  if (!TECHNICIAN_SETTABLE.has(next)) {
+    throw new ForbiddenException(`Technicians cannot set a booking to ${next}`);
+  }
+  if (next === BookingStatus.IN_PROGRESS && !booking.otpVerifiedAt) {
+    throw new ForbiddenException('Verify the customer’s arrival OTP before starting work');
+  }
 }

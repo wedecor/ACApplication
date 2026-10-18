@@ -75,6 +75,7 @@ export class TicketsService {
       );
     }
     const tenantId = actor.tenantId;
+    await this.assertLinksInTenant(tenantId, dto);
     const number = await nextSupportNumber(this.prisma, tenantId, {
       prefix: 'TKT',
       table: 'supportTicket',
@@ -545,21 +546,42 @@ export class TicketsService {
     return { ids };
   }
 
+  /** Linked customer / booking / AMC ids must belong to the caller's tenant. */
+  private async assertLinksInTenant(
+    tenantId: string,
+    dto: Pick<CreateTicketDto, 'customerId' | 'bookingId' | 'amcSubscriptionId'>,
+  ): Promise<void> {
+    const [customer, booking, amc] = await Promise.all([
+      dto.customerId
+        ? this.prisma.client.customer.findFirst({ where: { id: dto.customerId, tenantId }, select: { id: true } })
+        : true,
+      dto.bookingId
+        ? this.prisma.client.booking.findFirst({ where: { id: dto.bookingId, tenantId }, select: { id: true } })
+        : true,
+      dto.amcSubscriptionId
+        ? this.prisma.client.aMCSubscription.findFirst({ where: { id: dto.amcSubscriptionId, tenantId }, select: { id: true } })
+        : true,
+    ]);
+    if (!customer) throw new NotFoundException('Customer not found');
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (!amc) throw new NotFoundException('AMC subscription not found');
+  }
+
   async recordCsat(
     actor: AuthPrincipal,
     id: string,
     dto: CsatDto,
   ): Promise<void> {
     const ticket = await this.requireTicket(actor.tenantId, id);
-    // Only the customer (or staff acting on behalf) may rate.
-    if (
-      ticket.customerId &&
-      actor.roles.length === 1 &&
-      actor.roles.includes('CUSTOMER' as never) &&
-      ticket.customerId !== actor.userId
-    ) {
-      // very defensive check; the upstream guard handles the typical case.
-      throw new ForbiddenException('Not allowed to rate this ticket');
+    // A customer may only rate their own ticket (customerId is the Customer row, not the user).
+    if (actor.roles.includes('CUSTOMER' as never)) {
+      const own = await this.prisma.client.customer.findFirst({
+        where: { tenantId: actor.tenantId, userId: actor.userId, deletedAt: null },
+        select: { id: true },
+      });
+      if (!own || ticket.customerId !== own.id) {
+        throw new ForbiddenException('Not allowed to rate this ticket');
+      }
     }
     await this.prisma.client.$transaction(async (tx) => {
       await tx.supportTicket.update({

@@ -440,9 +440,6 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'tech_inventory:use',
     'tech_inventory:return',
     'inventory:view',
-    'ticket:view',
-    'conversation:view',
-    'conversation:reply',
     'kb:view',
     'appliance:view',
     'appliance:manage',
@@ -454,7 +451,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'quotation:view',
     'quotation:create',
   ],
-  CUSTOMER: ['amc:subscribe', 'ticket:view', 'ticket:create', 'kb:view', 'self:service'],
+  // Customers reach their own data only through /me/* (self:service). Staff
+  // ticket permissions would expose every customer's tickets.
+  CUSTOMER: ['amc:subscribe', 'kb:view', 'self:service'],
 };
 
 export const SYSTEM_ROLE_KEYS = Object.keys(ROLE_PERMISSIONS) as UserRole[];

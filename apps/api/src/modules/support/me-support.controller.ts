@@ -78,7 +78,7 @@ export class MeSupportController {
   ) {}
 
   @Get('tickets')
-  @RequirePermissions(Permission.TICKET_VIEW)
+  @RequirePermissions(Permission.SELF_SERVICE)
   @ApiOperation({ summary: 'List support tickets for the current customer.' })
   async list(@CurrentUser() actor: AuthPrincipal) {
     const customerId = await this.requireCustomer(actor);
@@ -115,7 +115,7 @@ export class MeSupportController {
   }
 
   @Post('tickets')
-  @RequirePermissions(Permission.TICKET_CREATE)
+  @RequirePermissions(Permission.SELF_SERVICE)
   @ApiOperation({ summary: 'Open a new support ticket as the current customer.' })
   async create(
     @CurrentUser() actor: AuthPrincipal,
@@ -135,7 +135,7 @@ export class MeSupportController {
   }
 
   @Get('tickets/:id')
-  @RequirePermissions(Permission.TICKET_VIEW)
+  @RequirePermissions(Permission.SELF_SERVICE)
   async detail(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     const customerId = await this.requireCustomer(actor);
     const ticket = await this.prisma.client.supportTicket.findFirst({
@@ -162,7 +162,7 @@ export class MeSupportController {
   }
 
   @Get('tickets/:id/messages')
-  @RequirePermissions(Permission.TICKET_VIEW)
+  @RequirePermissions(Permission.SELF_SERVICE)
   async messages(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -190,7 +190,7 @@ export class MeSupportController {
   }
 
   @Post('tickets/:id/messages')
-  @RequirePermissions(Permission.TICKET_VIEW)
+  @RequirePermissions(Permission.SELF_SERVICE)
   @ApiOperation({ summary: 'Send a customer reply on a ticket I own.' })
   async send(
     @CurrentUser() actor: AuthPrincipal,
@@ -224,7 +224,7 @@ export class MeSupportController {
   }
 
   @Post('tickets/:id/csat')
-  @RequirePermissions(Permission.TICKET_VIEW)
+  @RequirePermissions(Permission.SELF_SERVICE)
   async csat(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
