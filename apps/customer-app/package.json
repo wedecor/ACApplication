@@ -4,7 +4,7 @@
   "private": true,
   "license": "UNLICENSED",
   "description": "AC Platform customer app (Expo / React Native).",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "expo start --dev-client",
     "android": "expo run:android",
