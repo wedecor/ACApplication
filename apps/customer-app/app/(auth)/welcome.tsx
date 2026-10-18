@@ -21,7 +21,7 @@ const HIGHLIGHTS = [
   },
   {
     icon: <ShieldCheck color="#fff" size={18} />,
-    title: '90-day service warranty',
+    title: '30-day service warranty',
     sub: 'Every job is covered. If it breaks again, we fix it free.',
   },
 ];
@@ -47,7 +47,7 @@ export default function WelcomeScreen() {
             }}
           >
             <Text tone="inverse" variant="caption">
-              India’s most trusted appliance repair platform
+              Home appliance repair by verified technicians
             </Text>
           </View>
           <Text tone="inverse" style={{ fontSize: 36, fontWeight: '800', lineHeight: 42 }}>
