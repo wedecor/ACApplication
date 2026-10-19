@@ -26,47 +26,47 @@ export function withSoftDelete<T extends PrismaClient>(client: T) {
     query: {
       $allModels: {
         async findMany({ model, args, query }) {
-          if (SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) {
+          if (SOFT_DELETE_MODELS.has(model)) {
             args.where = appendNotDeleted(args.where);
           }
           return query(args);
         },
         async findFirst({ model, args, query }) {
-          if (SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) {
+          if (SOFT_DELETE_MODELS.has(model)) {
             args.where = appendNotDeleted(args.where);
           }
           return query(args);
         },
         async findFirstOrThrow({ model, args, query }) {
-          if (SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) {
+          if (SOFT_DELETE_MODELS.has(model)) {
             args.where = appendNotDeleted(args.where);
           }
           return query(args);
         },
         async count({ model, args, query }) {
-          if (SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) {
+          if (SOFT_DELETE_MODELS.has(model)) {
             args.where = appendNotDeleted(args.where);
           }
           return query(args);
         },
         async delete({ model, args, query }) {
-          if (!SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) return query(args);
-          return (client as unknown as Record<string, { update: Function }>)[
+          if (!SOFT_DELETE_MODELS.has(model)) return query(args);
+          return (client as unknown as Record<string, { update: (args: unknown) => Promise<unknown> }>)[
             // PrismaClient delegate keys are camelCase first letter.
             (model as string).charAt(0).toLowerCase() + model.slice(1)
           ]!.update({
             where: args.where,
             data: { deletedAt: new Date() },
-          }) as unknown as ReturnType<typeof query>;
+          });
         },
         async deleteMany({ model, args, query }) {
-          if (!SOFT_DELETE_MODELS.has(model as Prisma.ModelName)) return query(args);
-          return (client as unknown as Record<string, { updateMany: Function }>)[
+          if (!SOFT_DELETE_MODELS.has(model)) return query(args);
+          return (client as unknown as Record<string, { updateMany: (args: unknown) => Promise<unknown> }>)[
             (model as string).charAt(0).toLowerCase() + model.slice(1)
           ]!.updateMany({
             where: args.where,
             data: { deletedAt: new Date() },
-          }) as unknown as ReturnType<typeof query>;
+          });
         },
       },
     },

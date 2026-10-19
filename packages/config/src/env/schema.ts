@@ -187,7 +187,7 @@ export const serverEnvSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'SMS_PROVIDER=console is not allowed in production', path: ['SMS_PROVIDER'] });
   }
 
-  const requireFields = (fields: Array<keyof typeof env>, message: string) => {
+  const requireFields = (fields: (keyof typeof env)[], message: string) => {
     for (const field of fields) {
       if (!env[field]) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [field] });

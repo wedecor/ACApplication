@@ -5,7 +5,7 @@ import { ROLE_PERMISSIONS, SEED_PERMISSIONS, SYSTEM_ROLE_KEYS } from './registry
 export interface RegistryValidationResult {
   valid: boolean;
   duplicatePermissionKeys: string[];
-  unknownRolePermissionKeys: Array<{ role: string; key: string }>;
+  unknownRolePermissionKeys: { role: string; key: string }[];
   missingSystemRoles: UserRole[];
   orphanRoleKeys: string[];
 }
@@ -20,7 +20,7 @@ export function validateRegistry(): RegistryValidationResult {
   }
 
   const permissionKeys = new Set(SEED_PERMISSIONS.map((p) => p.key));
-  const unknownRolePermissionKeys: Array<{ role: string; key: string }> = [];
+  const unknownRolePermissionKeys: { role: string; key: string }[] = [];
   for (const [role, keys] of Object.entries(ROLE_PERMISSIONS)) {
     for (const key of keys) {
       if (key === '*') continue;

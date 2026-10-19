@@ -1,4 +1,4 @@
-import { TicketStatus, canTransitionTicket } from '../enums';
+import { canTransitionTicket,TicketStatus } from '../enums';
 
 describe('canTransitionTicket', () => {
   it('allows the canonical happy path: OPEN → PENDING → RESOLVED → CLOSED', () => {

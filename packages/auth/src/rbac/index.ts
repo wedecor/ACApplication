@@ -1,8 +1,8 @@
-export * from './registry';
-export * from './validate';
-export type { RbacConsistencyReport, RbacHealthReport, RbacSyncStats } from './types';
-
 import { Permission, UserRole } from '@ac/types';
+
+export * from './registry';
+export type { RbacConsistencyReport, RbacHealthReport, RbacSyncStats } from './types';
+export * from './validate';
 
 /**
  * Default role -> permission map. Mirrors the DB seed in `@ac/database`.

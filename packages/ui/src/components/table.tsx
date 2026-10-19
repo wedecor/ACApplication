@@ -45,7 +45,7 @@ function useColumnLabels(ref: React.RefObject<HTMLTableElement>, enabled: boolea
 export const Table = React.forwardRef<HTMLTableElement, TableProps>(
   ({ className, stackOnMobile = false, ...props }, forwardedRef) => {
     const innerRef = React.useRef<HTMLTableElement>(null);
-    React.useImperativeHandle(forwardedRef, () => innerRef.current as HTMLTableElement);
+    React.useImperativeHandle(forwardedRef, () => innerRef.current!);
     useColumnLabels(innerRef, stackOnMobile);
     return (
       <div className={cn('relative w-full', stackOnMobile ? 'md:overflow-auto' : 'overflow-auto')}>

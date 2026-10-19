@@ -42,7 +42,7 @@ export class TokenService {
     refreshJti: string,
   ): Promise<TokenPair> {
     const now = Date.now();
-    const access = await new SignJWT({ ...base, typ: 'access' } satisfies AccessTokenPayload as unknown as JWTPayload)
+    const access = await new SignJWT({ ...base, typ: 'access' } satisfies AccessTokenPayload)
       .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
       .setIssuer(this.opts.issuer)
       .setAudience(this.opts.audience)
@@ -98,7 +98,7 @@ export class TokenService {
     const parts = token.split('.');
     if (parts.length !== 3 || !parts[1]) return null;
     try {
-      return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8'));
+      return JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf-8')) as AnyTokenPayload;
     } catch {
       return null;
     }

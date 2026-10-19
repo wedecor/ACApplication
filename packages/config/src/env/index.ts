@@ -1,4 +1,4 @@
-import { z, ZodError } from 'zod';
+import { z, type ZodError } from 'zod';
 
 import { clientEnvSchema, serverEnvSchema } from './schema';
 
@@ -36,7 +36,7 @@ export function loadServerEnv(
   source: NodeJS.ProcessEnv = process.env,
   options: LoadOptions = {},
 ) {
-  const { emptyStringAsUndefined = true, skipValidation = source['SKIP_ENV_VALIDATION'] === 'true' } =
+  const { emptyStringAsUndefined = true, skipValidation = source.SKIP_ENV_VALIDATION === 'true' } =
     options;
   const normalised = normaliseSource(source, emptyStringAsUndefined);
   if (skipValidation) {

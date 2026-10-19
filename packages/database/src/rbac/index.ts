@@ -1,7 +1,7 @@
 export {
   auditRbacConsistency,
-  syncAllTenantRbac,
-  syncPermissionsFromSeed,
   type RbacSyncOptions,
   type RbacSyncResult,
+  syncAllTenantRbac,
+  syncPermissionsFromSeed,
 } from './sync';

@@ -1,3 +1,4 @@
-import { baseConfig } from '@ac/eslint-config/base';
+import { baseConfig, untypedConfig } from '@ac/eslint-config/base';
 
-export default baseConfig;
+// Specs are excluded from the build tsconfig, so they are linted untyped.
+export default [...baseConfig, untypedConfig(['**/*.spec.ts', '**/*.test.ts', '**/__tests__/**'])];

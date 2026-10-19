@@ -80,23 +80,23 @@ export class NotificationDispatcher {
   }
 }
 
-export { renderTemplate } from './template';
 export {
-  NOTIFICATION_DLQ_NAME,
-  NOTIFICATION_QUEUE_NAME,
-  retryDelayMs,
-  type EnqueueNotificationInput,
-  type NotificationJobPayload,
-} from './job';
-export { IdempotencyKeys, scopeIdempotencyKey } from './idempotency';
-export {
-  circuitKey,
-  DEFAULT_CIRCUIT_CONFIG,
   type CircuitBreakerConfig,
+  circuitKey,
   type CircuitSnapshot,
   type CircuitState,
+  DEFAULT_CIRCUIT_CONFIG,
 } from './circuit-breaker';
-export { sendWithFailover, type FailoverSendContext, type NamedProvider } from './failover';
+export { type FailoverSendContext, type NamedProvider,sendWithFailover } from './failover';
+export { IdempotencyKeys, scopeIdempotencyKey } from './idempotency';
+export {
+  type EnqueueNotificationInput,
+  NOTIFICATION_DLQ_NAME,
+  NOTIFICATION_QUEUE_NAME,
+  type NotificationJobPayload,
+  retryDelayMs,
+} from './job';
+export { renderTemplate } from './template';
 
 /** Console transport for local dev. */
 export class ConsoleTransport implements NotificationTransport {

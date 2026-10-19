@@ -22,23 +22,24 @@
  * Dates are anchored to "now" at insert time: ~45 days of history through the
  * next 7 days. Use `--fresh` to re-anchor an old demo dataset.
  */
-import { Prisma, PrismaClient } from '@prisma/client';
-import type {
-  ActivityType,
-  BookingPriority,
-  BookingStatus,
-  InvoiceStatus,
-  LeadSource,
-  LeadStatus,
-  PaymentMethod,
-  ServiceCategory,
-  ServiceMode,
-  TechnicianStatus,
-  TicketPriority,
-  TicketSource,
-  TicketStatus,
-  UserRole,
-  WorkshopJobStatus,
+import {
+  type ActivityType,
+  type BookingPriority,
+  type BookingStatus,
+  type InvoiceStatus,
+  type LeadSource,
+  type LeadStatus,
+  type PaymentMethod,
+  type Prisma,
+  PrismaClient,
+  type ServiceCategory,
+  type ServiceMode,
+  type TechnicianStatus,
+  type TicketPriority,
+  type TicketSource,
+  type TicketStatus,
+  type UserRole,
+  type WorkshopJobStatus,
 } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -79,7 +80,7 @@ function must<T>(v: T | undefined | null, what: string): T {
   }
   return v;
 }
-function weighted<T>(entries: ReadonlyArray<readonly [T, number]>): T {
+function weighted<T>(entries: readonly (readonly [T, number])[]): T {
   const total = entries.reduce((s, [, w]) => s + w, 0);
   let r = rand() * total;
   for (const [v, w] of entries) {
@@ -327,7 +328,7 @@ const APPLIANCE_MODELS: Partial<Record<ServiceCategory, ModelSpec[]>> = {
     ['IFB', 'Neptune VX Plus', '12 place'],
   ],
 };
-const APPLIANCE_WEIGHTS: ReadonlyArray<readonly [ServiceCategory, number]> = [
+const APPLIANCE_WEIGHTS: readonly (readonly [ServiceCategory, number])[] = [
   ['AC_REPAIR', 34],
   ['REFRIGERATOR', 14],
   ['WASHING_MACHINE', 15],
@@ -378,7 +379,7 @@ const SYMPTOMS: Record<string, string[]> = {
   CHIMNEY: ['Low suction'],
   DISHWASHER: ['Poor wash', 'Not draining'],
 };
-const DIAGNOSES: Record<string, Array<[diagnosis: string, rootCause: string, resolution: string]>> = {
+const DIAGNOSES: Record<string, [diagnosis: string, rootCause: string, resolution: string][]> = {
   AC: [
     ['Low suction pressure (38 psi), oil marks at flare joint', 'Flare nut leak on outdoor service valve', 'Re-flared joint, nitrogen leak test, vacuum and full R32 charge'],
     ['Run capacitor bulged, compressor not starting', 'Capacitor failure due to voltage fluctuation', 'Replaced 35+2.5 MFD capacitor, advised stabiliser'],
@@ -439,7 +440,7 @@ const TECH_SPECS: TechSpec[] = [
   { n: 8, first: 'Gurpreet', last: 'Singh Bhatia', city: 'Delhi', skills: ['AC_REPAIR', 'AC_SERVICING', 'GEYSER', 'ELECTRICAL_WIRING', 'INVERTER_UPS', 'REFRIGERATOR', 'WASHING_MACHINE'], status: 'UNREACHABLE', rating: 4.1, jobs: 129 },
 ];
 
-const STAFF_SPECS: Array<{ n: number; first: string; last: string; role: UserRole }> = [
+const STAFF_SPECS: { n: number; first: string; last: string; role: UserRole }[] = [
   { n: 1, first: 'Farah', last: 'Ansari', role: 'CALL_CENTER_AGENT' },
   { n: 2, first: 'Rakesh', last: 'Yadav', role: 'CALL_CENTER_AGENT' },
   { n: 3, first: 'Shalini', last: 'Menon', role: 'DISPATCHER' },
@@ -506,7 +507,7 @@ async function reset(): Promise<void> {
   console.info('Removing demo rows…');
   const cust = { customerId: demoId };
   const book = { bookingId: demoId };
-  const steps: Array<[string, () => Promise<{ count: number }>]> = [
+  const steps: [string, () => Promise<{ count: number }>][] = [
     ['Notification', () => prisma.notification.deleteMany({ where: { OR: [{ id: demoId }, { userId: demoId }] } })],
     ['TechnicianLocation', () => prisma.technicianLocation.deleteMany({ where: { OR: [{ id: demoId }, { technicianId: demoId }] } })],
     ['TechnicianAvailability', () => prisma.technicianAvailability.deleteMany({ where: { OR: [{ id: demoId }, { technicianId: demoId }] } })],
@@ -827,7 +828,7 @@ async function seed(): Promise<void> {
     address: { line1: string; line2: string | null; landmark: string | null; city: string; state: string; pincode: string; country: string };
     lat: number;
     lng: number;
-    appliances: Array<{ id: string; category: ServiceCategory; brand: string; model: string; capacity: string; warrantyUntil: Date | null }>;
+    appliances: { id: string; category: ServiceCategory; brand: string; model: string; capacity: string; warrantyUntil: Date | null }[];
     createdAt: Date;
   }
   const customers: CustRef[] = [];
@@ -981,7 +982,7 @@ async function seed(): Promise<void> {
     ...Array<BookingStatus>(2).fill('DRAFT'),
   ];
   // Workshop overrides: [status, occurrence index, mode, workshop status]
-  const workshopPlan: Array<[BookingStatus, number, ServiceMode, WorkshopJobStatus]> = [
+  const workshopPlan: [BookingStatus, number, ServiceMode, WorkshopJobStatus][] = [
     ['COMPLETED', 3, 'PICKUP_DROP', 'DELIVERED'],
     ['COMPLETED', 9, 'CARRY_IN', 'DELIVERED'],
     ['IN_PROGRESS', 0, 'PICKUP_DROP', 'REPAIRING'],
@@ -1128,7 +1129,7 @@ async function seed(): Promise<void> {
     const completedAt = status === 'COMPLETED' && startedAt ? notFuture(plus(startedAt, between(45, 150) * MIN)) : null;
     const cancelledAt = status === 'CANCELLED' ? notFuture(plus(createdAt, between(2, 30) * HOUR)) : null;
     const famKey = fam(category);
-    const issue = pick(must(ISSUES[famKey] ?? ISSUES['AC'], 'issues'));
+    const issue = pick(must(ISSUES[famKey] ?? ISSUES.AC, 'issues'));
     const est = catalogItem.basePriceMinor + catalogItem.visitChargeMinor;
 
     bookings.push({
@@ -1609,7 +1610,7 @@ async function seed(): Promise<void> {
   // --------------------------------------------------------------------------
   // AMC subscriptions + visits (+ AMC invoices)
   // --------------------------------------------------------------------------
-  const amcSpecs: Array<{ cust: number; slug: string; status: 'ACTIVE' | 'EXPIRED' | 'PENDING_PAYMENT' | 'CANCELLED' | 'PAUSED'; startDaysAgo: number; invoice?: 'PAID' | 'SENT' }> = [
+  const amcSpecs: { cust: number; slug: string; status: 'ACTIVE' | 'EXPIRED' | 'PENDING_PAYMENT' | 'CANCELLED' | 'PAUSED'; startDaysAgo: number; invoice?: 'PAID' | 'SENT' }[] = [
     { cust: 3, slug: 'premium', status: 'ACTIVE', startDaysAgo: 200, invoice: 'PAID' },
     { cust: 7, slug: 'standard', status: 'ACTIVE', startDaysAgo: 350 },
     { cust: 11, slug: 'basic', status: 'ACTIVE', startDaysAgo: 30, invoice: 'PAID' },
@@ -1885,12 +1886,12 @@ async function seed(): Promise<void> {
       .filter((t) => kinds.includes(t.kind))
       .map((t) => {
         const answers: Record<string, unknown> = {};
-        const tplItems = Array.isArray(t.items) ? (t.items as unknown as Array<{ key: string; type: string }>) : [];
+        const tplItems = Array.isArray(t.items) ? (t.items as unknown as { key: string; type: string }[]) : [];
         for (const it of tplItems) answers[it.key] = answerFor(it, readings);
         return { templateId: t.id, kind: t.kind, answers };
       });
     const codes = faultCodes.filter((f) => fam(f.category) === famKey && (!f.brand || f.brand === b.appliance.brand));
-    const [diagnosis, rootCause, resolution] = pick(must(DIAGNOSES[famKey] ?? DIAGNOSES['AC'], 'diagnoses'));
+    const [diagnosis, rootCause, resolution] = pick(must(DIAGNOSES[famKey] ?? DIAGNOSES.AC, 'diagnoses'));
     const parts = partsFor(b.category);
     jobCards.push({
       id: did('jc', b.n),
@@ -2206,7 +2207,7 @@ async function seed(): Promise<void> {
     subject: string | null;
     agentId: string | null;
     start: Date;
-    messages: Array<{ inbound: boolean; body: string }>;
+    messages: { inbound: boolean; body: string }[];
     unread: number;
   }) => {
     convSeq += 1;
@@ -2302,7 +2303,7 @@ async function seed(): Promise<void> {
       createdAt,
       createdBy: s.source === 'PHONE' || s.source === 'MANUAL' || s.source === 'WALK_IN' ? (agent ?? ctx.adminId) : null,
     });
-    const msgs: Array<{ kind: 'CUSTOMER' | 'AGENT' | 'SYSTEM'; body: string; internal?: boolean }> = [
+    const msgs: { kind: 'CUSTOMER' | 'AGENT' | 'SYSTEM'; body: string; internal?: boolean }[] = [
       { kind: 'CUSTOMER', body: s.long ? 'Purifier is leaking again, floor is wet every morning. Photos attached.' : `Hi, ${s.subject.toLowerCase()}. Please help.` },
     ];
     if (firstResponseAt) msgs.push({ kind: 'AGENT', body: `Hello${cust ? ` ${cust.name.split(' ')[0]}` : ''}, sorry for the trouble. I am checking this for you right away.` });
@@ -2371,7 +2372,7 @@ async function seed(): Promise<void> {
 
   const callLogs: Prisma.CallLogCreateManyInput[] = [];
   const COMPANY_LINE = '+918041234567';
-  const callSpecs: Array<{ dir: 'INBOUND' | 'OUTBOUND'; status: Prisma.CallLogCreateManyInput['status']; cust: number | null; disp?: Prisma.CallLogCreateManyInput['disposition']; mins: number; hoursAgo: number; ticket?: number; notes?: string }> = [
+  const callSpecs: { dir: 'INBOUND' | 'OUTBOUND'; status: Prisma.CallLogCreateManyInput['status']; cust: number | null; disp?: Prisma.CallLogCreateManyInput['disposition']; mins: number; hoursAgo: number; ticket?: number; notes?: string }[] = [
     { dir: 'INBOUND', status: 'COMPLETED', cust: 9, disp: 'COMPLAINT', mins: 6, hoursAgo: 7, ticket: 2, notes: 'Customer upset — technician did not show up. Escalated.' },
     { dir: 'INBOUND', status: 'MISSED', cust: null, mins: 0, hoursAgo: 2 },
     { dir: 'OUTBOUND', status: 'COMPLETED', cust: 9, disp: 'CALLBACK_REQUESTED', mins: 3, hoursAgo: 6, ticket: 2 },
@@ -2475,7 +2476,7 @@ async function seed(): Promise<void> {
     code: code as string,
     title: title as string,
     body: body as string,
-    channels: channels as Array<'WHATSAPP' | 'EMAIL' | 'WEB_CHAT' | 'IN_APP_CHAT' | 'SMS'>,
+    channels: channels as ('WHATSAPP' | 'EMAIL' | 'WEB_CHAT' | 'IN_APP_CHAT' | 'SMS')[],
     scope: i === 6 ? 'TEAM' : 'GLOBAL',
     team: i === 6 ? 'sales' : null,
     tags: tags as string[],
@@ -2549,7 +2550,7 @@ async function seed(): Promise<void> {
   // --------------------------------------------------------------------------
   const stocks: Prisma.WarehouseStockCreateManyInput[] = [];
   const stockQty = new Map<string, number>();
-  const lowStocks: Array<{ stockId: string; itemId: string; whId: string; qty: number; reorder: number; name: string; whName: string }> = [];
+  const lowStocks: { stockId: string; itemId: string; whId: string; qty: number; reorder: number; name: string; whName: string }[] = [];
   ITEM_SPECS.forEach((s, ii) => {
     warehouses.forEach((w, wi) => {
       const whId = must(w.id, 'wh');
@@ -2583,8 +2584,8 @@ async function seed(): Promise<void> {
   const poItems: Prisma.PurchaseOrderItemCreateManyInput[] = [];
   const grns: Prisma.GoodsReceiptCreateManyInput[] = [];
   const grnItems: Prisma.GoodsReceiptItemCreateManyInput[] = [];
-  const receivedIn: Array<{ itemId: string; whId: string; qty: number; cost: number; at: Date; poId: string; grnId: string }> = [];
-  const poSpecs: Array<{ status: Prisma.PurchaseOrderCreateManyInput['status']; vendor: number; wh: number; daysAgo: number; skus: Array<[string, number]> }> = [
+  const receivedIn: { itemId: string; whId: string; qty: number; cost: number; at: Date; poId: string; grnId: string }[] = [];
+  const poSpecs: { status: Prisma.PurchaseOrderCreateManyInput['status']; vendor: number; wh: number; daysAgo: number; skus: [string, number][] }[] = [
     { status: 'DRAFT', vendor: 1, wh: 1, daysAgo: 1, skus: [['ACR-GAS-R32-1KG', 40], ['ACR-CAP-35MFD', 50]] },
     { status: 'AWAITING_APPROVAL', vendor: 4, wh: 1, daysAgo: 2, skus: [['RO-MEMBRANE-80G', 30], ['RO-SEDIMENT-10', 100], ['RO-CARBON-PRE', 80]] },
     { status: 'ORDERED', vendor: 2, wh: 2, daysAgo: 12, skus: [['ACR-PCB-LG-DUAL', 4], ['ACR-THERM-10K', 40]] },
@@ -2655,14 +2656,14 @@ async function seed(): Promise<void> {
     { id: did('trn', 3), tenantId: T, number: docNo('TRN', 3), sourceWarehouseId: did('wh', 2), destWarehouseId: did('wh', 1), status: 'REQUESTED', requestedAt: ago(5 * HOUR), notes: 'Return slow-moving R22 cans to central.', requestedBy: did('user', 's03'), createdAt: ago(5 * HOUR) },
   ];
   const transferItems: Prisma.StockTransferItemCreateManyInput[] = [];
-  const transferMoves: Array<{ itemId: string; from: string; to: string | null; qty: number; at: Date; transferId: string }> = [];
+  const transferMoves: { itemId: string; from: string; to: string | null; qty: number; at: Date; transferId: string }[] = [];
   ([
     [1, 'ACR-CAP-35MFD', 20, 20, 0],
     [1, 'ACR-CAP-45MFD', 15, 15, 0],
     [2, 'GEY-ELEMENT-2KW', 10, 10, 10],
     [2, 'ACR-GAS-R32-1KG', 12, 12, 11],
     [3, 'ACR-GAS-R22-1KG', 4, 0, 0],
-  ] as Array<[number, string, number, number, number]>).forEach(([t, sku, req, disp, recv], i) => {
+  ] as [number, string, number, number, number][]).forEach(([t, sku, req, disp, recv], i) => {
     const { id: itemId, spec } = itemBySku(sku);
     transferItems.push({ id: did('trni', i + 1), transferId: did('trn', t), itemId, requestedQty: req, dispatchedQty: disp, receivedQty: recv, unitCostMinor: inr(spec.cost), notes: t === 2 && recv < disp ? '1 can damaged in transit' : null });
     const tr = must(transfers[t - 1], 'transfer');
@@ -2702,7 +2703,7 @@ async function seed(): Promise<void> {
   // Ledger: opening + receipts + transfers + van issues, consistent with the
   // final WarehouseStock.quantity snapshot.
   const ledger: Prisma.InventoryLedgerCreateManyInput[] = [];
-  const movesByKey = new Map<string, Array<{ kind: Prisma.InventoryLedgerCreateManyInput['kind']; delta: number; at: Date; cost: number; ref: Partial<Prisma.InventoryLedgerCreateManyInput>; desc: string }>>();
+  const movesByKey = new Map<string, { kind: Prisma.InventoryLedgerCreateManyInput['kind']; delta: number; at: Date; cost: number; ref: Partial<Prisma.InventoryLedgerCreateManyInput>; desc: string }[]>();
   const addMove = (itemId: string, whId: string, m: { kind: Prisma.InventoryLedgerCreateManyInput['kind']; delta: number; at: Date; cost: number; ref: Partial<Prisma.InventoryLedgerCreateManyInput>; desc: string }) => {
     const key = `${itemId}|${whId}`;
     movesByKey.set(key, [...(movesByKey.get(key) ?? []), m]);
@@ -2804,7 +2805,7 @@ async function seed(): Promise<void> {
     [3, 42, 'PENDING'],
     [5, 29, 'REWARDED'],
     [7, 45, 'REJECTED'],
-  ] as Array<[number, number, 'PENDING' | 'QUALIFIED' | 'REWARDED' | 'REJECTED']>).forEach(([codeIdx, referredIdx, status], k) => {
+  ] as [number, number, 'PENDING' | 'QUALIFIED' | 'REWARDED' | 'REJECTED'][]).forEach(([codeIdx, referredIdx, status], k) => {
     const rc = must(referralCodes[codeIdx - 1], 'referral code');
     const referred = at(customers, referredIdx - 1);
     const qb = bookings.find((b) => b.cust.id === referred.id && b.status === 'COMPLETED');
@@ -2834,7 +2835,7 @@ async function seed(): Promise<void> {
       if (pts <= 0) return;
       const bal = (loyaltyBalance.get(inv.customerId) ?? 0) + pts;
       loyaltyBalance.set(inv.customerId, bal);
-      loyalty.push({ id: did('loy', k + 1), tenantId: T, customerId: inv.customerId, points: pts, balanceAfter: bal, reason: `Earned on invoice ${inv.number}`, refType: 'invoice', refId: inv.id, createdAt: p.createdAt as Date });
+      loyalty.push({ id: did('loy', k + 1), tenantId: T, customerId: inv.customerId, points: pts, balanceAfter: bal, reason: `Earned on invoice ${inv.number}`, refType: 'invoice', refId: inv.id, createdAt: p.createdAt });
     });
   referrals.filter((r) => r.status === 'REWARDED').forEach((r, k) => {
     const bal = (loyaltyBalance.get(r.referrerCustomerId) ?? 0) + 200;
@@ -2851,7 +2852,7 @@ async function seed(): Promise<void> {
   // --------------------------------------------------------------------------
   // Sales pipeline, tasks, custom fields
   // --------------------------------------------------------------------------
-  const oppSpecs: Array<[string, number | null, number | null, Prisma.OpportunityCreateManyInput['stage'], number, number, string | null]> = [
+  const oppSpecs: [string, number | null, number | null, Prisma.OpportunityCreateManyInput['stage'], number, number, string | null][] = [
     ['Annual AMC for 120 split ACs — Lakeshore Gardens', 1, 3, 'NEGOTIATION', 480000, 70, null],
     ['VRF & cassette AC maintenance contract — Vertex Tech Park', 2, 13, 'PROPOSAL', 1250000, 50, null],
     ['64-room AC overhaul before peak season', 3, 28, 'QUALIFIED', 860000, 30, null],
@@ -2882,7 +2883,7 @@ async function seed(): Promise<void> {
     createdBy: ctx.adminId,
   }));
 
-  const taskSpecs: Array<[string, Prisma.TaskCreateManyInput['status'], Prisma.TaskCreateManyInput['priority'], number | 'today', string | null, string | null]> = [
+  const taskSpecs: [string, Prisma.TaskCreateManyInput['status'], Prisma.TaskCreateManyInput['priority'], number | 'today', string | null, string | null][] = [
     ['Call back Ramya about AMC quote', 'OPEN', 'HIGH', -2, 'lead', did('lead', 10)],
     ['Collect pending payment from Rahul Deshpande', 'OPEN', 'URGENT', -4, 'customer', did('cust', 13)],
     ['Follow up with vendor on delayed PCB order', 'OPEN', 'NORMAL', -1, null, null],
@@ -2974,7 +2975,7 @@ async function seed(): Promise<void> {
       locations.push({
         id: did('tloc', `${spec.n}_${p + 1}`),
         tenantId: T,
-        technicianId: t.id as string,
+        technicianId: t.id!,
         latitude: (t.lastLatitude ?? 0) - (pings - 1 - p) * 0.0012,
         longitude: (t.lastLongitude ?? 0) - (pings - 1 - p) * 0.0009,
         accuracyM: between(5, 20),
@@ -2994,7 +2995,7 @@ async function seed(): Promise<void> {
       availability.push({
         id: did('tavail', `${spec.n}_${d}`),
         tenantId: T,
-        technicianId: t.id as string,
+        technicianId: t.id!,
         date: day,
         onlineMinutes: off ? 0 : between(380, 560),
         availableMinutes: off ? 0 : between(60, 180),
@@ -3011,10 +3012,10 @@ async function seed(): Promise<void> {
     }
     if (online) {
       const started = ago(between(120, 300) * MIN);
-      shifts.push({ id: did('tshift', `${spec.n}_today`), tenantId: T, technicianId: t.id as string, startedAt: started, startedLatitude: t.lastLatitude ?? null, startedLongitude: t.lastLongitude ?? null, createdAt: started });
+      shifts.push({ id: did('tshift', `${spec.n}_today`), tenantId: T, technicianId: t.id!, startedAt: started, startedLatitude: t.lastLatitude ?? null, startedLongitude: t.lastLongitude ?? null, createdAt: started });
     }
     const y = istAt(-1, 9, between(0, 30));
-    shifts.push({ id: did('tshift', `${spec.n}_y`), tenantId: T, technicianId: t.id as string, startedAt: y, endedAt: plus(y, 9 * HOUR), durationMin: 540, endReason: 'manual', createdAt: y });
+    shifts.push({ id: did('tshift', `${spec.n}_y`), tenantId: T, technicianId: t.id!, startedAt: y, endedAt: plus(y, 9 * HOUR), durationMin: 540, endReason: 'manual', createdAt: y });
   });
 
   // --------------------------------------------------------------------------
@@ -3027,17 +3028,17 @@ async function seed(): Promise<void> {
     notifications.push({ id: did('notif', notifSeq), tenantId: T, provider: row.channel === 'IN_APP' ? 'in-app' : 'mock', ...row });
   };
   bookings.filter((b) => b.tech && b.assignedAt).slice(0, 10).forEach((b, k) => {
-    notify({ userId: b.tech?.userId ?? null, channel: 'IN_APP', template: 'booking.technician_assigned', status: k < 6 ? 'READ' : 'DELIVERED', payload: json({ code: b.code, technician: b.tech?.name, bookingId: b.id }), sentAt: b.assignedAt, deliveredAt: b.assignedAt, readAt: k < 6 ? plus(b.assignedAt as Date, 4 * MIN) : null, createdAt: b.assignedAt as Date });
+    notify({ userId: b.tech?.userId ?? null, channel: 'IN_APP', template: 'booking.technician_assigned', status: k < 6 ? 'READ' : 'DELIVERED', payload: json({ code: b.code, technician: b.tech?.name, bookingId: b.id }), sentAt: b.assignedAt, deliveredAt: b.assignedAt, readAt: k < 6 ? plus(b.assignedAt!, 4 * MIN) : null, createdAt: b.assignedAt! });
   });
   leadRows.filter((l) => l.assignedUserId).slice(0, 6).forEach((l, k) => {
-    notify({ userId: l.assignedUserId ?? null, channel: 'IN_APP', template: 'lead.assigned', status: k % 2 === 0 ? 'READ' : 'DELIVERED', payload: json({ leadId: l.code, customerName: l.customerName }), sentAt: l.assignedAt as Date, deliveredAt: l.assignedAt as Date, createdAt: l.assignedAt as Date });
+    notify({ userId: l.assignedUserId ?? null, channel: 'IN_APP', template: 'lead.assigned', status: k % 2 === 0 ? 'READ' : 'DELIVERED', payload: json({ leadId: l.code, customerName: l.customerName }), sentAt: l.assignedAt, deliveredAt: l.assignedAt, createdAt: l.assignedAt as Date });
   });
   bookings.filter((b) => b.status !== 'DRAFT').slice(0, 12).forEach((b, k) => {
     const failed = k === 7;
     notify({ userId: b.cust.userId, channel: k % 3 === 0 ? 'WHATSAPP' : 'SMS', template: 'booking.confirmation', status: failed ? 'FAILED' : k % 2 === 0 ? 'DELIVERED' : 'SENT', payload: json({ code: b.code, customerName: b.cust.name, scheduledAt: b.scheduledAt.toISOString() }), recipientPhone: b.cust.phone, retryCount: failed ? 5 : 0, failureReason: failed ? 'DLT template mismatch (provider error 4012)' : null, sentAt: failed ? null : plus(b.createdAt, MIN), deliveredAt: !failed && k % 2 === 0 ? plus(b.createdAt, 2 * MIN) : null, createdAt: b.createdAt });
   });
   invoices.filter((i) => i.status !== 'DRAFT' && i.issueDate).slice(0, 6).forEach((i) => {
-    notify({ userId: did('user', `c${String(Number(i.customerId.split('_').pop())).padStart(2, '0')}`), channel: 'SMS', template: 'invoice.generated', status: 'DELIVERED', payload: json({ number: i.number, totalMinor: i.totalMinor, dueAmountMinor: i.dueAmountMinor }), sentAt: i.issueDate as Date, deliveredAt: i.issueDate as Date, createdAt: i.issueDate as Date });
+    notify({ userId: did('user', `c${String(Number(i.customerId.split('_').pop())).padStart(2, '0')}`), channel: 'SMS', template: 'invoice.generated', status: 'DELIVERED', payload: json({ number: i.number, totalMinor: i.totalMinor, dueAmountMinor: i.dueAmountMinor }), sentAt: i.issueDate, deliveredAt: i.issueDate, createdAt: i.issueDate as Date });
   });
   [
     ['support.ticket.created', 'New urgent ticket: Geyser tripping MCB — elderly parents at home', 'DELIVERED'],
@@ -3045,7 +3046,7 @@ async function seed(): Promise<void> {
     ['inventory.alert', 'R32 refrigerant below reorder level at Mumbai Andheri Branch', 'READ'],
     ['payout.ready', 'Weekly technician payouts are ready for approval', 'DELIVERED'],
   ].forEach(([template, title, status], k) => {
-    notify({ userId: k % 2 === 0 ? ctx.adminId : ctx.dispatcherId, channel: 'IN_APP', template: template as string, status: status as 'DELIVERED' | 'READ', payload: json({ title, body: title }), sentAt: ago((k + 1) * 35 * MIN), deliveredAt: ago((k + 1) * 35 * MIN), readAt: status === 'READ' ? ago(10 * MIN) : null, createdAt: ago((k + 1) * 35 * MIN) });
+    notify({ userId: k % 2 === 0 ? ctx.adminId : ctx.dispatcherId, channel: 'IN_APP', template: template!, status: status as 'DELIVERED' | 'READ', payload: json({ title, body: title }), sentAt: ago((k + 1) * 35 * MIN), deliveredAt: ago((k + 1) * 35 * MIN), readAt: status === 'READ' ? ago(10 * MIN) : null, createdAt: ago((k + 1) * 35 * MIN) });
   });
 
   // --------------------------------------------------------------------------
@@ -3054,9 +3055,9 @@ async function seed(): Promise<void> {
   const bookingCounts = new Map<string, number>();
   bookings.forEach((b) => bookingCounts.set(b.cust.id, (bookingCounts.get(b.cust.id) ?? 0) + 1));
   for (const row of customerRows) {
-    row.totalBookings = bookingCounts.get(row.id as string) ?? 0;
-    row.lifetimeValueMinor = BigInt(custPaid.get(row.id as string) ?? 0);
-    row.loyaltyPoints = loyaltyBalance.get(row.id as string) ?? 0;
+    row.totalBookings = bookingCounts.get(row.id!) ?? 0;
+    row.lifetimeValueMinor = BigInt(custPaid.get(row.id!) ?? 0);
+    row.loyaltyPoints = loyaltyBalance.get(row.id!) ?? 0;
     const amc = amcSpecs.find((a) => did('cust', a.cust) === row.id && a.status === 'ACTIVE');
     if (amc) row.tags = [...new Set([...(row.tags as string[]), 'amc'])];
   }
@@ -3064,7 +3065,7 @@ async function seed(): Promise<void> {
   // ==========================================================================
   // Insert (parents first). skipDuplicates makes re-runs a no-op.
   // ==========================================================================
-  const inserted: Array<[string, number]> = [];
+  const inserted: [string, number][] = [];
   const ins = async (name: string, run: () => Promise<{ count: number }>) => {
     const { count } = await run();
     inserted.push([name, count]);
@@ -3173,7 +3174,7 @@ const SUMMARY_MODELS = [
 async function printSummary(): Promise<void> {
   // Delegates are looked up by name; typed as a minimal count() interface.
   const client = prisma as unknown as Record<string, { count: (args?: { where?: Record<string, unknown> }) => Promise<number> }>;
-  const rows: Array<{ model: string; demo: number; total: number }> = [];
+  const rows: { model: string; demo: number; total: number }[] = [];
   for (const m of SUMMARY_MODELS) {
     const delegate = client[m];
     if (!delegate) continue;

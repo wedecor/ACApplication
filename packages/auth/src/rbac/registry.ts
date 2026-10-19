@@ -1,4 +1,4 @@
-import { UserRole } from '@ac/types';
+import { type UserRole } from '@ac/types';
 
 export interface SeedPermissionDef {
   key: string;
@@ -7,7 +7,7 @@ export interface SeedPermissionDef {
   description: string;
 }
 
-export const SEED_PERMISSIONS: Array<{ key: string; resource: string; action: string; description: string }> = [
+export const SEED_PERMISSIONS: { key: string; resource: string; action: string; description: string }[] = [
   // Leads
   { key: 'lead:create', resource: 'lead', action: 'create', description: 'Create leads' },
   { key: 'lead:view', resource: 'lead', action: 'view', description: 'View leads' },

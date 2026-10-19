@@ -1,12 +1,12 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { NotificationChannel } from '@ac/types';
 import type {
   NotificationMessage,
   NotificationRecipient,
   NotificationTransport,
   SendResult,
 } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 import { z } from 'zod';
 
 const PROVIDER_TIMEOUT_MS = 10_000;
@@ -77,7 +77,7 @@ export class WhatsAppClient implements NotificationTransport {
       const text = await res.text();
       return { channel: this.channel, status: 'failed', error: text };
     }
-    const json = (await res.json()) as { messages?: Array<{ id: string }> };
+    const json = (await res.json()) as { messages?: { id: string }[] };
     return {
       channel: this.channel,
       status: 'sent',

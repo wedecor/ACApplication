@@ -21,10 +21,18 @@ export interface AnalyticsProvider {
 
 /** No-op provider — default for tests & local dev. */
 export class NoopAnalyticsProvider implements AnalyticsProvider {
-  identify(): void {}
-  track(): void {}
-  page(): void {}
-  reset(): void {}
+  identify(): void {
+    /* no-op */
+  }
+  track(): void {
+    /* no-op */
+  }
+  page(): void {
+    /* no-op */
+  }
+  reset(): void {
+    /* no-op */
+  }
 }
 
 /** Stdout provider — useful when debugging locally. */
@@ -61,7 +69,7 @@ export class Analytics {
   identify(userId: string, traits?: EventProperties) {
     return this.provider.identify(userId, traits);
   }
-  track(event: AnalyticsEvent | string, properties?: EventProperties, context?: AnalyticsContext) {
+  track(event: AnalyticsEvent | (string & Record<never, never>), properties?: EventProperties, context?: AnalyticsContext) {
     return this.provider.track(event, properties, context);
   }
   page(name: string, properties?: EventProperties) {

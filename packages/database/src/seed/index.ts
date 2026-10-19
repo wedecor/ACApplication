@@ -5,19 +5,19 @@
  *   pnpm --filter @ac/database seed
  */
 import { assertRegistryValid } from '@ac/auth';
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, type UserRole } from '@prisma/client';
 
 import { syncPermissionsFromSeed } from '../rbac/sync';
 import { seedRepair } from './repair';
 
 const prisma = new PrismaClient();
 
-const NOTIFICATION_TEMPLATES: Array<{
+const NOTIFICATION_TEMPLATES: {
   key: string;
   channel: 'EMAIL' | 'SMS' | 'PUSH' | 'WHATSAPP' | 'IN_APP';
   subject?: string;
   body: string;
-}> = [
+}[] = [
   { key: 'auth.otp', channel: 'SMS', body: 'Your AC Platform login code is {{code}}. Valid for 5 minutes.' },
   { key: 'auth.otp', channel: 'WHATSAPP', body: 'Your login code is {{code}}.' },
   {
@@ -169,7 +169,7 @@ async function main() {
         renewalPriceMinor: plan.renewalPriceMinor,
         visitCadenceDays: plan.visitCadenceDays,
         appliancesCovered: [...plan.appliancesCovered],
-        features: plan.features as unknown as object,
+        features: plan.features,
         isActive: true,
       },
       create: {
@@ -187,7 +187,7 @@ async function main() {
         renewalPriceMinor: plan.renewalPriceMinor,
         visitCadenceDays: plan.visitCadenceDays,
         appliancesCovered: [...plan.appliancesCovered],
-        features: plan.features as unknown as object,
+        features: plan.features,
         isActive: true,
       },
     });
@@ -195,12 +195,12 @@ async function main() {
   console.info(`  ✓ AMC plans: ${amcPlans.length}`);
 
   // Staff users for admin CRM login (OTP: see API logs in development).
-  const staffUsers: Array<{
+  const staffUsers: {
     phone: string;
     firstName: string;
     lastName: string;
     role: UserRole;
-  }> = [
+  }[] = [
     { phone: '+919876543210', firstName: 'Ops', lastName: 'Dispatcher', role: 'DISPATCHER' },
     { phone: '+919999999999', firstName: 'Platform', lastName: 'Admin', role: 'ADMIN' },
   ];

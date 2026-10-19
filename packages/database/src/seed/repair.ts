@@ -4,7 +4,7 @@
  * catalog + fault codes upsert on their unique keys, checklists on
  * (tenant, category, kind, name).
  */
-import type { PrismaClient, ServiceCategory } from '@prisma/client';
+import type { Prisma, PrismaClient, ServiceCategory } from '@prisma/client';
 
 type Cat = ServiceCategory;
 
@@ -225,11 +225,11 @@ const POST_EXTRA: Partial<Record<Cat, Item[]>> = {
 
 const ALL_CATEGORIES = Object.keys(POST_EXTRA) as Cat[];
 
-const REPAIR_NOTIFICATION_TEMPLATES: Array<{
+const REPAIR_NOTIFICATION_TEMPLATES: {
   key: string;
   channel: 'SMS' | 'WHATSAPP' | 'PUSH';
   body: string;
-}> = [
+}[] = [
   { key: 'workshop.status_changed', channel: 'SMS', body: 'Your appliance for booking {{code}} is {{statusLabel}} (job {{number}}).' },
   { key: 'workshop.status_changed', channel: 'WHATSAPP', body: 'Hi {{customerName}}, update on booking {{code}}: your appliance is {{statusLabel}}.' },
   { key: 'workshop.status_changed', channel: 'PUSH', body: 'Booking {{code}}: appliance {{statusLabel}}.' },
@@ -282,7 +282,7 @@ export async function seedRepair(prisma: PrismaClient, tenantId: string): Promis
   let templates = 0;
   for (const category of ALL_CATEGORIES) {
     const label = category.replace(/_/g, ' ').toLowerCase();
-    const specs: Array<{ kind: 'PRE_SERVICE' | 'POST_SERVICE' | 'SAFETY'; name: string; items: Item[] }> = [
+    const specs: { kind: 'PRE_SERVICE' | 'POST_SERVICE' | 'SAFETY'; name: string; items: Item[] }[] = [
       { kind: 'SAFETY', name: `Safety — ${label}`, items: SAFETY_COMMON },
       { kind: 'PRE_SERVICE', name: `Pre-service — ${label}`, items: PRE_COMMON },
       { kind: 'POST_SERVICE', name: `Post-service — ${label}`, items: [...(POST_EXTRA[category] ?? []), ...POST_COMMON] },
@@ -295,7 +295,7 @@ export async function seedRepair(prisma: PrismaClient, tenantId: string): Promis
       // Never overwrite a template an admin may have edited — only fill gaps.
       if (!existing) {
         await prisma.checklistTemplate.create({
-          data: { tenantId, category, kind: spec.kind, name: spec.name, items: spec.items as unknown as object },
+          data: { tenantId, category, kind: spec.kind, name: spec.name, items: spec.items as unknown as Prisma.InputJsonValue },
         });
       }
       templates += 1;

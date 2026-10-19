@@ -14,13 +14,13 @@ export interface RbacConsistencyReport {
   missingInDb: string[];
   orphanInDb: string[];
   duplicateInDb: string[];
-  staleRoles: Array<{
+  staleRoles: {
     roleKey: string;
     tenantId: string;
     missingAssignments: string[];
     extraAssignments: string[];
-  }>;
-  rbacVersionByTenant: Array<{ tenantId: string; slug: string; rbacVersion: number }>;
+  }[];
+  rbacVersionByTenant: { tenantId: string; slug: string; rbacVersion: number }[];
 }
 
 export interface RbacHealthReport extends RbacConsistencyReport {

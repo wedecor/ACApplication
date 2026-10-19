@@ -28,7 +28,7 @@ export function createPrismaClient(options: CreatePrismaOptions = {}) {
   const base = new PrismaClient({
     log:
       options.log ??
-      (process.env['NODE_ENV'] === 'production'
+      (process.env.NODE_ENV === 'production'
         ? (['error', 'warn'] as Prisma.LogLevel[])
         : (['warn', 'error'] as Prisma.LogLevel[])),
   });
@@ -45,14 +45,14 @@ export function createPrismaClient(options: CreatePrismaOptions = {}) {
  * Process-wide singleton — Next.js/NestJS hot-reload friendly.
  */
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __ac_prisma__: PrismaClient | undefined;
 }
 
 export const prisma: PrismaClient =
   globalThis.__ac_prisma__ ?? createPrismaClient();
 
-if (process.env['NODE_ENV'] !== 'production') {
+if (process.env.NODE_ENV !== 'production') {
   globalThis.__ac_prisma__ = prisma;
 }
 

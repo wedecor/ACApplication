@@ -1,3 +1,4 @@
+import type { RbacConsistencyReport, RbacSyncStats } from '@ac/auth';
 import {
   assertRegistryValid,
   ROLE_PERMISSIONS,
@@ -5,7 +6,6 @@ import {
   SYSTEM_ROLE_KEYS,
   validateRegistry,
 } from '@ac/auth';
-import type { RbacConsistencyReport, RbacSyncStats } from '@ac/auth';
 import type { PrismaClient, UserRole } from '@prisma/client';
 
 export interface RbacSyncOptions {

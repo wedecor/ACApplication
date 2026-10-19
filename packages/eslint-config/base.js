@@ -9,6 +9,25 @@ import prettierConfig from 'eslint-config-prettier';
 import globals from 'globals';
 
 /**
+ * Lint `files` without type information. For files that sit outside the
+ * package's tsconfig `include` — tooling configs, setup files, Playwright
+ * suites, test stubs, and specs in packages whose build tsconfig excludes them.
+ *
+ * @param {string[]} files
+ * @returns {import('eslint').Linter.Config}
+ */
+export function untypedConfig(files) {
+  return {
+    files,
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      ...tseslint.configs.disableTypeChecked.languageOptions,
+      parserOptions: { projectService: false, program: null },
+    },
+  };
+}
+
+/**
  * Base ESLint flat config shared across all TypeScript packages.
  * Pulls in strict TS rules, import ordering, unused-import pruning,
  * Turborepo env hygiene and Prettier compatibility.
@@ -103,6 +122,7 @@ export const baseConfig = [
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  untypedConfig(['*.config.ts', '*.setup.{ts,js}', 'e2e/**/*.ts', 'test-stubs/**/*.ts']),
   {
     ignores: [
       '**/node_modules/**',
