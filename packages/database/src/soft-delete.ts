@@ -1,52 +1,16 @@
 import { Prisma, type PrismaClient } from '@prisma/client';
 
 /**
- * Models that support soft delete. Keep this list in sync with the schema —
- * every model with a `deletedAt` field must be listed here so the extension
- * can transparently filter and rewrite queries.
+ * Models that support soft delete: every model with a `deletedAt` field,
+ * read from the generated schema so the list can never drift (a hand-kept
+ * list had missed 23 models, whose deletes were permanent and whose reads
+ * returned deleted rows).
  */
-const SOFT_DELETE_MODELS = new Set<Prisma.ModelName>([
-  'Tenant',
-  'City',
-  'User',
-  'Customer',
-  'Address',
-  'Technician',
-  'Booking',
-  'Invoice',
-  'Payment',
-  'Notification',
-  'Lead',
-  'LeadNote',
-  'BookingNote',
-  'BookingAttachment',
-  'Invoice',
-  'Payment',
-  'Quotation',
-  'AMCPlan',
-  'AMCSubscription',
-  'TechnicianPayout',
-  // Repair / growth / sales / productivity domain
-  'CustomerAppliance',
-  'ServiceCatalogItem',
-  'FaultCode',
-  'ChecklistTemplate',
-  'JobCard',
-  'WarrantyClaim',
-  'WorkshopJob',
-  'BookingRating',
-  'SavedPaymentMethod',
-  'Coupon',
-  'CouponRedemption',
-  'ReferralCode',
-  'Referral',
-  'CustomerSegment',
-  'Campaign',
-  'Account',
-  'Opportunity',
-  'Task',
-  'CustomFieldDefinition',
-]);
+export const SOFT_DELETE_MODELS: ReadonlySet<Prisma.ModelName> = new Set(
+  Prisma.dmmf.datamodel.models
+    .filter((m) => m.fields.some((f) => f.name === 'deletedAt'))
+    .map((m) => m.name as Prisma.ModelName),
+);
 
 /**
  * Returns a PrismaClient where:
