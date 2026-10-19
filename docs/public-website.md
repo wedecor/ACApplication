@@ -189,9 +189,9 @@ React form ───────►  rate-limit (5 / min / IP)                  
   humans don't. The route returns a 202 success body so bots don't realise
   they were caught.
 - Server-only `PUBLIC_LEAD_API_TOKEN` is forwarded as `x-internal-token` to
-  the backend so the backend can verify the request originated from our
-  deployment. (TODO: enable backend-side verification when ops rotates the
-  token.)
+  the backend. The backend verifies it with a constant-time comparison in
+  `apps/api/src/common/security/internal-proxy.ts` — direct calls without
+  the token are refused when `PUBLIC_LEAD_API_TOKEN` is set.
 
 ## 6. Analytics
 
