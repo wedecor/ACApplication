@@ -7,6 +7,8 @@
  * or POs are cancelled; this service owns the persistence of those numbers.
  */
 
+import type { AuthPrincipal } from '@ac/auth';
+import { VendorStatus } from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -14,9 +16,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-
-import { VendorStatus } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {

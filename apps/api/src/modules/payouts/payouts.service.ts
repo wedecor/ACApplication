@@ -14,6 +14,16 @@
  */
 
 import { randomUUID } from 'node:crypto';
+
+import type { AuthPrincipal } from '@ac/auth';
+import {
+  BookingStatus,
+  CommissionStatus,
+  CommissionType,
+  DomainEventName,
+  PayoutCycle,
+  PayoutStatus,
+} from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -23,19 +33,9 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
-import {
-  BookingStatus,
-  CommissionStatus,
-  CommissionType,
-  DomainEventName,
-  PayoutCycle,
-  PayoutStatus,
-} from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { applyBps, ensureInteger } from '../../common/finance';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import type {
   AdjustCommissionDto,
   ApprovePayoutDto,
@@ -104,7 +104,7 @@ export class PayoutsService {
       where: { id: bookingId },
       include: { commission: { select: { id: true } } },
     });
-    if (!booking || booking.status !== BookingStatus.COMPLETED || !booking.technicianId) {
+    if (booking?.status !== BookingStatus.COMPLETED || !booking.technicianId) {
       return;
     }
     if (booking.commission) return; // already accrued
@@ -114,7 +114,7 @@ export class PayoutsService {
     })) ?? null;
     const snapshot: RuleSnapshot = rule
       ? {
-          type: rule.type as CommissionType,
+          type: rule.type,
           valueMinor: rule.valueMinor,
           bonusMinor: rule.bonusMinor,
           penaltyPerLateMinuteMinor: rule.penaltyPerLateMinuteMinor,
@@ -299,8 +299,8 @@ export class PayoutsService {
       where: { id, tenantId: actor.tenantId },
     });
     if (!payout) throw new NotFoundException('Payout not found');
-    const allowedStatuses: ReadonlyArray<PayoutStatus> = [PayoutStatus.APPROVED, PayoutStatus.PROCESSING];
-    if (!allowedStatuses.includes(payout.status as PayoutStatus)) {
+    const allowedStatuses: readonly PayoutStatus[] = [PayoutStatus.APPROVED, PayoutStatus.PROCESSING];
+    if (!allowedStatuses.includes(payout.status)) {
       throw new ConflictException('Only APPROVED / PROCESSING payouts can be paid');
     }
     return this.prisma.client.$transaction(async (tx) => {

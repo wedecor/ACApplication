@@ -1,3 +1,6 @@
+import type { AuthPrincipal } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
+import { Permission } from '@ac/types';
 import {
   Controller,
   Get,
@@ -10,13 +13,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-import type { LoadedServerEnv } from '@ac/config';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { CurrentUser, Public, RequirePermissions } from '../../common/decorators';
-import { verifyBearerSecret, isLocalDevelopment } from '../../common/security/webhook-auth';
+import { isLocalDevelopment,verifyBearerSecret } from '../../common/security/webhook-auth';
 import { NotificationAdminService } from './notification-admin.service';
 
 @ApiTags('notifications-admin')

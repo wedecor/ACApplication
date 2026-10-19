@@ -5,8 +5,8 @@ import {
   type NestInterceptor,
   StreamableFile,
 } from '@nestjs/common';
-import { type Observable, map } from 'rxjs';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { map,type Observable } from 'rxjs';
 
 /** Binary / streamed bodies and non-JSON responses must reach the client untouched. */
 export function isRawResponse(data: unknown, reply?: Pick<FastifyReply, 'sent' | 'getHeader'>): boolean {

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import type { Permission, UserRole } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -46,7 +46,7 @@ export class PermissionsLoader {
       return { roles: [], permissions: [] };
     }
 
-    const roles = user.roles.map((a) => a.role.key as UserRole);
+    const roles = user.roles.map((a) => a.role.key);
     const permissionSet = new Set<Permission>();
     for (const assignment of user.roles) {
       for (const rp of assignment.role.permissions) {

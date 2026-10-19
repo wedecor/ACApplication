@@ -1,4 +1,3 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import {
   ActivityType,
   BookingStatus,
@@ -6,6 +5,7 @@ import {
   DomainEventName,
   TERMINAL_BOOKING_STATUSES,
 } from '@ac/types';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { actor, buildService, makeBooking, publishedEventNames } from './bookings.test-helpers';
 
@@ -31,8 +31,8 @@ const EXPECTED_ALLOWED: Record<BookingStatus, BookingStatus[]> = {
   [S.NO_SHOW]: [],
 };
 
-const allowedPairs: Array<[BookingStatus, BookingStatus]> = [];
-const forbiddenPairs: Array<[BookingStatus, BookingStatus]> = [];
+const allowedPairs: [BookingStatus, BookingStatus][] = [];
+const forbiddenPairs: [BookingStatus, BookingStatus][] = [];
 for (const from of ALL_STATUSES) {
   for (const to of ALL_STATUSES) {
     (EXPECTED_ALLOWED[from].includes(to) ? allowedPairs : forbiddenPairs).push([from, to]);
@@ -110,7 +110,7 @@ describe('BookingsService.changeStatus', () => {
   });
 
   describe('timestamps', () => {
-    const cases: Array<[BookingStatus, BookingStatus, string]> = [
+    const cases: [BookingStatus, BookingStatus, string][] = [
       [S.ASSIGNED, S.TECHNICIAN_EN_ROUTE, 'enRouteAt'],
       [S.TECHNICIAN_EN_ROUTE, S.IN_PROGRESS, 'startedAt'],
       [S.IN_PROGRESS, S.WAITING_PARTS, 'waitingPartsAt'],
@@ -121,7 +121,7 @@ describe('BookingsService.changeStatus', () => {
     it.each(cases)('%s -> %s stamps %s', async (from, to, field) => {
       const { svc, repo } = buildService(makeBooking({ status: from }));
       await svc.changeStatus(actor, 'book_1', { status: to });
-      const data = repo.update.mock.calls[0]![1] as Record<string, unknown>;
+      const data = repo.update.mock.calls[0]![1];
       expect(data[field]).toBeInstanceOf(Date);
       const otherStamps = ['enRouteAt', 'startedAt', 'waitingPartsAt', 'completedAt', 'cancelledAt']
         .filter((f) => f !== field);
@@ -131,7 +131,7 @@ describe('BookingsService.changeStatus', () => {
     it('PENDING -> CONFIRMED stamps nothing', async () => {
       const { svc, repo } = buildService(makeBooking({ status: S.PENDING }));
       await svc.changeStatus(actor, 'book_1', { status: S.CONFIRMED });
-      const data = repo.update.mock.calls[0]![1] as Record<string, unknown>;
+      const data = repo.update.mock.calls[0]![1];
       for (const f of ['enRouteAt', 'startedAt', 'waitingPartsAt', 'completedAt', 'cancelledAt']) {
         expect(data[f]).toBeUndefined();
       }
@@ -139,7 +139,7 @@ describe('BookingsService.changeStatus', () => {
   });
 
   describe('activity type', () => {
-    const cases: Array<[BookingStatus, BookingStatus, string]> = [
+    const cases: [BookingStatus, BookingStatus, string][] = [
       [S.IN_PROGRESS, S.COMPLETED, ActivityType.COMPLETED],
       [S.ASSIGNED, S.CANCELLED, ActivityType.CANCELLED],
       [S.IN_PROGRESS, S.WAITING_PARTS, ActivityType.WAITING_PARTS],
@@ -194,7 +194,7 @@ describe('BookingsService.changeStatus', () => {
     it('leaves finalAmountMinor untouched when not provided', async () => {
       const { svc, repo, events } = buildService(makeBooking({ status: S.IN_PROGRESS }));
       await svc.changeStatus(actor, 'book_1', { status: S.COMPLETED });
-      expect((repo.update.mock.calls[0]![1] as Record<string, unknown>).finalAmountMinor).toBeUndefined();
+      expect((repo.update.mock.calls[0]![1]).finalAmountMinor).toBeUndefined();
       expect(events.publish).toHaveBeenCalledWith(DomainEventName.BookingCompleted, {
         bookingId: 'book_1',
         technicianId: null,
@@ -205,7 +205,7 @@ describe('BookingsService.changeStatus', () => {
     it('ignores finalAmountMinor on non-COMPLETED transitions', async () => {
       const { svc, repo } = buildService(makeBooking({ status: S.IN_PROGRESS }));
       await svc.changeStatus(actor, 'book_1', { status: S.WAITING_PARTS, finalAmountMinor: 99 });
-      expect((repo.update.mock.calls[0]![1] as Record<string, unknown>).finalAmountMinor).toBeUndefined();
+      expect((repo.update.mock.calls[0]![1]).finalAmountMinor).toBeUndefined();
     });
   });
 
@@ -229,13 +229,13 @@ describe('BookingsService.changeStatus', () => {
     it('stores a null cancellation reason when none is given', async () => {
       const { svc, repo } = buildService(makeBooking({ status: S.CONFIRMED }));
       await svc.changeStatus(actor, 'book_1', { status: S.CANCELLED });
-      expect((repo.update.mock.calls[0]![1] as Record<string, unknown>).cancellationReason).toBeNull();
+      expect((repo.update.mock.calls[0]![1]).cancellationReason).toBeNull();
     });
 
     it('does not touch cancellationReason on other transitions', async () => {
       const { svc, repo } = buildService(makeBooking({ status: S.PENDING }));
       await svc.changeStatus(actor, 'book_1', { status: S.CONFIRMED, reason: 'ok' });
-      expect((repo.update.mock.calls[0]![1] as Record<string, unknown>).cancellationReason).toBeUndefined();
+      expect((repo.update.mock.calls[0]![1]).cancellationReason).toBeUndefined();
     });
   });
 

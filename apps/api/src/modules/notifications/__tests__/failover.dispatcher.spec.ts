@@ -1,6 +1,6 @@
-import { NotificationChannel } from '@ac/types';
-import { sendWithFailover, type NamedProvider } from '@ac/notifications';
+import { type NamedProvider,sendWithFailover } from '@ac/notifications';
 import { ConsoleTransport } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 
 describe('sendWithFailover', () => {
   it('falls back to secondary provider when primary fails', async () => {

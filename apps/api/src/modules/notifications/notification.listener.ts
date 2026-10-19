@@ -1,5 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
 import {
   type AmcSubscriptionExpiringSoonEvent,
   type AmcSubscriptionRenewedEvent,
@@ -23,6 +21,8 @@ import {
   type TechnicianArrivedEvent,
   type TechnicianDelayedEvent,
 } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationsService } from './notifications.service';
@@ -336,7 +336,7 @@ export class NotificationListener {
   }
 
   @OnEvent(DomainEventName.QuotationViewed, { async: true })
-  async onQuotationViewed(event: QuotationViewedEvent): Promise<void> {
+  onQuotationViewed(event: QuotationViewedEvent): void {
     // Internal: notify ops that a customer engaged with the quote.
     this.logger.log(`Quotation ${event.payload.quotationId} viewed at ${event.payload.viewedAt}`);
   }

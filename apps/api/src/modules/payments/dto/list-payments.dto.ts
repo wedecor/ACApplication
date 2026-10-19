@@ -1,11 +1,11 @@
+import { PaymentTransactionStatus } from '@ac/types';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 
-import { PaymentTransactionStatus } from '@ac/types';
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class ListPaymentsDto extends PaginationDto {
   @IsOptional()
-  @IsEnum(PaymentTransactionStatus as Record<string, string>)
+  @IsEnum(PaymentTransactionStatus)
   status?: PaymentTransactionStatus;
 
   @IsOptional()

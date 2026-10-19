@@ -1,10 +1,10 @@
-import { NotificationChannel } from '@ac/types';
 import type {
   NotificationMessage,
   NotificationRecipient,
   NotificationTransport,
   SendResult,
 } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 
 const PROVIDER_TIMEOUT_MS = 10_000;
 
@@ -50,7 +50,7 @@ export class ExpoPushTransport implements NotificationTransport {
       const text = await res.text();
       return { channel: this.channel, status: 'failed', error: text };
     }
-    const json = (await res.json()) as { data?: Array<{ status?: string; id?: string }> };
+    const json = (await res.json()) as { data?: { status?: string; id?: string }[] };
     const ticket = json.data?.[0];
     if (ticket?.status === 'error') {
       return { channel: this.channel, status: 'failed', error: 'Expo push rejected' };

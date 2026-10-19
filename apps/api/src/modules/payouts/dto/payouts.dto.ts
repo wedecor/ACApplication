@@ -1,9 +1,8 @@
+import { CommissionType, PayoutCycle } from '@ac/types';
 import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
-import { CommissionType, PayoutCycle } from '@ac/types';
-
 export class UpsertCommissionRuleDto {
-  @IsEnum(CommissionType as Record<string, string>)
+  @IsEnum(CommissionType)
   type!: CommissionType;
 
   @IsInt()
@@ -26,7 +25,7 @@ export class UpsertCommissionRuleDto {
   minPayoutMinor?: number;
 
   @IsOptional()
-  @IsEnum(PayoutCycle as Record<string, string>)
+  @IsEnum(PayoutCycle)
   payoutCycle?: PayoutCycle;
 }
 

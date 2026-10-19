@@ -1,10 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
   DomainEventName,
   InventoryAlertKind,
   InventoryAlertSeverity,
   TechnicianStockStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import type { DomainEventBus } from '../../../common/events/domain-event-bus.service';
 import type { InventoryLedgerService } from '../inventory-ledger.service';
@@ -45,8 +45,8 @@ interface AlertRow {
 }
 
 function buildPrisma(initial: { allocations?: AllocationRow[] } = {}) {
-  let allocations: AllocationRow[] = initial.allocations ? [...initial.allocations] : [];
-  let alerts: AlertRow[] = [];
+  const allocations: AllocationRow[] = initial.allocations ? [...initial.allocations] : [];
+  const alerts: AlertRow[] = [];
   let alertCounter = 1;
 
   const tx = {
@@ -72,15 +72,11 @@ function buildPrisma(initial: { allocations?: AllocationRow[] } = {}) {
         }) => {
           const row = allocations.find((a) => a.id === where.id);
           if (!row) throw new Error('not found');
-          if (data.usedQty && typeof data.usedQty === 'object' && 'increment' in data.usedQty) {
+          if (data.usedQty) {
             row.usedQty += data.usedQty.increment;
             delete data.usedQty;
           }
-          if (
-            data.returnedQty &&
-            typeof data.returnedQty === 'object' &&
-            'increment' in data.returnedQty
-          ) {
+          if (data.returnedQty) {
             row.returnedQty += data.returnedQty.increment;
             delete data.returnedQty;
           }

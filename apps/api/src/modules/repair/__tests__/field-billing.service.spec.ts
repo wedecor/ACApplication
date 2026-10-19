@@ -1,6 +1,6 @@
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
-import { Permission } from '@ac/types';
 import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 
 import { buildInvoiceLines, FieldBillingService } from '../field-billing/field-billing.service';
 import { RepairAccessService } from '../repair-access.service';
@@ -53,7 +53,7 @@ function build(row: Record<string, unknown> | null) {
     client: {
       booking: { findFirst: jest.fn().mockResolvedValue(row) },
       technician: { findFirst: jest.fn().mockResolvedValue({ id: 'tech_1' }) },
-      invoice: { findFirst: jest.fn().mockResolvedValue((row?.['invoice'] as unknown) ?? null) },
+      invoice: { findFirst: jest.fn().mockResolvedValue((row?.invoice) ?? null) },
       quotation: { findFirst: jest.fn().mockResolvedValue(null) },
       payment: { findMany: jest.fn().mockResolvedValue([]) },
       paymentTransaction: { findFirst: jest.fn().mockResolvedValue(null) },

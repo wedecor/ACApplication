@@ -68,27 +68,27 @@ function customerRow(over: Record<string, unknown> = {}) {
 function buildTx() {
   const tx: Record<string, Record<string, jest.Mock>> = {};
   for (const m of MOVED_MODELS) tx[m] = { updateMany: jest.fn().mockResolvedValue({ count: 1 }) };
-  tx['task'] = { updateMany: jest.fn().mockResolvedValue({ count: 0 }) };
-  tx['referral'] = {
+  tx.task = { updateMany: jest.fn().mockResolvedValue({ count: 0 }) };
+  tx.referral = {
     updateMany: jest.fn().mockResolvedValue({ count: 0 }),
     findUnique: jest.fn().mockResolvedValue(null),
     update: jest.fn(),
   };
-  tx['referralCode'] = { findUnique: jest.fn().mockResolvedValue(null), update: jest.fn() };
-  tx['customer'] = { findFirst: jest.fn(), update: jest.fn() };
-  tx['booking']!['count'] = jest.fn().mockResolvedValue(3);
-  tx['invoice']!['aggregate'] = jest
+  tx.referralCode = { findUnique: jest.fn().mockResolvedValue(null), update: jest.fn() };
+  tx.customer = { findFirst: jest.fn(), update: jest.fn() };
+  tx.booking!.count = jest.fn().mockResolvedValue(3);
+  tx.invoice!.aggregate = jest
     .fn()
     .mockResolvedValue({ _sum: { amountPaidMinor: 50_000, amountRefundedMinor: 0 } });
-  tx['user'] = { create: jest.fn().mockResolvedValue({ id: 'u_new' }) };
-  tx['role'] = { findFirst: jest.fn().mockResolvedValue({ id: 'role_c' }) };
-  tx['userRoleAssignment'] = { create: jest.fn() };
+  tx.user = { create: jest.fn().mockResolvedValue({ id: 'u_new' }) };
+  tx.role = { findFirst: jest.fn().mockResolvedValue({ id: 'role_c' }) };
+  tx.userRoleAssignment = { create: jest.fn() };
   return tx;
 }
 
 function build() {
   const tx = buildTx();
-  tx['customer']!['create'] = jest.fn().mockResolvedValue({ id: 'c_new' });
+  tx.customer!.create = jest.fn().mockResolvedValue({ id: 'c_new' });
   const prisma = {
     client: {
       $transaction: jest.fn(async (fn: (t: unknown) => Promise<unknown>) => fn(tx)),
@@ -121,13 +121,13 @@ describe('CustomersService.createForTenant', () => {
       phone: '98765 43210',
       tags: ['VIP'],
     });
-    expect(tx['user']!['create']).toHaveBeenCalledWith(
+    expect(tx.user!.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ phone: '+919876543210', firstName: 'Priya', lastName: 'Sharma' }),
       }),
     );
-    expect(tx['userRoleAssignment']!['create']).toHaveBeenCalled();
-    expect(tx['customer']!['create']).toHaveBeenCalledWith(
+    expect(tx.userRoleAssignment!.create).toHaveBeenCalled();
+    expect(tx.customer!.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ tags: ['vip'] }) }),
     );
   });
@@ -168,13 +168,13 @@ describe('CustomersService.merge', () => {
 
   it('404s when either side is missing', async () => {
     const { service, tx } = build();
-    tx['customer']!['findFirst']!.mockResolvedValueOnce(customerRow()).mockResolvedValueOnce(null);
+    tx.customer!.findFirst!.mockResolvedValueOnce(customerRow()).mockResolvedValueOnce(null);
     await expect(service.merge(actor, 'c1', 'c2')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('refuses to merge into a merged customer', async () => {
     const { service, tx } = build();
-    tx['customer']!['findFirst']!
+    tx.customer!.findFirst!
       .mockResolvedValueOnce(customerRow())
       .mockResolvedValueOnce(customerRow({ id: 'c2', mergedIntoId: 'c3' }));
     await expect(service.merge(actor, 'c1', 'c2')).rejects.toBeInstanceOf(BadRequestException);
@@ -182,7 +182,7 @@ describe('CustomersService.merge', () => {
 
   it('moves every customer-owned table and stamps the duplicate', async () => {
     const { service, tx, repo } = build();
-    tx['customer']!['findFirst']!
+    tx.customer!.findFirst!
       .mockResolvedValueOnce(
         customerRow({
           id: 'dup',
@@ -202,16 +202,16 @@ describe('CustomersService.merge', () => {
     await service.merge(actor, 'dup', 'surv');
 
     for (const m of MOVED_MODELS) {
-      expect(tx[m]!['updateMany']).toHaveBeenCalledWith({
+      expect(tx[m]!.updateMany).toHaveBeenCalledWith({
         where: { customerId: 'dup' },
         data: { customerId: 'surv' },
       });
     }
-    expect(tx['customer']!['update']).toHaveBeenNthCalledWith(1, {
+    expect(tx.customer!.update).toHaveBeenNthCalledWith(1, {
       where: { id: 'dup' },
       data: expect.objectContaining({ mergedIntoId: 'surv', defaultAddressId: null, loyaltyPoints: 0 }),
     });
-    expect(tx['customer']!['update']).toHaveBeenNthCalledWith(2, {
+    expect(tx.customer!.update).toHaveBeenNthCalledWith(2, {
       where: { id: 'surv' },
       data: expect.objectContaining({
         email: 'd@x.com',
@@ -227,14 +227,14 @@ describe('CustomersService.merge', () => {
 
   it('moves the referral code only when the survivor has none', async () => {
     const { service, tx } = build();
-    tx['customer']!['findFirst']!
+    tx.customer!.findFirst!
       .mockResolvedValueOnce(customerRow({ id: 'dup' }))
       .mockResolvedValueOnce(customerRow({ id: 'surv' }));
-    tx['referralCode']!['findUnique']!
+    tx.referralCode!.findUnique!
       .mockResolvedValueOnce({ id: 'rc_dup' })
       .mockResolvedValueOnce({ id: 'rc_surv' });
     await service.merge(actor, 'dup', 'surv');
-    expect(tx['referralCode']!['update']).toHaveBeenCalledWith({
+    expect(tx.referralCode!.update).toHaveBeenCalledWith({
       where: { id: 'rc_dup' },
       data: { deletedAt: expect.any(Date) },
     });

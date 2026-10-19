@@ -3,8 +3,8 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsISO8601,
   IsInt,
+  IsISO8601,
   IsLatitude,
   IsLongitude,
   IsOptional,

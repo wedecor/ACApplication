@@ -1,5 +1,5 @@
-import { ApiPropertyOptional } from '@nestjs/swagger';
 import { BookingPaymentStatus, BookingPriority, BookingStatus, ServiceCategory } from '@ac/types';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsArray, IsEnum, IsISO8601, IsOptional, IsString } from 'class-validator';
 

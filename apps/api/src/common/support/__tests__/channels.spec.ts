@@ -23,7 +23,7 @@ describe('common/support/channels', () => {
       for (const source of sources) {
         const channel = channelFromSource(source);
         expect(channel).not.toBeNull();
-        expect(sourceFromChannel(channel as ConversationChannel)).toBe(source);
+        expect(sourceFromChannel(channel!)).toBe(source);
       }
     });
 

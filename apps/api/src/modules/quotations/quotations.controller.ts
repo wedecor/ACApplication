@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -12,9 +14,6 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
-
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, Public, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';

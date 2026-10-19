@@ -6,7 +6,7 @@ interface HeaderBag {
 }
 
 /** True when the request carries the website proxy's PUBLIC_LEAD_API_TOKEN. */
-export function isTrustedProxyRequest(req: HeaderBag, token = process.env['PUBLIC_LEAD_API_TOKEN']): boolean {
+export function isTrustedProxyRequest(req: HeaderBag, token = process.env.PUBLIC_LEAD_API_TOKEN): boolean {
   const given = req.headers['x-internal-token'];
   if (!token || typeof given !== 'string') return false;
   const a = Buffer.from(token);

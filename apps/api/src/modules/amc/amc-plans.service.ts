@@ -7,10 +7,9 @@
  * plan edits never accidentally touch in-flight contracts.
  */
 
+import type { AuthPrincipal } from '@ac/auth';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-
-import type { AuthPrincipal } from '@ac/auth';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type { CreateAmcPlanDto, UpdateAmcPlanDto } from './dto/amc.dto';
@@ -42,7 +41,7 @@ export class AmcPlansService {
         renewalPriceMinor: dto.renewalPriceMinor ?? dto.priceMinor,
         visitCadenceDays:
           dto.visitCadenceDays ?? Math.floor((dto.durationMonths * 30) / dto.includedVisits),
-        features: (dto.features ?? []) as unknown as Prisma.InputJsonValue,
+        features: dto.features ?? [],
       },
     });
   }

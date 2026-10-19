@@ -4,7 +4,7 @@ import { RealtimeGateway, scopedRoom } from '../realtime.gateway';
 
 function build() {
   const emit = jest.fn();
-  const to = jest.fn(() => ({ emit }));
+  const to = jest.fn((_rooms: string | string[]) => ({ emit }));
   const prisma = {
     client: {
       booking: { findFirst: jest.fn() },
@@ -55,7 +55,7 @@ describe('RealtimeGateway tenancy', () => {
     prisma.client.technician.findFirst.mockResolvedValue({ tenantId: 't3' });
     gw.onLocationUpdated({ id: 'e2', name: DomainEventName.TechnicianLocationUpdated, occurredAt: '', actorId: null, payload: { technicianId: 'x' } } as never);
     await flush();
-    expect(to.mock.calls[0][0]).toEqual(expect.arrayContaining(['t:t3:dispatch:global']));
+    expect(to.mock.calls[0]![0]).toEqual(expect.arrayContaining(['t:t3:dispatch:global']));
   });
 
   it('never fans out tenant rooms when the tenant is unknown', async () => {

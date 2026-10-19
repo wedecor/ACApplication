@@ -28,15 +28,14 @@
  *    PO receipt) so nested operations participate in the same transaction.
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
 import {
   DomainEventName,
   STOCK_INFLOW_KINDS,
   STOCK_OUTFLOW_KINDS,
   StockMovementKind,
 } from '@ac/types';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';

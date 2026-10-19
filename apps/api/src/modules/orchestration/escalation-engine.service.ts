@@ -1,5 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
 import { NotificationChannel } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { WorkflowInstanceStatus } from '@prisma/client';
 
@@ -69,14 +69,14 @@ export class EscalationEngineService {
     let triggered = 0;
     for (const policy of policies) {
       const thresholds = policy.thresholds as {
-        checks?: Array<{
+        checks?: {
           field: string;
           op: string;
           value: unknown;
           level: number;
           target: EscalateInput['target'];
           reason: string;
-        }>;
+        }[];
       };
       for (const check of thresholds.checks ?? []) {
         const breached = await this.runPolicyCheck(tenantId, policy.resourceType, check);

@@ -20,7 +20,7 @@ export class NotificationWebhooksController {
     @Headers('x-twilio-signature') signature: string | undefined,
     @Req() req: FastifyRequest,
   ): Promise<void> {
-    const url = `${process.env['API_URL'] ?? ''}${req.url}`;
+    const url = `${process.env.API_URL ?? ''}${req.url}`;
     assertWebhookAuth(this.webhooks.verifyTwilioSignature(url, body, signature), 'Twilio');
     await this.webhooks.handleTwilioStatus(body);
   }
@@ -45,7 +45,7 @@ export class NotificationWebhooksController {
   @ApiOperation({ summary: 'Expo push receipt batch' })
   async expo(
     @Body()
-    body: Array<{ status: string; id?: string; message?: string; details?: unknown }>,
+    body: { status: string; id?: string; message?: string; details?: unknown }[],
     @Headers('x-expo-signature') signature: string | undefined,
     @Req() req: FastifyRequest & { rawBody?: Buffer },
   ): Promise<void> {

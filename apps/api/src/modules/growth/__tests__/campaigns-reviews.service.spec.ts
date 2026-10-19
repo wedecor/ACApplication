@@ -1,7 +1,7 @@
+import { verifyRatingToken } from '../../../common/links/rating-link';
 import { CampaignsService } from '../campaigns.service';
 import type { GrowthConfig } from '../growth.config';
 import { ReviewsService } from '../reviews.service';
-import { verifyRatingToken } from '../../../common/links/rating-link';
 
 const config: GrowthConfig = {
   referralRewardMinor: 0,
@@ -73,7 +73,7 @@ describe('CampaignsService.dispatch', () => {
     await service.dispatch('cmp');
     expect(notifications.enqueue).not.toHaveBeenCalled();
     const last = prisma.campaign.update.mock.calls.at(-1)?.[0] as { data: Record<string, unknown> };
-    expect(last.data['status']).toBeUndefined();
+    expect(last.data.status).toBeUndefined();
   });
 
   it('runDue claims scheduled campaigns before dispatching', async () => {

@@ -7,8 +7,6 @@
  * the same shape so the controller is provider-agnostic.
  */
 
-import { Injectable } from '@nestjs/common';
-
 import {
   AMCSubscriptionStatus,
   CommissionStatus,
@@ -17,6 +15,7 @@ import {
   PayoutStatus,
   RefundStatus,
 } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
@@ -160,7 +159,7 @@ export class FinanceAnalyticsService {
   /** Daily revenue series — perfect for a stacked bar / area chart. */
   async revenueSeries(tenantId: string, range: DateRange) {
     return this.prisma.client.$queryRaw<
-      Array<{ day: Date; revenue_minor: bigint; collected_minor: bigint; tax_minor: bigint }>
+      { day: Date; revenue_minor: bigint; collected_minor: bigint; tax_minor: bigint }[]
     >`
       SELECT date_trunc('day', i."issueDate") AS day,
              SUM(i."totalMinor")::bigint     AS revenue_minor,
@@ -179,14 +178,14 @@ export class FinanceAnalyticsService {
   /** Top customers by lifetime invoiced value within window. */
   async topCustomers(tenantId: string, range: DateRange, limit = 10) {
     return this.prisma.client.$queryRaw<
-      Array<{
+      {
         customer_id: string;
         full_name: string;
         invoiced: bigint;
         paid: bigint;
         outstanding: bigint;
         invoices: bigint;
-      }>
+      }[]
     >`
       SELECT c."id"                AS customer_id,
              c."fullName"          AS full_name,
@@ -209,7 +208,7 @@ export class FinanceAnalyticsService {
   /** Revenue by city (joined via Booking → City). */
   async revenueByCity(tenantId: string, range: DateRange) {
     return this.prisma.client.$queryRaw<
-      Array<{ city_id: string; city: string; revenue_minor: bigint; bookings: bigint }>
+      { city_id: string; city: string; revenue_minor: bigint; bookings: bigint }[]
     >`
       SELECT ct."id"   AS city_id,
              ct."name" AS city,

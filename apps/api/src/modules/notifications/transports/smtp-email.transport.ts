@@ -1,10 +1,10 @@
-import { NotificationChannel } from '@ac/types';
 import type {
   NotificationMessage,
   NotificationRecipient,
   NotificationTransport,
   SendResult,
 } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 import nodemailer from 'nodemailer';
 
 export interface SmtpEmailConfig {
@@ -37,12 +37,12 @@ export class SmtpEmailTransport implements NotificationTransport {
       return { channel: this.channel, status: 'failed', error: 'Missing email address' };
     }
     try {
-      const info = await this.transporter.sendMail({
+      const info = (await this.transporter.sendMail({
         from: this.config.from,
         to: recipient.email,
         subject: message.subject ?? message.template,
         text: message.text ?? message.template,
-      });
+      })) as { messageId?: string };
       return {
         channel: this.channel,
         status: 'sent',

@@ -1,16 +1,16 @@
 import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-import {
   ActivityType,
   BookingStatus,
   canTransitionBooking,
   DomainEventName,
   TERMINAL_BOOKING_STATUSES,
 } from '@ac/types';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { actor, buildService, makeBooking } from './bookings.test-helpers';
 

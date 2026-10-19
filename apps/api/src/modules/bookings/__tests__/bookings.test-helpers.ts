@@ -67,7 +67,7 @@ export function buildService(booking: BookingRow | null = makeBooking()) {
   const repo = {
     findById: jest.fn().mockResolvedValue(booking),
     // Echo the update back merged onto the current row, so `row.status` is realistic.
-    update: jest.fn(async (id: string, data: Record<string, unknown>) => ({
+    update: jest.fn(async (id: string, data: Record<string, unknown>, _tx?: unknown) => ({
       ...(booking ?? {}),
       id,
       ...data,

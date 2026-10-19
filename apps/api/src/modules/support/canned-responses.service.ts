@@ -1,11 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { CannedResponseScope } from '@ac/types';
 import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-
-import { CannedResponseScope } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {

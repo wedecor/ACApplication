@@ -24,7 +24,7 @@ export function signRatingToken(secret: string, bookingId: string): string {
 /** The booking id when the token is authentic, otherwise null. */
 export function verifyRatingToken(secret: string, token: string): string | null {
   const [idPart, sig] = token.split('.');
-  if (!idPart || !sig || sig.length !== SIG_LENGTH) return null;
+  if (!idPart || sig?.length !== SIG_LENGTH) return null;
   const bookingId = Buffer.from(idPart, 'base64url').toString('utf8');
   if (!bookingId || bookingId.length > 64) return null;
   const expected = Buffer.from(signature(secret, bookingId));

@@ -1,17 +1,18 @@
-import { Injectable, Logger } from '@nestjs/common';
 import type { AnyDomainEvent } from '@ac/types';
+import { NotificationChannel } from '@ac/types';
 import {
-  evaluateRuleGroup,
   type AutomationRuleAction,
   type AutomationRuleBody,
+  evaluateRuleGroup,
   type RuleConditionGroup,
 } from '@ac/workflow';
+import { Injectable, Logger } from '@nestjs/common';
 
+import { payloadId } from '../../common/events/payload-ids';
+import { NotificationsService } from '../notifications/notifications.service';
+import { EscalationEngineService } from './escalation-engine.service';
 import { WorkflowRepository } from './workflow.repository';
 import { WorkflowEngineService } from './workflow-engine.service';
-import { EscalationEngineService } from './escalation-engine.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { NotificationChannel } from '@ac/types';
 
 @Injectable()
 export class RuleEngineService {
@@ -70,8 +71,8 @@ export class RuleEngineService {
       case 'escalate':
         await this.escalations.escalate({
           tenantId,
-          resourceType: String(ctx['resourceType'] ?? 'unknown'),
-          resourceId: String(ctx['resourceId'] ?? envelope.id),
+          resourceType: payloadId(ctx.resourceType) ?? 'unknown',
+          resourceId: payloadId(ctx.resourceId) ?? envelope.id,
           level: action.escalationLevel ?? 1,
           target: 'dispatch',
           reason: `Rule triggered on ${envelope.name}`,
@@ -109,7 +110,8 @@ export class RuleEngineService {
       'subscriptionId',
     ];
     for (const k of keys) {
-      if (payload[k]) return String(payload[k]);
+      const id = payloadId(payload[k]);
+      if (id) return id;
     }
     return '';
   }

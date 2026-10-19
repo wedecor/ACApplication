@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -10,15 +12,13 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { AllowAuthenticated, CurrentUser, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
-import { NotificationRepository } from './notification.repository';
-import { NotificationsService } from './notifications.service';
 import { ListNotificationsDto } from './dto/list-notifications.dto';
 import { RegisterPushDeviceDto } from './dto/register-push-device.dto';
+import { NotificationRepository } from './notification.repository';
+import { NotificationsService } from './notifications.service';
 
 @ApiTags('notifications')
 @ApiBearerAuth()
@@ -84,7 +84,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Delivery lifecycle timeline for a notification.' })
   async timeline(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     const row = await this.repo.findById(id);
-    if (!row || row.tenantId !== actor.tenantId) {
+    if (row?.tenantId !== actor.tenantId) {
       return { notification: null, events: [] };
     }
     const events = await this.repo.listDeliveryEvents(id);

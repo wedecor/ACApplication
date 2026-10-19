@@ -1,13 +1,6 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
-import {
+  canTransitionTicket,
   ConversationChannel,
   type CustomerId,
   DomainEventName,
@@ -19,20 +12,28 @@ import {
   TicketPriority,
   TicketSource,
   TicketStatus,
-  canTransitionTicket,
   type UserId,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { nextSupportNumber } from '../../common/support/numbering';
 import { buildPreview, channelFromSource } from '../../common/support/channels';
+import { nextSupportNumber } from '../../common/support/numbering';
 import {
-  type SlaProfileSnapshot,
   computeDueDates,
+  type SlaProfileSnapshot,
   warningWindowMinutes,
 } from '../../common/support/sla';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
+import { ConversationsService } from './conversations.service';
 import type {
   AddAttachmentsDto,
   AddNoteDto,
@@ -46,8 +47,6 @@ import type {
   ReplyDto,
   UpdateTicketDto,
 } from './dto/ticket.dto';
-import { ConversationsService } from './conversations.service';
-import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 /**
  * Centralised owner of the SupportTicket lifecycle. Other services (SLA
@@ -198,7 +197,7 @@ export class TicketsService {
         if (profile) {
           const { firstResponseDueAt, resolutionDueAt } = computeDueDates(
             ticket.createdAt,
-            (dto.priority ?? ticket.priority) as TicketPriority,
+            (dto.priority ?? ticket.priority),
             profile,
           );
           await tx.supportTicket.update({
@@ -576,12 +575,12 @@ export class TicketsService {
   ): Promise<void> {
     const ticket = await this.requireTicket(actor.tenantId, id);
     // A customer may only rate their own ticket (customerId is the Customer row, not the user).
-    if (actor.roles.includes('CUSTOMER' as never)) {
+    if (actor.roles.includes('CUSTOMER')) {
       const own = await this.prisma.client.customer.findFirst({
         where: { tenantId: actor.tenantId, userId: actor.userId, deletedAt: null },
         select: { id: true },
       });
-      if (!own || ticket.customerId !== own.id) {
+      if (ticket.customerId !== own?.id) {
         throw new ForbiddenException('Not allowed to rate this ticket');
       }
     }

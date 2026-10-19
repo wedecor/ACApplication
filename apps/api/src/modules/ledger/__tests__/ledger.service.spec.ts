@@ -13,7 +13,7 @@ interface LedgerRow {
 }
 
 function buildPrisma(initial: LedgerRow[] = []) {
-  let rows = [...initial];
+  const rows = [...initial];
   let idCounter = rows.length + 1;
   const tx = {
     customerLedgerEntry: {
@@ -36,7 +36,7 @@ function buildPrisma(initial: LedgerRow[] = []) {
           b.occurredAt.getTime() - a.occurredAt.getTime() ||
           b.id.localeCompare(a.id),
       );
-      return Promise.resolve(sorted.length > 0 ? [{ runningBalanceMinor: sorted[0].runningBalanceMinor }] : []);
+      return Promise.resolve(sorted.length > 0 ? [{ runningBalanceMinor: sorted[0]!.runningBalanceMinor }] : []);
     }),
   } as unknown as never;
 
@@ -54,7 +54,7 @@ describe('LedgerService.post — running balance', () => {
     const r = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.INVOICE_ISSUED,
+      entryType: LedgerEntryType.INVOICE,
       direction: LedgerEntryDirection.DEBIT,
       amountMinor: 1000,
       description: 'Invoice INV-1',
@@ -69,7 +69,7 @@ describe('LedgerService.post — running balance', () => {
     const a = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.INVOICE_ISSUED,
+      entryType: LedgerEntryType.INVOICE,
       direction: LedgerEntryDirection.DEBIT,
       amountMinor: 5000,
       description: 'Invoice',
@@ -77,7 +77,7 @@ describe('LedgerService.post — running balance', () => {
     const b = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.PAYMENT_RECEIVED,
+      entryType: LedgerEntryType.PAYMENT,
       direction: LedgerEntryDirection.CREDIT,
       amountMinor: 2000,
       description: 'Partial payment',
@@ -85,7 +85,7 @@ describe('LedgerService.post — running balance', () => {
     const c = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.PAYMENT_RECEIVED,
+      entryType: LedgerEntryType.PAYMENT,
       direction: LedgerEntryDirection.CREDIT,
       amountMinor: 3000,
       description: 'Final payment',
@@ -101,7 +101,7 @@ describe('LedgerService.post — running balance', () => {
     const first = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.PAYMENT_RECEIVED,
+      entryType: LedgerEntryType.PAYMENT,
       direction: LedgerEntryDirection.CREDIT,
       amountMinor: 1000,
       description: 'webhook',
@@ -110,7 +110,7 @@ describe('LedgerService.post — running balance', () => {
     const second = await svc.post({
       tenantId: 't1',
       customerId: 'c1',
-      entryType: LedgerEntryType.PAYMENT_RECEIVED,
+      entryType: LedgerEntryType.PAYMENT,
       direction: LedgerEntryDirection.CREDIT,
       amountMinor: 1000,
       description: 'webhook',

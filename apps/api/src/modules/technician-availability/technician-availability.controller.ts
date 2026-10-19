@@ -1,7 +1,7 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { ChangeTechnicianStatusDto } from '../tracking/dto/change-status.dto';

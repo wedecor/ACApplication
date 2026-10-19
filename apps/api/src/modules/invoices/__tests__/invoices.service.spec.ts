@@ -1,10 +1,3 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-
 import type { AuthPrincipal } from '@ac/auth';
 import {
   CreditNoteStatus,
@@ -16,6 +9,12 @@ import {
   PaymentStatus,
   RefundStatus,
 } from '@ac/types';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import type { CreateInvoiceDto } from '../dto/create-invoice.dto';
 import type { ListInvoicesDto } from '../dto/list-invoices.dto';
@@ -41,6 +40,7 @@ function model() {
     findFirst: jest.fn(),
     findUnique: jest.fn(),
     findUniqueOrThrow: jest.fn(),
+    findFirstOrThrow: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
     create: jest.fn(),
@@ -95,7 +95,7 @@ function dto(overrides: Partial<CreateInvoiceDto> = {}): CreateInvoiceDto {
   };
 }
 
-type CreateArgs = {
+interface CreateArgs {
   data: {
     subtotalMinor: number;
     discountMinor: number;
@@ -111,7 +111,7 @@ type CreateArgs = {
     bookingId: string | null;
     generatedBy: string;
     lineItems: {
-      create: Array<{
+      create: {
         subtotalMinor: number;
         taxMinor: number;
         totalMinor: number;
@@ -121,10 +121,10 @@ type CreateArgs = {
         discountMinor: number;
         taxRateBps: number;
         hsnSacCode: string | null;
-      }>;
+      }[];
     };
   };
-};
+}
 
 function createArgs(client: ReturnType<typeof buildService>['client']): CreateArgs {
   return client.invoice.create.mock.calls[0][0] as CreateArgs;
@@ -356,7 +356,7 @@ describe('InvoicesService.createFromLineItems', () => {
 // ---------------------------------------------------------------------------
 describe('InvoicesService.list', () => {
   function listDto(o: Partial<ListInvoicesDto> = {}): ListInvoicesDto {
-    return { page: 2, pageSize: 10, skip: 10, ...o } as ListInvoicesDto;
+    return { page: 2, pageSize: 10, skip: 10, ...o };
   }
 
   it('scopes by tenant and paginates', async () => {
@@ -783,7 +783,7 @@ describe('InvoicesService.recordManualPayment', () => {
   it('delegates to applyPayment with the actor tenant and no transactionId', async () => {
     const { svc } = buildService();
     const spy = jest.spyOn(svc, 'applyPayment').mockResolvedValue({ id: 'inv_1' } as never);
-    await svc.recordManualPayment(actor, 'inv_1', { amountMinor: 500, method: PaymentMethod.CASH } as never);
+    await svc.recordManualPayment(actor, 'inv_1', { amountMinor: 500, method: PaymentMethod.CASH });
     expect(spy).toHaveBeenCalledWith('inv_1', {
       tenantId: 'tenant_1',
       amountMinor: 500,
@@ -908,7 +908,7 @@ describe('InvoicesService.refund', () => {
       dueAmountMinor: 6_000,
       payments: [{ id: 'pay_1', amountMinor: 4_000 }],
     };
-    const { svc, tx } = setup(partPaid, null, 4_000);
+    const { svc, tx } = setup(partPaid as unknown as typeof invoice, null, 4_000);
     await svc.refund(actor, 'inv_1', { amountMinor: 4_000 });
     expect(tx.invoice.update.mock.calls[0][0].data).toEqual({
       amountRefundedMinor: 4_000,
@@ -933,7 +933,7 @@ describe('InvoicesService.reverseFailedRefund', () => {
   it('voids the credit note, restores the balance and offsets the ledger', async () => {
     const { svc, tx, ledger } = buildService();
     tx.refund.findFirst.mockResolvedValue({ id: 'ref_1', status: RefundStatus.PROCESSING, amountMinor: 4_000, invoiceId: 'inv_1', customerId: 'cust_1', creditNoteId: 'cn_1' });
-    tx.invoice.findFirstOrThrow = jest.fn().mockResolvedValue({
+    tx.invoice.findFirstOrThrow.mockResolvedValue({
       id: 'inv_1', number: 'INV-X', totalMinor: 10_000, amountPaidMinor: 4_000, amountRefundedMinor: 4_000, status: InvoiceStatus.SENT,
     });
     tx.creditNote.aggregate.mockResolvedValue({ _sum: { amountMinor: 0 } });

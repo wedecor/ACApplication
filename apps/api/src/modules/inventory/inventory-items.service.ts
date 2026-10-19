@@ -7,22 +7,21 @@
  * through the `InventoryLedgerService` to preserve audit invariants.
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   DomainEventName,
   InventoryItemType,
   StockMovementKind,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
 import {
   deriveTenantBarcode,
   suggestSku,
 } from '../../common/inventory/codes';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import {
   CreateInventoryItemDto,
   ListItemsDto,

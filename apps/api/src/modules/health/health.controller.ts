@@ -49,7 +49,7 @@ export class HealthController {
         this.redis.default.ping(),
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 2_000)),
       ]);
-      if (pong !== 'PONG') throw new Error(`unexpected reply ${pong}`);
+      if (pong !== 'PONG') throw new Error(`unexpected reply ${String(pong)}`);
       return { redis: { status: 'up' } };
     } catch (err) {
       throw new HealthCheckError('Redis check failed', { redis: { status: 'down', message: (err as Error).message } });

@@ -1,3 +1,4 @@
+import { TechnicianStockStatus } from '@ac/types';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -8,8 +9,6 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
-
-import { TechnicianStockStatus } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 

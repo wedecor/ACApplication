@@ -1,10 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { AuthPrincipal } from '@ac/auth';
 import { OpportunityStage, type Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';

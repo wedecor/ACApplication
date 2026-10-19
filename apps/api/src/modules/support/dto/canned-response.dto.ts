@@ -1,3 +1,4 @@
+import { CannedResponseScope, ConversationChannel } from '@ac/types';
 import {
   ArrayMaxSize,
   IsArray,
@@ -8,8 +9,6 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-
-import { CannedResponseScope, ConversationChannel } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 

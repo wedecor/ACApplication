@@ -48,5 +48,5 @@ export function verifyBearerSecret(
 
 /** True only for NODE_ENV=development — staging and test environments must verify webhooks. */
 export function isLocalDevelopment(): boolean {
-  return process.env['NODE_ENV'] === 'development';
+  return process.env.NODE_ENV === 'development';
 }

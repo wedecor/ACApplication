@@ -1,12 +1,12 @@
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-
 import { InvoiceStatus } from '@ac/types';
+import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 
 export class ListInvoicesDto extends PaginationDto {
   @IsOptional()
-  @IsEnum(InvoiceStatus as Record<string, string>)
+  @IsEnum(InvoiceStatus)
   status?: InvoiceStatus;
 
   @IsOptional()

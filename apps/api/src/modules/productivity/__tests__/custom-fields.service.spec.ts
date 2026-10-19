@@ -1,6 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 
-import { CustomFieldsService, validateAgainstDefinitions, type CustomFieldDef } from '../custom-fields.service';
+import { type CustomFieldDef,CustomFieldsService, validateAgainstDefinitions } from '../custom-fields.service';
 
 const defs: CustomFieldDef[] = [
   { key: 'block', label: 'Block', fieldType: 'text', options: [], required: true, isActive: true },

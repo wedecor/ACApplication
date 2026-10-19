@@ -1,5 +1,6 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
 import { createHash } from 'node:crypto';
+
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { type LatLng, MAP_PROVIDER, type MapProvider, type RouteEstimateResult } from './routing.tokens';
@@ -65,7 +66,7 @@ export class RoutingService {
           expiresAt: new Date(Date.now() + CACHE_TTL_MS),
         },
       })
-      .catch((err) => this.logger.warn({ err }, 'route cache upsert failed'));
+      .catch((err: unknown) => this.logger.warn({ err }, 'route cache upsert failed'));
 
     return estimate;
   }

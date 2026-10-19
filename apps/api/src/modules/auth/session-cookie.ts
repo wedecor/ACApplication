@@ -21,7 +21,7 @@ export function readRefreshCookie(req: FastifyRequest): string | undefined {
 export function setRefreshCookie(reply: FastifyReply, token: string, expiresAt: string): void {
   void reply.setCookie(REFRESH_COOKIE, token, {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] !== 'development',
+    secure: process.env.NODE_ENV !== 'development',
     sameSite: 'strict',
     path: '/api/v1/auth',
     expires: new Date(expiresAt),

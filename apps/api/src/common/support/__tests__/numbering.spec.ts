@@ -15,7 +15,7 @@ function buildPrisma(latestNumber: string | null) {
   };
   const prisma = {
     client: {
-      $transaction: jest.fn(async (fn: (tx: typeof tx) => Promise<unknown>) => fn(tx)),
+      $transaction: jest.fn(async (fn: (t: typeof tx) => Promise<unknown>) => fn(tx)),
     },
   };
   return { prisma, findFirst, queryRaw };
@@ -50,8 +50,8 @@ describe('nextSupportNumber', () => {
       year: 2025,
     });
     expect(queryRaw).toHaveBeenCalledTimes(1);
-    expect(queryRaw.mock.calls[0][0].join('?')).toContain('ON CONFLICT');
-    expect(queryRaw.mock.calls[0].slice(1, 5)).toEqual(['tenant_x', 'CALL', 2025, 1]);
+    expect(queryRaw.mock.calls[0]![0].join('?')).toContain('ON CONFLICT');
+    expect(queryRaw.mock.calls[0]!.slice(1, 5)).toEqual(['tenant_x', 'CALL', 2025, 1]);
   });
 
   it('throws when the model name is unknown', async () => {

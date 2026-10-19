@@ -1,6 +1,6 @@
+import { renderTemplate } from '@ac/notifications';
 import { Injectable } from '@nestjs/common';
 import { NotificationChannel, NotificationStatus, type Prisma } from '@prisma/client';
-import { renderTemplate } from '@ac/notifications';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 

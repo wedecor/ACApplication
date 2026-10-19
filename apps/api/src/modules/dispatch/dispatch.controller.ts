@@ -1,13 +1,13 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
+import { DispatchService } from './dispatch.service';
 import { AcknowledgeAlertDto } from './dto/acknowledge-alert.dto';
 import { ManualAssignDto } from './dto/manual-assign.dto';
 import { ReassignDto } from './dto/reassign.dto';
-import { DispatchService } from './dispatch.service';
 
 /**
  * Dispatcher control-center API. RBAC:

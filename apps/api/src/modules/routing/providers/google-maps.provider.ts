@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { HaversineMapProvider } from './haversine.provider';
 import { type LatLng, type MapProvider, type RouteEstimateResult } from '../routing.tokens';
+import { HaversineMapProvider } from './haversine.provider';
 
 /**
  * Google Distance Matrix adapter. Falls back to Haversine when:
@@ -20,7 +20,7 @@ export class GoogleMapsProvider implements MapProvider {
   constructor(private readonly haversine: HaversineMapProvider) {}
 
   async estimate(origin: LatLng, destination: LatLng): Promise<RouteEstimateResult> {
-    const apiKey = process.env['GOOGLE_MAPS_API_KEY'];
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) return this.haversine.estimate(origin, destination);
 
     const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json');
@@ -36,17 +36,17 @@ export class GoogleMapsProvider implements MapProvider {
       const res = await fetch(url, { signal: ac.signal });
       const json = (await res.json()) as {
         status: string;
-        rows?: Array<{
-          elements?: Array<{
+        rows?: {
+          elements?: {
             status: string;
             distance?: { value: number };
             duration?: { value: number };
             duration_in_traffic?: { value: number };
-          }>;
-        }>;
+          }[];
+        }[];
       };
       const elem = json.rows?.[0]?.elements?.[0];
-      if (json.status !== 'OK' || !elem || elem.status !== 'OK' || !elem.distance || !elem.duration) {
+      if (json.status !== 'OK' || elem?.status !== 'OK' || !elem.distance || !elem.duration) {
         throw new Error(`google status=${json.status} elem=${elem?.status ?? 'missing'}`);
       }
       return {
@@ -58,7 +58,7 @@ export class GoogleMapsProvider implements MapProvider {
       };
     } catch (err) {
       this.logger.warn({ err }, 'Google estimate failed — falling back to Haversine');
-      return this.haversine.estimate(origin, destination);
+      return await this.haversine.estimate(origin, destination);
     } finally {
       clearTimeout(timer);
     }

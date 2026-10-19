@@ -1,25 +1,26 @@
 import { randomUUID } from 'node:crypto';
 
-import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import type { NotificationRecipient } from '@ac/notifications';
-import { NotificationChannel } from '@ac/types';
 import type { AnyDomainEvent } from '@ac/types';
-import type { Prisma } from '@prisma/client';
+import { NotificationChannel } from '@ac/types';
 import {
   evaluateRuleGroup,
-  WorkflowStepType,
   type WorkflowDefinitionBody,
   type WorkflowStepDefinition,
+  type WorkflowStepJobPayload,
+  WorkflowStepType,
 } from '@ac/workflow';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { WorkflowInstanceStatus as DbWorkflowStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
-import type { WorkflowStepJobPayload } from '@ac/workflow';
 
+import { payloadId } from '../../common/events/payload-ids';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AiContextService } from './ai-context.service';
 import { EscalationEngineService } from './escalation-engine.service';
-import { WorkflowQueueService } from './workflow-queue.service';
 import { WorkflowRepository } from './workflow.repository';
+import { WorkflowQueueService } from './workflow-queue.service';
 
 @Injectable()
 export class WorkflowEngineService implements OnModuleInit {
@@ -59,7 +60,7 @@ export class WorkflowEngineService implements OnModuleInit {
         ...extraContext,
       },
       resourceType: this.inferResourceType(envelope.name),
-      resourceId: this.inferResourceId(envelope.payload as Record<string, unknown>),
+      resourceId: this.inferResourceId(envelope.payload),
       idempotencyKey,
       aiSnapshot: await this.ai.buildSnapshot(envelope),
     });
@@ -103,7 +104,7 @@ export class WorkflowEngineService implements OnModuleInit {
 
   async resume(instanceId: string, tenantId: string): Promise<void> {
     const row = await this.repo.findInstance(instanceId, tenantId);
-    if (!row || !row.currentStepKey) return;
+    if (!row?.currentStepKey) return;
     const body = this.repo.parseDefinition(row.definition.definition);
     await this.repo.updateInstance(instanceId, {
       status: DbWorkflowStatus.RUNNING,
@@ -309,26 +310,22 @@ export class WorkflowEngineService implements OnModuleInit {
     await this.repo.appendWorkflowEvent(instanceId, 'completed', detail);
   }
 
-  private async resolveRecipient(
-    step: WorkflowStepDefinition,
-    ctx: Record<string, unknown>,
-  ): Promise<NotificationRecipient> {
-    const payload = (ctx['payload'] ?? {}) as Record<string, unknown>;
-    if (step.recipient === 'customer' && payload['customerId']) {
-      return { userId: String(payload['customerId']) };
-    }
-    if (step.recipient === 'technician' && payload['technicianId']) {
-      return { userId: String(payload['technicianId']) };
-    }
-    if (step.recipient === 'custom' && step.customUserIdField) {
-      const id = payload[step.customUserIdField];
-      if (id != null) return { userId: String(id) };
-    }
-    return {};
+  private resolveRecipient(step: WorkflowStepDefinition, ctx: Record<string, unknown>): Promise<NotificationRecipient> {
+    const payload = (ctx.payload ?? {}) as Record<string, unknown>;
+    const field =
+      step.recipient === 'customer'
+        ? 'customerId'
+        : step.recipient === 'technician'
+          ? 'technicianId'
+          : step.recipient === 'custom'
+            ? step.customUserIdField
+            : undefined;
+    const userId = field ? payloadId(payload[field]) : null;
+    return Promise.resolve(userId ? { userId } : {});
   }
 
   private resourceKey(envelope: AnyDomainEvent): string {
-    return `${envelope.name}:${this.inferResourceId(envelope.payload as Record<string, unknown>)}`;
+    return `${envelope.name}:${this.inferResourceId(envelope.payload)}`;
   }
 
   private inferResourceType(eventName: string): string {
@@ -337,7 +334,8 @@ export class WorkflowEngineService implements OnModuleInit {
 
   private inferResourceId(payload: Record<string, unknown>): string {
     for (const k of ['bookingId', 'invoiceId', 'ticketId', 'subscriptionId', 'customerId']) {
-      if (payload[k]) return String(payload[k]);
+      const id = payloadId(payload[k]);
+      if (id) return id;
     }
     return randomUUID();
   }

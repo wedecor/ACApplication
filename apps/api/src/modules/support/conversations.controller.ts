@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { ConversationStatus, Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -8,11 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { ConversationStatus, Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
+import { ConversationsService } from './conversations.service';
 import {
   AssignConversationDto,
   ListConversationsDto,
@@ -21,7 +21,6 @@ import {
   SendConversationMessageDto,
   TypingIndicatorDto,
 } from './dto/conversation.dto';
-import { ConversationsService } from './conversations.service';
 
 @ApiTags('support:inbox')
 @ApiBearerAuth()

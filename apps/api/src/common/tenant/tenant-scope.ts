@@ -36,7 +36,7 @@ interface TenantLookupDelegate {
 export async function assertIdsInTenant(
   client: unknown,
   tenantId: string,
-  checks: ReadonlyArray<readonly [model: string, id: string | null | undefined, label: string]>,
+  checks: readonly (readonly [model: string, id: string | null | undefined, label: string])[],
 ): Promise<void> {
   const delegates = client as Record<string, TenantLookupDelegate | undefined>;
   await Promise.all(

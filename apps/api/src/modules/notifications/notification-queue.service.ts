@@ -1,6 +1,6 @@
-import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
 import { NOTIFICATION_DLQ_NAME, NOTIFICATION_QUEUE_NAME, type NotificationJobPayload } from '@ac/notifications';
+import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { Job, Queue, Worker } from 'bullmq';
 
 import { APP_CONFIG } from '../../common/config/config.module';

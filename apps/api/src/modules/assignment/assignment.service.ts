@@ -1,10 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma, Technician } from '@ac/database';
 import {
   DISPATCHABLE_TECHNICIAN_STATUSES,
   type ServiceCategory,
-  TechnicianStatus,
 } from '@ac/types';
-import type { Prisma, Technician } from '@ac/database';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
@@ -74,7 +73,7 @@ export class AssignmentService {
     const where: Prisma.TechnicianWhereInput = {
       tenantId: input.tenantId,
       cityId: input.cityId,
-      status: { in: Array.from(DISPATCHABLE_TECHNICIAN_STATUSES) as TechnicianStatus[] },
+      status: { in: Array.from(DISPATCHABLE_TECHNICIAN_STATUSES) },
       skills: { has: input.category },
       deletedAt: null,
       ...(input.excludeTechnicianIds?.length

@@ -1,12 +1,12 @@
+import { session } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
+import type { Permission, UserRole } from '@ac/types';
 import {
   Inject,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { session } from '@ac/auth';
-import type { LoadedServerEnv } from '@ac/config';
-import type { Permission, UserRole } from '@ac/types';
 import { SessionDevice, UserStatus } from '@prisma/client';
 
 import { APP_CONFIG } from '../../common/config/config.module';
@@ -194,12 +194,12 @@ export class AuthService {
       lastName: string | null;
       phone: string | null;
       email: string | null;
-      roles: Array<{
+      roles: {
         role: {
           key: string;
-          permissions: Array<{ permission: { key: string } }>;
+          permissions: { permission: { key: string } }[];
         };
-      }>;
+      }[];
     },
     device: SessionDevice,
     existing?: { sessionId: string; refreshOpaque: string },
@@ -271,7 +271,7 @@ export class AuthService {
 }
 
 function parseDurationMs(ttl: string): number {
-  const match = ttl.trim().match(/^(\d+)\s*([smhd])$/i);
+  const match = /^(\d+)\s*([smhd])$/i.exec(ttl.trim());
   if (!match) return 30 * 24 * 60 * 60 * 1000;
   const amount = Number(match[1]);
   const unit = match[2]?.toLowerCase();

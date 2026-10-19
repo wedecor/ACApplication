@@ -1,21 +1,21 @@
+import { randomUUID } from 'node:crypto';
+
+import { ConversationChannel } from '@ac/types';
 import {
   BadRequestException,
-  NotFoundException,
   Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   Post,
   Query,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { IsEmail, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { randomUUID } from 'node:crypto';
-
-import { ConversationChannel } from '@ac/types';
 
 import { Public } from '../../common/decorators';
 import { PrismaService } from '../../common/prisma/prisma.service';

@@ -19,14 +19,14 @@ import { MeSupportController } from './me-support.controller';
 import { PublicWebChatController } from './public-chat.controller';
 import { SlaController } from './sla.controller';
 import { SlaService } from './sla.service';
+import { SupportNotificationListener } from './support.notification-listener';
 import { SupportAnalyticsController } from './support-analytics.controller';
 import { SupportAnalyticsService } from './support-analytics.service';
-import { SupportNotificationListener } from './support.notification-listener';
 import { SupportSchedulerService } from './support-scheduler.service';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';
-import { WhatsAppInboxService } from './whatsapp-inbox.service';
 import { WhatsAppWebhookController } from './whatsapp.controller';
+import { WhatsAppInboxService } from './whatsapp-inbox.service';
 
 /**
  * Omnichannel Support / Call Center / Ticketing module.

@@ -1,5 +1,5 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { CommissionType, ServiceCategory, UserStatus } from '@ac/types';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 
 import { TechniciansService } from '../technicians.service';
 
@@ -84,7 +84,7 @@ describe('TechniciansService', () => {
       const { service, client, tx } = build();
       const detail = jest.spyOn(service, 'getById').mockResolvedValue({ id: 'tech_1' } as never);
 
-      await service.create(actor as never, dto);
+      await service.create(actor, dto);
 
       expect(client.$transaction).toHaveBeenCalledTimes(1);
       expect(tx.user.create).toHaveBeenCalledWith(
@@ -158,7 +158,7 @@ describe('TechniciansService', () => {
       });
       client.booking.count.mockResolvedValue(1);
 
-      const result = await service.deactivate(actor as never, 'tech_1', { force: true });
+      const result = await service.deactivate(actor, 'tech_1', { force: true });
 
       expect(tx.user.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: { status: UserStatus.SUSPENDED, updatedBy: actor.userId } }),
@@ -204,7 +204,7 @@ describe('TechniciansService', () => {
       const { service, client } = build();
       client.technician.findFirst.mockResolvedValue({ id: 'tech_1' });
       client.technicianCommissionRule.upsert.mockResolvedValue({ id: 'r1' });
-      const res = await service.upsertCommissionRule(actor as never, 'tech_1', {
+      const res = await service.upsertCommissionRule(actor, 'tech_1', {
         type: CommissionType.FLAT,
         valueMinor: 30_000,
       });

@@ -23,6 +23,7 @@ import {
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 import { ActivityService } from '../activity/activity.service';
 import { AssignmentService } from '../assignment/assignment.service';
 import { LeadsRepository } from '../leads/leads.repository';
@@ -40,7 +41,6 @@ import { ListBookingsDto } from './dto/list-bookings.dto';
 import { RescheduleBookingDto } from './dto/reschedule-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { VerifyBookingOtpDto } from './dto/verify-otp.dto';
-import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;

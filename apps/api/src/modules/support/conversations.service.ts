@@ -1,6 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   ConversationChannel,
   ConversationStatus,
@@ -11,7 +9,8 @@ import {
   TicketAuthorKind,
   type UserId,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -443,8 +442,8 @@ export class ConversationsService {
           number: '', // best-effort; the listener can re-fetch if needed
           customerId: (customer?.id ?? null) as never,
           source: this.channelToSource(envelope.channel),
-          priority: 'NORMAL' as never,
-          assignedAgentId: null as never,
+          priority: 'NORMAL',
+          assignedAgentId: null,
         });
       }
     }

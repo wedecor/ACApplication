@@ -11,14 +11,13 @@
  * (notification dispatch shouldn't block side-effect orchestration).
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-
 import {
   type BookingCompletedEvent,
   DomainEventName,
   type InvoicePaidEvent,
 } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { AmcSubscriptionsService } from '../amc/amc-subscriptions.service';

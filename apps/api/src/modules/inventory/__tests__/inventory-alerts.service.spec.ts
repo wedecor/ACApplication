@@ -1,10 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
   DomainEventName,
   InventoryAlertKind,
   InventoryAlertSeverity,
   InventoryAlertStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import type { DomainEventBus } from '../../../common/events/domain-event-bus.service';
 import { InventoryAlertsService } from '../inventory-alerts.service';
@@ -33,7 +33,7 @@ interface AlertRow {
 }
 
 function buildPrisma(initial: AlertRow[] = []) {
-  let rows: AlertRow[] = [...initial];
+  const rows: AlertRow[] = [...initial];
   let counter = rows.length + 1;
   const client = {
     inventoryAlert: {
@@ -57,9 +57,9 @@ function buildPrisma(initial: AlertRow[] = []) {
       create: jest.fn(({ data }: { data: Partial<AlertRow> }) => {
         const created: AlertRow = {
           id: `alert_${counter++}`,
-          tenantId: data.tenantId as string,
-          kind: data.kind as InventoryAlertKind,
-          severity: (data.severity as InventoryAlertSeverity) ?? InventoryAlertSeverity.WARNING,
+          tenantId: data.tenantId!,
+          kind: data.kind!,
+          severity: (data.severity!) ?? InventoryAlertSeverity.WARNING,
           status: InventoryAlertStatus.OPEN,
           itemId: data.itemId ?? null,
           warehouseId: data.warehouseId ?? null,
@@ -67,10 +67,10 @@ function buildPrisma(initial: AlertRow[] = []) {
           transferId: data.transferId ?? null,
           purchaseOrderId: data.purchaseOrderId ?? null,
           technicianId: data.technicianId ?? null,
-          title: data.title as string,
+          title: data.title!,
           observedValue: data.observedValue ?? null,
           thresholdValue: data.thresholdValue ?? null,
-          dedupeKey: data.dedupeKey as string,
+          dedupeKey: data.dedupeKey!,
           createdAt: new Date(),
           acknowledgedAt: null,
           acknowledgedBy: null,

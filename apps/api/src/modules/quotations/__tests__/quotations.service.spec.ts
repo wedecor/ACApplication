@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { DomainEventName, QuotationStatus } from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -5,11 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import type { AuthPrincipal } from '@ac/auth';
-import { DomainEventName, QuotationStatus } from '@ac/types';
-
 import type { CreateQuotationDto } from '../dto/create-quotation.dto';
-import type { ListQuotationsDto } from '../dto/list-quotations.dto';
 import { QuotationsService } from '../quotations.service';
 
 /**
@@ -203,7 +201,7 @@ describe('QuotationsService.list', () => {
       status: QuotationStatus.SENT,
       customerId: 'cust_1',
       q: 'QTN',
-    } as unknown as ListQuotationsDto);
+    });
     expect(res).toEqual({ items: [{ id: 'q_1' }], total: 3, page: 1, pageSize: 20 });
     const args = client.quotation.findMany.mock.calls[0][0];
     expect(args.where).toEqual({

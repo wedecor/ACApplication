@@ -1,3 +1,4 @@
+import { AMCPlanType, ServiceCategory } from '@ac/types';
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
@@ -12,8 +13,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-import { AMCPlanType, ServiceCategory } from '@ac/types';
-
 export class CreateAmcPlanDto {
   @IsString()
   @MaxLength(64)
@@ -23,7 +22,7 @@ export class CreateAmcPlanDto {
   @MaxLength(120)
   name!: string;
 
-  @IsEnum(AMCPlanType as Record<string, string>)
+  @IsEnum(AMCPlanType)
   type!: AMCPlanType;
 
   @IsOptional()
@@ -54,7 +53,7 @@ export class CreateAmcPlanDto {
 
   @IsArray()
   @ArrayMinSize(1)
-  @IsEnum(ServiceCategory as Record<string, string>, { each: true })
+  @IsEnum(ServiceCategory, { each: true })
   appliancesCovered!: ServiceCategory[];
 
   @IsInt()

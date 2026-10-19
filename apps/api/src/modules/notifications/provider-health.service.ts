@@ -1,12 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
 import {
   circuitKey,
-  DEFAULT_CIRCUIT_CONFIG,
   type CircuitSnapshot,
   type CircuitState,
+  DEFAULT_CIRCUIT_CONFIG,
 } from '@ac/notifications';
 import { NotificationChannel } from '@ac/types';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { RedisService } from '../../common/redis/redis.service';
@@ -116,14 +116,14 @@ export class ProviderHealthService {
   }
 
   async listProviderHealth(): Promise<
-    Array<{ channel: NotificationChannel; provider: string; snapshot: CircuitSnapshot }>
+    { channel: NotificationChannel; provider: string; snapshot: CircuitSnapshot }[]
   > {
     const keys = await this.redis.default.keys('notif:circuit:*');
-    const out: Array<{
+    const out: {
       channel: NotificationChannel;
       provider: string;
       snapshot: CircuitSnapshot;
-    }> = [];
+    }[] = [];
     for (const key of keys) {
       const parts = key.split(':');
       const channel = parts[2] as NotificationChannel;

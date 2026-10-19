@@ -22,20 +22,19 @@
  *  • On expiry day → status flips to EXPIRED.
  */
 
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   AMCSubscriptionStatus,
   AMCVisitStatus,
   BookingStatus,
   DomainEventName,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { nextDocumentNumber } from '../../common/finance';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { InvoicesService } from '../invoices/invoices.service';
 import { PdfService } from '../pdf/pdf.service';
 import type { CreateAmcSubscriptionDto } from './dto/amc.dto';
@@ -85,7 +84,7 @@ export class AmcSubscriptionsService {
         renewalPriceMinor: plan.renewalPriceMinor,
         autoRenew: dto.autoRenew ?? true,
         appliancesSnapshot:
-          (dto.appliancesSnapshot ?? plan.appliancesCovered) as unknown as Prisma.InputJsonValue,
+          dto.appliancesSnapshot ?? plan.appliancesCovered,
       },
     });
 
@@ -186,8 +185,8 @@ export class AmcSubscriptionsService {
       });
       if (first?.id === invoiceId) return null;
       const metadata = (sub.metadata ?? {}) as Record<string, unknown>;
-      const done = Array.isArray(metadata['renewedInvoiceIds'])
-        ? (metadata['renewedInvoiceIds'] as string[])
+      const done = Array.isArray(metadata.renewedInvoiceIds)
+        ? (metadata.renewedInvoiceIds as string[])
         : [];
       if (done.includes(invoiceId)) return null;
 
@@ -215,7 +214,7 @@ export class AmcSubscriptionsService {
           status: AMCSubscriptionStatus.ACTIVE,
           endsAt,
           visitsScheduled: { increment: visits.length },
-          metadata: { ...metadata, renewedInvoiceIds: [...done, invoiceId] } as Prisma.InputJsonValue,
+          metadata: { ...metadata, renewedInvoiceIds: [...done, invoiceId] },
         },
       });
       return { customerId: sub.customerId, endsAt };

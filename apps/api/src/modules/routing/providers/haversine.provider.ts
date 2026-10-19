@@ -12,6 +12,7 @@ export class HaversineMapProvider implements MapProvider {
   readonly name = 'haversine' as const;
   private readonly URBAN_SPEED_MPS = 28_000 / 3600;
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- shares the async provider interface
   async estimate(origin: LatLng, destination: LatLng): Promise<RouteEstimateResult> {
     const distanceM = Math.round(this.haversineMeters(origin, destination));
     const durationS = Math.max(60, Math.round(distanceM / this.URBAN_SPEED_MPS));

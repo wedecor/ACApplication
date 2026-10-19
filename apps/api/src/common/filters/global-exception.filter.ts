@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nestjs';
+import { ApiErrorCode } from '@ac/types';
 import {
   type ArgumentsHost,
   Catch,
@@ -6,7 +6,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiErrorCode } from '@ac/types';
+import * as Sentry from '@sentry/nestjs';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { Logger } from 'nestjs-pino';
 import { ZodError } from 'zod';
@@ -15,6 +15,18 @@ import { ZodError } from 'zod';
  * Global exception filter — coerces every thrown error into the canonical
  * `ApiError` envelope so clients always get a predictable shape.
  */
+const STATUS_CODES: Partial<Record<number, ApiErrorCode>> = {
+  [HttpStatus.BAD_REQUEST]: ApiErrorCode.BAD_REQUEST,
+  [HttpStatus.UNAUTHORIZED]: ApiErrorCode.UNAUTHORIZED,
+  [HttpStatus.FORBIDDEN]: ApiErrorCode.FORBIDDEN,
+  [HttpStatus.NOT_FOUND]: ApiErrorCode.NOT_FOUND,
+  [HttpStatus.CONFLICT]: ApiErrorCode.CONFLICT,
+  [HttpStatus.UNPROCESSABLE_ENTITY]: ApiErrorCode.VALIDATION_ERROR,
+  [HttpStatus.TOO_MANY_REQUESTS]: ApiErrorCode.RATE_LIMITED,
+  [HttpStatus.SERVICE_UNAVAILABLE]: ApiErrorCode.SERVICE_UNAVAILABLE,
+  [HttpStatus.GATEWAY_TIMEOUT]: ApiErrorCode.GATEWAY_TIMEOUT,
+};
+
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
   constructor(private readonly logger: Logger) {}
@@ -50,7 +62,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   private normalize(exception: unknown): {
     statusCode: number;
-    code: ApiErrorCode | string;
+    code: string;
     message: string;
     details?: unknown;
   } {
@@ -71,7 +83,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           : (resp as { message?: string | string[] }).message
             ? Array.isArray((resp as { message: string[] }).message)
               ? (resp as { message: string[] }).message.join(', ')
-              : ((resp as { message: string }).message as string)
+              : ((resp as { message: string }).message)
             : exception.message;
       const customCode =
         typeof resp === 'object' && resp !== null && 'code' in resp
@@ -97,29 +109,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   private codeFromStatus(status: number): ApiErrorCode {
-    switch (status) {
-      case HttpStatus.BAD_REQUEST:
-        return ApiErrorCode.BAD_REQUEST;
-      case HttpStatus.UNAUTHORIZED:
-        return ApiErrorCode.UNAUTHORIZED;
-      case HttpStatus.FORBIDDEN:
-        return ApiErrorCode.FORBIDDEN;
-      case HttpStatus.NOT_FOUND:
-        return ApiErrorCode.NOT_FOUND;
-      case HttpStatus.CONFLICT:
-        return ApiErrorCode.CONFLICT;
-      case HttpStatus.UNPROCESSABLE_ENTITY:
-        return ApiErrorCode.VALIDATION_ERROR;
-      case HttpStatus.TOO_MANY_REQUESTS:
-        return ApiErrorCode.RATE_LIMITED;
-      case HttpStatus.SERVICE_UNAVAILABLE:
-        return ApiErrorCode.SERVICE_UNAVAILABLE;
-      case HttpStatus.GATEWAY_TIMEOUT:
-        return ApiErrorCode.GATEWAY_TIMEOUT;
-      default:
-        return status >= 500 ? ApiErrorCode.INTERNAL : ApiErrorCode.BAD_REQUEST;
-    }
+    return STATUS_CODES[status] ?? (status >= 500 ? ApiErrorCode.INTERNAL : ApiErrorCode.BAD_REQUEST);
   }
+
 }
 
 export function fastifyClientError(

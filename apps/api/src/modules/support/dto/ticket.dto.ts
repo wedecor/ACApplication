@@ -1,3 +1,4 @@
+import { ConversationChannel, TicketPriority, TicketSource, TicketStatus } from '@ac/types';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -15,8 +16,6 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-
-import { ConversationChannel, TicketPriority, TicketSource, TicketStatus } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 

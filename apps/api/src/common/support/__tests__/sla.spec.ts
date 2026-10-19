@@ -7,8 +7,8 @@ import {
   isOverdue,
   isSlaActive,
   minutesUntil,
-  warningWindowMinutes,
   type SlaProfileSnapshot,
+  warningWindowMinutes,
 } from '../sla';
 
 const baseProfile = (overrides: Partial<SlaProfileSnapshot> = {}): SlaProfileSnapshot => ({

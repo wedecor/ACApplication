@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 import { EscalationEngineService } from './escalation-engine.service';
 import { WorkflowEngineService } from './workflow-engine.service';
-import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 @Injectable()
 export class WorkflowSchedulerService {

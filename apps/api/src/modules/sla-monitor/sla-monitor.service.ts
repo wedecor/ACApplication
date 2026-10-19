@@ -1,5 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   type BookingId,
   BookingStatus,
@@ -7,13 +5,15 @@ import {
   DomainEventName,
   type TechnicianId,
 } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 import { DispatchService } from '../dispatch/dispatch.service';
 import { RoutingService } from '../routing/routing.service';
 import { TechnicianAvailabilityService } from '../technician-availability/technician-availability.service';
-import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 const OVERDUE_GRACE_MIN = 15;
 const DELAYED_GRACE_MIN = 10;
@@ -129,7 +129,7 @@ export class SlaMonitorService {
           });
           // The cron runs every minute; tell the customer once, then only when the delay grows.
           const meta = (b.metadata ?? {}) as Record<string, unknown>;
-          if (shouldNotifyDelay(meta['delayNotifiedMinutes'], minutesLate)) {
+          if (shouldNotifyDelay(meta.delayNotifiedMinutes, minutesLate)) {
             await this.prisma.client.booking.update({
               where: { id: b.id },
               data: { metadata: { ...meta, delayNotifiedMinutes: minutesLate } as never },

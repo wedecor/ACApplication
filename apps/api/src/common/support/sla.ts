@@ -8,7 +8,7 @@
  *     intentionally simple — for tenants with holiday calendars we hook a
  *     pluggable `BusinessCalendar` interface in front of `addMinutes`.
  */
-import { type TicketPriority, type TicketStatus, OPEN_TICKET_STATUSES } from '@ac/types';
+import { OPEN_TICKET_STATUSES,type TicketPriority, type TicketStatus } from '@ac/types';
 
 export interface SlaProfileSnapshot {
   firstResponseMinutes: number;

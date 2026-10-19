@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { PayoutStatus,Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -10,9 +12,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
-import { Permission, PayoutStatus } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import {

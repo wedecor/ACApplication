@@ -1,4 +1,9 @@
-import { Type, Transform } from 'class-transformer';
+import {
+  ConversationChannel,
+  ConversationStatus,
+  MessageDirection,
+} from '@ac/types';
+import { Transform,Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -11,12 +16,6 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-
-import {
-  ConversationChannel,
-  ConversationStatus,
-  MessageDirection,
-} from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 import { toArray } from '../../../common/dto/query-transforms';

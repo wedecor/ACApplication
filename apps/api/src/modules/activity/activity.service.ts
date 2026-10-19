@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { type ActivityType } from '@ac/types';
 import type { Prisma } from '@ac/database';
+import { type ActivityType } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
@@ -29,7 +29,7 @@ export class ActivityService {
     params: RecordParams,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const client = (tx ?? this.prisma.client) as Prisma.TransactionClient;
+    const client = (tx ?? this.prisma.client);
     return client.leadActivity
       .create({
         data: {
@@ -52,7 +52,7 @@ export class ActivityService {
     params: RecordParams,
     tx?: Prisma.TransactionClient,
   ): Promise<void> {
-    const client = (tx ?? this.prisma.client) as Prisma.TransactionClient;
+    const client = (tx ?? this.prisma.client);
     return client.bookingActivity
       .create({
         data: {

@@ -1,27 +1,27 @@
-import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
 import {
   ConsoleTransport,
-  NotificationDispatcher,
-  sendWithFailover,
   type NamedProvider,
+  NotificationDispatcher,
   type NotificationMessage,
   type NotificationRecipient,
   type SendResult,
+  sendWithFailover,
 } from '@ac/notifications';
 import { NotificationChannel } from '@ac/types';
 import { WhatsAppClient } from '@ac/whatsapp';
+import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { ProviderHealthService } from './provider-health.service';
-import { ExpoPushTransport } from './transports/push-expo.transport';
 import { ResendEmailTransport } from './transports/email-resend.transport';
-import { SmtpEmailTransport } from './transports/smtp-email.transport';
+import { InAppTransport } from './transports/in-app.transport';
+import { ExpoPushTransport } from './transports/push-expo.transport';
 import { Msg91SmsTransport } from './transports/sms-msg91.transport';
 import { TwilioSmsTransport } from './transports/sms-twilio.transport';
-import { InAppTransport } from './transports/in-app.transport';
+import { SmtpEmailTransport } from './transports/smtp-email.transport';
 
 @Injectable()
 export class NotificationFailoverDispatcher extends NotificationDispatcher implements OnModuleInit {

@@ -1,5 +1,6 @@
-import { StreamableFile } from '@nestjs/common';
 import { Readable } from 'node:stream';
+
+import { StreamableFile } from '@nestjs/common';
 import { lastValueFrom, of } from 'rxjs';
 
 import { isRawResponse, ResponseInterceptor } from '../response.interceptor';

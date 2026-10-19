@@ -26,7 +26,7 @@ function buildSvc() {
   const invoices = {} as never;
   const pdf = {} as never;
   const svc = new AmcSubscriptionsService(prisma, events as never, invoices, pdf);
-  return { svc, prisma: prisma as { client: Record<string, { findUnique: jest.Mock; update: jest.Mock; findMany: jest.Mock; updateMany?: jest.Mock; create: jest.Mock; createMany: jest.Mock; findFirst: jest.Mock }> }, events };
+  return { svc, prisma: prisma as { client: Record<'aMCVisit' | 'aMCSubscription' | 'booking' | 'invoice', { findUnique: jest.Mock; update: jest.Mock; findMany: jest.Mock; updateMany?: jest.Mock; create: jest.Mock; createMany: jest.Mock; findFirst: jest.Mock }> }, events };
 }
 
 describe('AmcSubscriptionsService', () => {

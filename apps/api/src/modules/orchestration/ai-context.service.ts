@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import type { AnyDomainEvent } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 export interface AiDecisionResult {
   nextStepKey?: string;
@@ -13,15 +13,16 @@ export interface AiDecisionResult {
  */
 @Injectable()
 export class AiContextService {
-  async buildSnapshot(envelope: AnyDomainEvent): Promise<Record<string, unknown>> {
-    return {
+  buildSnapshot(envelope: AnyDomainEvent): Promise<Record<string, unknown>> {
+    return Promise.resolve({
       event: envelope.name,
       payload: envelope.payload,
       capturedAt: new Date().toISOString(),
       version: 1,
-    };
+    });
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- placeholder for a model call; keeps the async contract
   async decide(
     hook: string,
     context: Record<string, unknown>,
@@ -29,8 +30,8 @@ export class AiContextService {
   ): Promise<AiDecisionResult> {
     void snapshot;
     if (hook === 'dispatch_priority') {
-      const booking = context['booking'] as Record<string, unknown> | undefined;
-      const minutes = Number(booking?.['ageMinutes'] ?? 0);
+      const booking = context.booking as Record<string, unknown> | undefined;
+      const minutes = Number(booking?.ageMinutes ?? 0);
       return {
         nextStepKey: minutes > 30 ? 'escalate_dispatch' : 'notify_customer',
         confidence: 0.7,

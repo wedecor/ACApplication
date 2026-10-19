@@ -88,6 +88,22 @@ export const baseConfig = [
     },
   },
   {
+    // Tests: Jest/Vitest mocks are `any` by design (mock.calls, mockResolvedValue),
+    // so the type-safety "unsafe" family only produces noise there. Production
+    // code keeps the full rule set.
+    files: ['**/*.spec.ts', '**/*.test.ts', '**/*.test.tsx', '**/__tests__/**', '**/test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+  {
     ignores: [
       '**/node_modules/**',
       '**/dist/**',

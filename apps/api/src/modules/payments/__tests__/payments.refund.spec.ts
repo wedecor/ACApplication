@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
 import { PaymentStatus, RefundStatus } from '@ac/types';
+import { BadRequestException } from '@nestjs/common';
 
 import { PaymentsService } from '../payments.service';
 
@@ -37,7 +37,7 @@ describe('PaymentsService.refundPayment', () => {
     const { svc, invoices, razorpay } = build();
     await svc.refundPayment(actor, 'pay_1', { amountMinor: 5_000, reason: 'faulty' });
     expect(invoices.refund).toHaveBeenCalledWith(actor, 'inv_1', expect.objectContaining({ paymentId: 'pay_1', amountMinor: 5_000 }));
-    expect(invoices.refund.mock.invocationCallOrder[0]).toBeLessThan(razorpay.issueRefund.mock.invocationCallOrder[0]);
+    expect(invoices.refund.mock.invocationCallOrder[0]).toBeLessThan(razorpay.issueRefund.mock.invocationCallOrder[0]!);
     expect(razorpay.issueRefund).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: 'refund_ref_1', amountMinor: 5_000 }));
   });
 
@@ -58,6 +58,6 @@ describe('PaymentsService.refundPayment', () => {
   it('records the gateway reference and status on success', async () => {
     const { svc, prisma } = build();
     await svc.refundPayment(actor, 'pay_1', { amountMinor: 100 });
-    expect(prisma.client.refund.update.mock.calls[0][0].data).toMatchObject({ gatewayRef: 'rfnd_1', status: RefundStatus.PROCESSING });
+    expect(prisma.client.refund.update.mock.calls[0]![0].data).toMatchObject({ gatewayRef: 'rfnd_1', status: RefundStatus.PROCESSING });
   });
 });

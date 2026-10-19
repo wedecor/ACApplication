@@ -1,3 +1,7 @@
+import type { AuthPrincipal } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
+import { IdempotencyKeys } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 import {
   Body,
   Controller,
@@ -11,13 +15,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { LoadedServerEnv } from '@ac/config';
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import type { AuthPrincipal } from '@ac/auth';
-
-import { IdempotencyKeys } from '@ac/notifications';
-import { NotificationChannel } from '@ac/types';
 import { SessionDevice } from '@prisma/client';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { AllowAuthenticated, CurrentUser, Public } from '../../common/decorators';

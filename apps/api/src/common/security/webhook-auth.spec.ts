@@ -1,3 +1,5 @@
+import { createHmac } from 'node:crypto';
+
 import { verifyBearerSecret, verifyHmacSha256 } from './webhook-auth';
 
 describe('webhook-auth', () => {
@@ -9,8 +11,7 @@ describe('webhook-auth', () => {
   it('verifies hmac when secret configured', () => {
     const body = '{"ok":true}';
     const secret = 'test-secret';
-    const crypto = require('node:crypto');
-    const sig = crypto.createHmac('sha256', secret).update(body).digest('hex');
+    const sig = createHmac('sha256', secret).update(body).digest('hex');
     expect(verifyHmacSha256(body, sig, secret)).toBe(true);
   });
 });

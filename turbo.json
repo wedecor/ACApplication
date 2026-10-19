@@ -17,7 +17,10 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": [
+        "^build",
+        "^db:generate"
+      ],
       "outputs": [
         ".next/**",
         "!.next/cache/**",
@@ -48,23 +51,36 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^db:generate"]
+      "dependsOn": [
+        "^db:generate"
+      ]
     },
     "lint": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": []
     },
     "lint:fix": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false
     },
     "typecheck": {
-      "dependsOn": ["^build", "^db:generate"],
+      "dependsOn": [
+        "^build",
+        "^db:generate"
+      ],
       "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ],
       "inputs": [
         "src/**/*.{ts,tsx,js,jsx}",
         "test/**/*.{ts,tsx,js,jsx}",
@@ -73,7 +89,9 @@
       ]
     },
     "test:e2e": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false
     },
     "clean": {
@@ -81,11 +99,63 @@
     },
     "db:generate": {
       "cache": false,
-      "outputs": ["node_modules/.prisma/**", "src/generated/**"]
+      "outputs": [
+        "node_modules/.prisma/**",
+        "src/generated/**"
+      ]
     },
     "db:migrate": {
       "cache": false,
       "persistent": false
     }
-  }
+  },
+  "globalPassThroughEnv": [
+    "ADMIN_URL",
+    "BRAND_ADDRESS",
+    "BRAND_EMAIL",
+    "BRAND_GSTIN",
+    "BRAND_LEGAL_NAME",
+    "BRAND_NAME",
+    "BRAND_PAN",
+    "BRAND_PHONE",
+    "BRAND_WEBSITE",
+    "CALL_CENTER_FROM_NUMBER",
+    "CALL_CENTER_PROVIDER",
+    "CORS_EXTRA_ORIGINS",
+    "FINANCE_SCHEDULER_DISABLED",
+    "GOOGLE_MAPS_API_KEY",
+    "GST_HOME_STATE",
+    "INVENTORY_SCHEDULER_DISABLED",
+    "LOG_LEVEL",
+    "MAPBOX_TOKEN",
+    "OTP_ISSUE_LIMIT",
+    "OTP_LOCK_WINDOW_SECONDS",
+    "PAYMENTS_PROVIDER",
+    "PORT",
+    "PUBLIC_LEAD_API_TOKEN",
+    "RATE_LIMIT_GLOBAL_RPS",
+    "RATE_LIMIT_PUBLIC_LEAD_RPM",
+    "RAZORPAY_KEY_ID",
+    "RAZORPAY_KEY_SECRET",
+    "RAZORPAY_WEBHOOK_SECRET",
+    "RBAC_SYNC_ON_STARTUP",
+    "REDIS_PASSWORD",
+    "REDIS_TLS",
+    "SENTRY_TRACES_SAMPLE_RATE",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "SWAGGER_ENABLED",
+    "TASK_REMINDERS_DISABLED",
+    "TRUSTED_PROXY_HOPS",
+    "TRUST_PROXY",
+    "WEB_INTERNAL_API_URL",
+    "WEB_TENANT_ID",
+    "WEB_URL",
+    "WHATSAPP_ACCESS_TOKEN",
+    "WHATSAPP_APP_SECRET",
+    "WHATSAPP_DEFAULT_TENANT_ID",
+    "WHATSAPP_PHONE_NUMBER_ID",
+    "WHATSAPP_VERIFY_TOKEN",
+    "WORKFLOW_WORKER_CONCURRENCY"
+  ]
 }

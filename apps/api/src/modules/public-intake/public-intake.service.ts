@@ -1,10 +1,10 @@
+import { LeadSource } from '@ac/types';
 import {
   BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { LeadSource } from '@ac/types';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { LeadsService } from '../leads/leads.service';
@@ -71,7 +71,7 @@ export class PublicIntakeService {
       return t.id;
     }
 
-    const envId = process.env['WEB_TENANT_ID']?.trim();
+    const envId = process.env.WEB_TENANT_ID?.trim();
     if (envId) {
       this.tenantCache.set(cacheKey, envId);
       return envId;
@@ -217,9 +217,9 @@ export class PublicIntakeService {
     const url = (dto.originUrl ?? '').toLowerCase();
     if (url.includes('/lp/')) return LeadSource.GOOGLE_ADS;
     if (url.includes('whatsapp')) return LeadSource.WHATSAPP;
-    if (dto.utm?.['source']?.toLowerCase().includes('google')) return LeadSource.GOOGLE_ADS;
-    if (dto.utm?.['source']?.toLowerCase().includes('facebook')) return LeadSource.FACEBOOK;
-    if (dto.utm?.['source']?.toLowerCase().includes('instagram')) return LeadSource.INSTAGRAM;
+    if (dto.utm?.source?.toLowerCase().includes('google')) return LeadSource.GOOGLE_ADS;
+    if (dto.utm?.source?.toLowerCase().includes('facebook')) return LeadSource.FACEBOOK;
+    if (dto.utm?.source?.toLowerCase().includes('instagram')) return LeadSource.INSTAGRAM;
     const referer = (meta.referer ?? '').toLowerCase();
     if (referer.includes('facebook.com')) return LeadSource.FACEBOOK;
     if (referer.includes('instagram.com')) return LeadSource.INSTAGRAM;

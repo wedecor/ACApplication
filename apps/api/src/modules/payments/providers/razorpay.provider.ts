@@ -10,6 +10,7 @@
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
+
 import { Injectable, Logger } from '@nestjs/common';
 
 import type {

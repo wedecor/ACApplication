@@ -1,5 +1,5 @@
-import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { createPrismaClient } from '@ac/database';
+import { Injectable, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { ClsService } from 'nestjs-cls';
 
 /**

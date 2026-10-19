@@ -1,5 +1,5 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { BookingStatus } from '@ac/types';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { assertTechnicianTransition } from '../bookings.service';
 import { actor, buildService, makeBooking } from './bookings.test-helpers';
@@ -36,12 +36,12 @@ describe('BookingsService — field technician scope', () => {
 
   it('refuses booking edits from technicians', async () => {
     const { svc } = forTech();
-    await expect(svc.update(tech, 'book_1', {} as never)).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(svc.update(tech, 'book_1', {})).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('cannot start work through the status endpoint before the arrival OTP', async () => {
     const { svc, repo } = forTech();
-    await expect(svc.changeStatus(tech, 'book_1', { status: S.IN_PROGRESS } as never)).rejects.toThrow(/arrival OTP/);
+    await expect(svc.changeStatus(tech, 'book_1', { status: S.IN_PROGRESS })).rejects.toThrow(/arrival OTP/);
     expect(repo.update).not.toHaveBeenCalled();
   });
 

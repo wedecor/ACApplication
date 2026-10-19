@@ -1,10 +1,10 @@
-import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
 import {
   WORKFLOW_SCHEDULE_QUEUE,
   WORKFLOW_STEP_QUEUE,
   type WorkflowStepJobPayload,
 } from '@ac/workflow';
+import { Inject, Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import { Job, Queue, Worker } from 'bullmq';
 
 import { APP_CONFIG } from '../../common/config/config.module';
@@ -75,7 +75,7 @@ export class WorkflowQueueService implements OnModuleInit, OnModuleDestroy {
       async (job) => this.stepProcessor!(job),
       {
         connection: this.connection(),
-        concurrency: Number(process.env['WORKFLOW_WORKER_CONCURRENCY'] ?? 4),
+        concurrency: Number(process.env.WORKFLOW_WORKER_CONCURRENCY ?? 4),
         maxStalledCount: 2,
         stalledInterval: 30_000,
       },

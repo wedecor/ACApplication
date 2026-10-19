@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+
+import { Injectable } from '@nestjs/common';
 
 /**
  * HMAC-SHA256 signing for technician GPS pings.

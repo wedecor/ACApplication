@@ -1,16 +1,16 @@
-import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
-import { WorkflowStepType, type WorkflowDefinitionBody } from '@ac/workflow';
 import { DomainEventName } from '@ac/types';
+import { type WorkflowDefinitionBody,WorkflowStepType } from '@ac/workflow';
+import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
-const SYSTEM_WORKFLOWS: Array<{
+const SYSTEM_WORKFLOWS: {
   key: string;
   name: string;
   triggerEvent: string;
   definition: WorkflowDefinitionBody;
-}> = [
+}[] = [
   {
     key: 'booking-assignment',
     name: 'Booking assignment SLA',

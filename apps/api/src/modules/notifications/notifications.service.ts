@@ -1,20 +1,19 @@
 import { randomUUID } from 'node:crypto';
 
-import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
-import { retryDelayMs, type NotificationRecipient } from '@ac/notifications';
+import { type NotificationJobPayload, type NotificationRecipient, retryDelayMs } from '@ac/notifications';
 import { NotificationChannel } from '@ac/types';
+import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { NotificationStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
-import type { NotificationJobPayload } from '@ac/notifications';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { RedisService } from '../../common/redis/redis.service';
+import { NotificationRepository } from './notification.repository';
 import { NotificationFailoverDispatcher } from './notification-failover.dispatcher';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationQueueService } from './notification-queue.service';
 import { NotificationRateLimiterService } from './notification-rate-limiter.service';
-import { NotificationRepository } from './notification.repository';
 
 @Injectable()
 export class NotificationsService implements OnModuleInit {
@@ -101,7 +100,7 @@ export class NotificationsService implements OnModuleInit {
 
   async retry(notificationId: string, tenantId: string): Promise<void> {
     const row = await this.repo.findById(notificationId);
-    if (!row || row.tenantId !== tenantId) return;
+    if (row?.tenantId !== tenantId) return;
     await this.repo.resetForRetry(notificationId);
     await this.queue.schedule(notificationId, row.correlationId ?? notificationId, 0);
   }

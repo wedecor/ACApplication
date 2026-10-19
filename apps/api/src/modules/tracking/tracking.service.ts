@@ -1,18 +1,18 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@ac/database';
 import {
   DomainEventName,
   type LiveTechnicianSnapshot,
   type TechnicianId,
   TechnicianStatus,
 } from '@ac/types';
-import type { Prisma } from '@ac/database';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { assertTenantMatch } from '../../common/tenant/tenant-scope';
 import { RedisService } from '../../common/redis/redis.service';
-import { LocationSigner } from './location-signer.service';
+import { assertTenantMatch } from '../../common/tenant/tenant-scope';
 import { type LocationPingDto } from './dto/upload-location.dto';
+import { LocationSigner } from './location-signer.service';
 
 /**
  * Redis key prefixes — kept short so SCAN / GEOSEARCH stay cheap at scale.
@@ -151,7 +151,7 @@ export class TrackingService {
         })
         .expire(LIVE_TECH_KEY(tech.id), LIVE_TTL_SECONDS)
         .exec(),
-    ]).catch((err) => this.logger.warn({ err }, 'Redis live cache write failed'));
+    ]).catch((err: unknown) => this.logger.warn({ err }, 'Redis live cache write failed'));
 
     this.events.publish(DomainEventName.TechnicianLocationUpdated, {
       technicianId: tech.id as TechnicianId,
@@ -205,7 +205,7 @@ export class TrackingService {
       technicianId: t.id as TechnicianId,
       fullName: t.fullName,
       cityId: t.cityId as never,
-      status: t.status as TechnicianStatus,
+      status: t.status,
       rating: t.rating,
       activeJobs: t._count.bookings,
       latitude: t.lastLatitude,
@@ -231,7 +231,7 @@ export class TrackingService {
     point: { latitude: number; longitude: number },
     radiusKm: number,
     limit = 20,
-  ): Promise<Array<{ technicianId: string; distanceKm: number }>> {
+  ): Promise<{ technicianId: string; distanceKm: number }[]> {
     try {
       const raw = (await this.redis.default.call(
         'GEOSEARCH',
@@ -246,7 +246,7 @@ export class TrackingService {
         'COUNT',
         String(limit),
         'WITHDIST',
-      )) as Array<[string, string]>;
+      )) as [string, string][];
       return raw.map(([id, dist]) => ({ technicianId: id, distanceKm: Number(dist) }));
     } catch (err) {
       this.logger.warn({ err }, 'GEOSEARCH failed — caller should fall back to DB query');
@@ -294,7 +294,7 @@ export class TrackingService {
           lastSeenAt: new Date(),
         },
       }),
-    ]).catch((err) => this.logger.warn({ err }, 'bootstrap ping failed'));
+    ]).catch((err: unknown) => this.logger.warn({ err }, 'bootstrap ping failed'));
   }
 }
 

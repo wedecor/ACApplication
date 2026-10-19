@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import type { Prisma } from '@ac/database';
 import {
   canTransitionTechnicianStatus,
   DISPATCHABLE_TECHNICIAN_STATUSES,
@@ -12,7 +6,13 @@ import {
   type TechnicianId,
   TechnicianStatus,
 } from '@ac/types';
-import type { Prisma } from '@ac/database';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -64,7 +64,7 @@ export class TechnicianAvailabilityService {
       throw new ForbiddenException('Cannot change status for another technician');
     }
     if (tech.status === next) return tech;
-    if (!canTransitionTechnicianStatus(tech.status as TechnicianStatus, next)) {
+    if (!canTransitionTechnicianStatus(tech.status, next)) {
       throw new BadRequestException(
         `Cannot transition technician from ${tech.status} to ${next}`,
       );
@@ -84,7 +84,7 @@ export class TechnicianAvailabilityService {
             startedAt: now,
           },
         })
-        .catch((err) => this.logger.warn({ err }, 'shift open failed'));
+        .catch((err: unknown) => this.logger.warn({ err }, 'shift open failed'));
 
       this.events.publish(DomainEventName.TechnicianOnline, {
         technicianId: tech.id as TechnicianId,
@@ -156,7 +156,7 @@ export class TechnicianAvailabilityService {
       unreachable: 0,
     };
     for (const t of techs) {
-      if (DISPATCHABLE_TECHNICIAN_STATUSES.has(t.status as TechnicianStatus)) buckets.available += 1;
+      if (DISPATCHABLE_TECHNICIAN_STATUSES.has(t.status)) buckets.available += 1;
       else if (t.status === TechnicianStatus.ON_BREAK) buckets.onBreak += 1;
       else if (t.status === TechnicianStatus.UNREACHABLE) buckets.unreachable += 1;
       else if (t.status === TechnicianStatus.OFFLINE) buckets.offline += 1;

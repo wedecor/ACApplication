@@ -13,6 +13,9 @@
 
 import { randomBytes } from 'node:crypto';
 
+import type { AuthPrincipal } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
+import { DomainEventName, QuotationStatus, TERMINAL_QUOTATION_STATUSES } from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -24,18 +27,14 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
-import { DomainEventName, QuotationStatus, TERMINAL_QUOTATION_STATUSES } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-import type { LoadedServerEnv } from '@ac/config';
-
 import { APP_CONFIG } from '../../common/config/config.module';
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import {
   computeInvoiceTotals,
   defaultGstContext,
   nextDocumentNumber,
 } from '../../common/finance';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { InvoicesService } from '../invoices/invoices.service';
 import { PdfService } from '../pdf/pdf.service';
 import type { CreateQuotationDto } from './dto/create-quotation.dto';
@@ -189,7 +188,7 @@ export class QuotationsService {
     const q = await this.findPublic(viewToken);
 
     // Auto-bump SENT → VIEWED so sales sees an engagement signal.
-    let status = q.status as QuotationStatus;
+    let status = q.status;
     if (status === QuotationStatus.SENT) {
       const viewedAt = new Date();
       await this.prisma.client.quotation.update({
@@ -209,7 +208,7 @@ export class QuotationsService {
     const q = await this.findPublic(viewToken);
     // A second tap (or a retried request) is a no-op, not an error.
     if (q.status === QuotationStatus.APPROVED) return toPublicQuotation(q);
-    this.assertAwaitingDecision(q.status as QuotationStatus);
+    this.assertAwaitingDecision(q.status);
     if (q.expiresAt < new Date()) {
       throw new ForbiddenException('Quotation has expired');
     }
@@ -226,7 +225,7 @@ export class QuotationsService {
 
   async customerReject(viewToken: string, reason?: string): Promise<PublicQuotation> {
     const q = await this.findPublic(viewToken);
-    this.assertAwaitingDecision(q.status as QuotationStatus);
+    this.assertAwaitingDecision(q.status);
     const trimmed = reason?.trim() || null;
     const updated = await this.prisma.client.quotation.update({
       where: { id: q.id },

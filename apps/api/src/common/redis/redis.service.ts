@@ -17,9 +17,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   readonly sub: Redis;
 
   constructor() {
-    const url = process.env['REDIS_URL'] ?? 'redis://localhost:6379';
-    const tls = process.env['REDIS_TLS'] === 'true';
-    const password = process.env['REDIS_PASSWORD'] || undefined;
+    const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
+    const tls = process.env.REDIS_TLS === 'true';
+    const password = process.env.REDIS_PASSWORD || undefined;
     const opts = { lazyConnect: true, password, ...(tls ? { tls: {} } : {}) };
     this.default = new Redis(url, opts);
     this.pub = new Redis(url, opts);

@@ -1,3 +1,4 @@
+import { KbArticleStatus, KbVisibility } from '@ac/types';
 import {
   ArrayMaxSize,
   IsArray,
@@ -10,8 +11,6 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-
-import { KbArticleStatus, KbVisibility } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 

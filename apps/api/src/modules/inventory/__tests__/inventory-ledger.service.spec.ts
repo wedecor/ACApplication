@@ -26,12 +26,12 @@ interface LedgerRow {
 }
 
 function buildPrisma(initial: {
-  items?: Array<{ id: string; tenantId: string; costPriceMinor: number }>;
-  warehouses?: Array<{ id: string; tenantId: string }>;
+  items?: { id: string; tenantId: string; costPriceMinor: number }[];
+  warehouses?: { id: string; tenantId: string }[];
   snapshots?: Snapshot[];
 } = {}) {
-  let snapshots: Snapshot[] = initial.snapshots ? [...initial.snapshots] : [];
-  let ledger: LedgerRow[] = [];
+  const snapshots: Snapshot[] = initial.snapshots ? [...initial.snapshots] : [];
+  const ledger: LedgerRow[] = [];
   let snapshotId = snapshots.length + 1;
   let ledgerId = 1;
   const items = initial.items ?? [];

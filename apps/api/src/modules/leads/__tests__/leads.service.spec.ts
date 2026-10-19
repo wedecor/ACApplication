@@ -1,9 +1,9 @@
-import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { LeadSource, LeadStatus } from '@ac/types';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 
 import { LeadsService } from '../leads.service';
 
-type RepoMock = {
+interface RepoMock {
   create: jest.Mock;
   findByExternalRef: jest.Mock;
   findRecentDuplicate: jest.Mock;
@@ -11,14 +11,14 @@ type RepoMock = {
   update: jest.Mock;
   addNote: jest.Mock;
   nextCode: jest.Mock;
-};
+}
 
-type PrismaMock = {
+interface PrismaMock {
   client: {
     $transaction: jest.Mock;
     user: { findFirst: jest.Mock };
   };
-};
+}
 
 function buildService() {
   const repo: RepoMock = {

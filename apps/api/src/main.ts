@@ -1,6 +1,10 @@
 import './instrument';
 import 'reflect-metadata';
 
+import compress from '@fastify/compress';
+import cookie from '@fastify/cookie';
+import cors from '@fastify/cors';
+import helmet from '@fastify/helmet';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import {
@@ -8,17 +12,13 @@ import {
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import compress from '@fastify/compress';
-import cookie from '@fastify/cookie';
-import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
 import { Logger } from 'nestjs-pino';
 
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { parseTrustProxy } from './common/http/trust-proxy';
-import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { RedisIoAdapter } from './common/redis/redis-io.adapter';
 import { installBigIntJson } from './common/serialization/bigint-json';
 
 installBigIntJson();
@@ -27,7 +27,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     // 6 MiB body limit: CSV imports (data-io) accept up to 5 MB of text.
-    new FastifyAdapter({ trustProxy: parseTrustProxy(process.env['TRUST_PROXY']), logger: false, bodyLimit: 6 * 1024 * 1024 }),
+    new FastifyAdapter({ trustProxy: parseTrustProxy(process.env.TRUST_PROXY), logger: false, bodyLimit: 6 * 1024 * 1024 }),
     { bufferLogs: true, rawBody: true },
   );
 
@@ -45,8 +45,8 @@ async function bootstrap() {
   await app.register(cors, {
     origin: (origin, cb) => {
       // CORS_EXTRA_ORIGINS: comma-separated, e.g. Expo web previews on http://localhost:8081.
-      const extra = (process.env['CORS_EXTRA_ORIGINS'] ?? '').split(',').map((o) => o.trim());
-      const allow = [process.env['WEB_URL'], process.env['ADMIN_URL'], ...extra].filter(Boolean) as string[];
+      const extra = (process.env.CORS_EXTRA_ORIGINS ?? '').split(',').map((o) => o.trim());
+      const allow = [process.env.WEB_URL, process.env.ADMIN_URL, ...extra].filter(Boolean) as string[];
       if (!origin || allow.includes(origin)) cb(null, true);
       else cb(new Error(`Origin ${origin} not allowed`), false);
     },
@@ -70,7 +70,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   // Swagger / OpenAPI: local development, or wherever SWAGGER_ENABLED=true (never by default on staging).
-  if (process.env['NODE_ENV'] === 'development' || process.env['SWAGGER_ENABLED'] === 'true') {
+  if (process.env.NODE_ENV === 'development' || process.env.SWAGGER_ENABLED === 'true') {
     const config = new DocumentBuilder()
       .setTitle('AC Platform API')
       .setDescription('Service Operations Platform')
@@ -86,13 +86,13 @@ async function bootstrap() {
   // Graceful shutdown hooks (closes Prisma, Redis, etc).
   app.enableShutdownHooks();
 
-  const port = Number(process.env['PORT'] ?? 4000);
+  const port = Number(process.env.PORT ?? 4000);
   await app.listen(port, '0.0.0.0');
   app.get(Logger).log(`API listening on http://localhost:${port}`);
 }
 
 bootstrap().catch((err) => {
-  // eslint-disable-next-line no-console
+   
   console.error('Fatal bootstrap error:', err);
   process.exit(1);
 });

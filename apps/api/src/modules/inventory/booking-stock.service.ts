@@ -28,19 +28,19 @@ export interface ReserveForBookingInput {
   tenantId: string;
   bookingId: string;
   warehouseId: string;
-  parts: Array<{ itemId: string; quantity: number }>;
+  parts: { itemId: string; quantity: number }[];
 }
 
 export interface ReleaseForBookingInput {
   tenantId: string;
   bookingId: string;
   warehouseId: string;
-  parts: Array<{ itemId: string; quantity: number }>;
+  parts: { itemId: string; quantity: number }[];
 }
 
 export interface ConsumeFromTechnicianInput {
   bookingId: string;
-  allocations: Array<{ allocationId: string; usedQty: number }>;
+  allocations: { allocationId: string; usedQty: number }[];
   invoiceId?: string | null;
 }
 
@@ -56,7 +56,7 @@ export class BookingStockService {
 
   /** Reserve parts at warehouse `warehouseId` for the given booking. */
   async reserveForBooking(input: ReserveForBookingInput) {
-    const results: Array<{ itemId: string; runningQuantity: number; runningReserved: number }> = [];
+    const results: { itemId: string; runningQuantity: number; runningReserved: number }[] = [];
     for (const part of input.parts) {
       const r = await this.items.reserve(
         input.tenantId,
@@ -77,7 +77,7 @@ export class BookingStockService {
 
   /** Release reservations (e.g. booking cancelled before completion). */
   async releaseForBooking(input: ReleaseForBookingInput) {
-    const results: Array<{ itemId: string; runningQuantity: number; runningReserved: number }> = [];
+    const results: { itemId: string; runningQuantity: number; runningReserved: number }[] = [];
     for (const part of input.parts) {
       const r = await this.items.releaseReservation(
         input.tenantId,

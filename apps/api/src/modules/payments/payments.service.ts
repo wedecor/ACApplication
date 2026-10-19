@@ -34,6 +34,15 @@
  */
 
 import { randomUUID } from 'node:crypto';
+
+import type { AuthPrincipal } from '@ac/auth';
+import {
+  DomainEventName,
+  PaymentMethod,
+  PaymentStatus,
+  PaymentTransactionStatus,
+  RefundStatus,
+} from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -43,22 +52,14 @@ import {
 } from '@nestjs/common';
 import type { PaymentTransaction, Prisma } from '@prisma/client';
 
-import {
-  DomainEventName,
-  PaymentMethod,
-  PaymentStatus,
-  PaymentTransactionStatus,
-  RefundStatus,
-} from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { InvoicesService } from '../invoices/invoices.service';
 import type {
   CreatePaymentLinkDto,
 } from './dto/create-payment-link.dto';
 import type { ListPaymentsDto } from './dto/list-payments.dto';
+import type { RefundPaymentDto } from './dto/refund-payment.dto';
 import type {
   PaymentProvider,
   ProviderPaymentStatus,
@@ -66,7 +67,6 @@ import type {
 } from './providers/payment-provider.interface';
 import { RazorpayProvider } from './providers/razorpay.provider';
 import { StripeProvider } from './providers/stripe.provider';
-import type { RefundPaymentDto } from './dto/refund-payment.dto';
 
 const PREFERRED_PROVIDER = (process.env.PAYMENTS_PROVIDER ?? 'razorpay').toLowerCase() as
   | 'razorpay'
@@ -142,7 +142,7 @@ export class PaymentsService {
     if (amount <= 0 || amount > invoice.dueAmountMinor) {
       throw new BadRequestException('Invalid amount');
     }
-    const providerName = (dto.provider ?? PREFERRED_PROVIDER) as 'razorpay' | 'stripe';
+    const providerName = (dto.provider ?? PREFERRED_PROVIDER);
     const provider = this.provider(providerName);
 
     const orderRef = `inv_${invoice.id}_${randomUUID().slice(0, 8)}`;
@@ -190,7 +190,7 @@ export class PaymentsService {
   // ------------------------------------------------------------ webhooks
   async handleRazorpayWebhook(rawBody: string, signature: string | undefined): Promise<{ ok: true; event?: string }>{
     this.razorpay.verifyWebhookSignature(rawBody, signature);
-    const payload = JSON.parse(rawBody);
+    const payload: unknown = JSON.parse(rawBody);
     const evt = this.razorpay.parseWebhookEvent(payload);
     return this.applyWebhook('razorpay', rawBody, signature ?? null, evt);
   }

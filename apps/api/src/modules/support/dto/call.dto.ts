@@ -1,3 +1,4 @@
+import { CallDirection, CallDisposition, CallStatus } from '@ac/types';
 import {
   IsArray,
   IsEnum,
@@ -9,8 +10,6 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-
-import { CallDirection, CallDisposition, CallStatus } from '@ac/types';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
 

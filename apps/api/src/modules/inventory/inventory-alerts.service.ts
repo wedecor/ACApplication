@@ -22,9 +22,7 @@
  * these to admin dashboards.
  */
 
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   DomainEventName,
   InventoryAlertKind,
@@ -33,7 +31,8 @@ import {
   PurchaseOrderStatus,
   StockTransferStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';

@@ -9,8 +9,8 @@
  * caller can persist `pdfHash` for tamper detection.
  */
 
-import { createHash } from 'node:crypto';
 import { Buffer } from 'node:buffer';
+import { createHash } from 'node:crypto';
 
 import { Injectable, Logger } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
@@ -377,10 +377,10 @@ export class PdfService {
       doc.on('error', reject);
       Promise.resolve(body(doc, brand))
         .then(() => doc.end())
-        .catch((err) => {
+        .catch((err: unknown) => {
           this.logger.error('PDF render failed', err);
           doc.end();
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         });
     });
   }
@@ -414,7 +414,7 @@ export class PdfService {
     doc.moveDown(0.8);
   }
 
-  private metaRow(doc: PDFKit.PDFDocument, items: ReadonlyArray<readonly [string, string]>) {
+  private metaRow(doc: PDFKit.PDFDocument, items: readonly (readonly [string, string])[]) {
     const startY = doc.y;
     const colW = (doc.page.width - MARGIN * 2) / items.length;
     items.forEach(([label, value], idx) => {
@@ -442,7 +442,7 @@ export class PdfService {
     currency: string,
     gst: boolean,
   ) {
-    const headers: Array<{ label: string; width: number; align: 'left' | 'right' }> = [
+    const headers: { label: string; width: number; align: 'left' | 'right' }[] = [
       { label: 'Description', width: 220, align: 'left' },
       { label: gst ? 'HSN/SAC' : 'Code', width: 60, align: 'left' },
       { label: 'Qty', width: 35, align: 'right' },
@@ -494,10 +494,10 @@ export class PdfService {
   private totalsBlock(
     doc: PDFKit.PDFDocument,
     block: {
-      rows: Array<[string, string]>;
+      rows: [string, string][];
       totalLabel: string;
       totalValue: string;
-      secondary?: Array<[string, string]>;
+      secondary?: [string, string][];
     },
   ) {
     const x = doc.page.width - MARGIN - 220;

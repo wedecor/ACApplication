@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { LeadSource, ServiceCategory } from '@ac/types';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsEmail,
@@ -28,11 +28,11 @@ export class PublicLeadIntakeDto {
   @ApiProperty({ minLength: 2, maxLength: 120 })
   @IsString()
   @Length(2, 120)
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   customerName!: string;
 
   @ApiProperty({ example: '+919876543210', description: 'E.164 phone number.' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Matches(PHONE_REGEX, { message: 'phone must be E.164 (+countrycode...)' })
   phone!: string;
 

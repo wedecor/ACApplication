@@ -1,6 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-
 import type { AuthPrincipal } from '@ac/auth';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 

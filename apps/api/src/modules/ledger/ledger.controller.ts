@@ -1,7 +1,6 @@
+import { Permission } from '@ac/types';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
-import { Permission } from '@ac/types';
 
 import { RequirePermissions } from '../../common/decorators';
 import { LedgerService } from './ledger.service';

@@ -1,6 +1,6 @@
-import { SetMetadata, createParamDecorator, type ExecutionContext } from '@nestjs/common';
-import type { Permission, UserRole } from '@ac/types';
 import type { AuthPrincipal } from '@ac/auth';
+import type { Permission, UserRole } from '@ac/types';
+import { createParamDecorator, type ExecutionContext,SetMetadata } from '@nestjs/common';
 import type { FastifyRequest } from 'fastify';
 
 export const IS_PUBLIC_KEY = 'isPublic';

@@ -1,6 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-
 import {
   type BookingCreatedEvent,
   type BookingStatusChangedEvent,
@@ -10,6 +7,8 @@ import {
   type InvoiceRefundedEvent,
   type PaymentRefundedEvent,
 } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 

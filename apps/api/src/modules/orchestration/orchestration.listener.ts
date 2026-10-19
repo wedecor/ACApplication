@@ -1,8 +1,9 @@
+import { type AnyDomainEvent,DomainEventName } from '@ac/types';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { DomainEventName, type AnyDomainEvent } from '@ac/types';
 
 import { EventStoreService } from '../../common/events/event-store.service';
+import { payloadId } from '../../common/events/payload-ids';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { RuleEngineService } from './rule-engine.service';
 import { WorkflowEngineService } from './workflow-engine.service';
@@ -52,9 +53,10 @@ export class OrchestrationListener {
 
   private async resolveTenantId(envelope: AnyDomainEvent): Promise<string | null> {
     const payload = envelope.payload as Record<string, unknown>;
-    if (payload['tenantId']) return String(payload['tenantId']);
+    const fromPayload = payloadId(payload.tenantId);
+    if (fromPayload) return fromPayload;
 
-    const bookingId = payload['bookingId'] as string | undefined;
+    const bookingId = payload.bookingId as string | undefined;
     if (bookingId) {
       const b = await this.prisma.client.booking.findUnique({
         where: { id: bookingId },
@@ -63,7 +65,7 @@ export class OrchestrationListener {
       return b?.tenantId ?? null;
     }
 
-    const invoiceId = payload['invoiceId'] as string | undefined;
+    const invoiceId = payload.invoiceId as string | undefined;
     if (invoiceId) {
       const inv = await this.prisma.client.invoice.findUnique({
         where: { id: invoiceId },
@@ -72,7 +74,7 @@ export class OrchestrationListener {
       return inv?.tenantId ?? null;
     }
 
-    const subscriptionId = payload['subscriptionId'] as string | undefined;
+    const subscriptionId = payload.subscriptionId as string | undefined;
     if (subscriptionId) {
       const sub = await this.prisma.client.aMCSubscription.findUnique({
         where: { id: subscriptionId },
@@ -81,7 +83,7 @@ export class OrchestrationListener {
       return sub?.tenantId ?? null;
     }
 
-    const ticketId = payload['ticketId'] as string | undefined;
+    const ticketId = payload.ticketId as string | undefined;
     if (ticketId) {
       const t = await this.prisma.client.supportTicket.findUnique({
         where: { id: ticketId },

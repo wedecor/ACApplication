@@ -25,6 +25,13 @@
  * race.
  */
 
+import type { AuthPrincipal } from '@ac/auth';
+import {
+  DomainEventName,
+  PURCHASE_ORDER_TRANSITIONS,
+  PurchaseOrderStatus,
+  StockMovementKind,
+} from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -34,17 +41,9 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
-import {
-  DomainEventName,
-  PURCHASE_ORDER_TRANSITIONS,
-  PurchaseOrderStatus,
-  StockMovementKind,
-} from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { nextInventoryNumber } from '../../common/inventory/codes';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import {
   CancelPurchaseOrderDto,
   CreateGoodsReceiptDto,
@@ -116,7 +115,7 @@ export class PurchaseOrdersService {
           notes: dto.notes ?? null,
           createdBy: actor.userId,
           updatedBy: actor.userId,
-          items: { create: lines.map((l) => ({ ...l, item: undefined })) as any },
+          items: { create: lines },
         },
         include: { items: true },
       });
@@ -192,7 +191,7 @@ export class PurchaseOrdersService {
         where: { id, tenantId: actor.tenantId, deletedAt: null },
       });
       if (!po) throw new NotFoundException('Purchase order not found');
-      if (!EDITABLE_STATUSES.has(po.status as PurchaseOrderStatus)) {
+      if (!EDITABLE_STATUSES.has(po.status)) {
         throw new ConflictException(`Cannot edit a PO in status ${po.status}`);
       }
 
@@ -213,7 +212,7 @@ export class PurchaseOrdersService {
         data.subtotalMinor = subtotal;
         data.taxMinor = tax;
         data.totalMinor = total;
-        data.items = { create: lines as any };
+        data.items = { create: lines };
       }
       return tx.purchaseOrder.update({
         where: { id },
@@ -261,7 +260,7 @@ export class PurchaseOrdersService {
         include: { items: true },
       });
       if (!po) throw new NotFoundException('Purchase order not found');
-      if (!RECEIVABLE_STATUSES.has(po.status as PurchaseOrderStatus)) {
+      if (!RECEIVABLE_STATUSES.has(po.status)) {
         throw new ConflictException(
           `Cannot receive against a PO in status ${po.status} — must be ORDERED or PARTIALLY_RECEIVED`,
         );
@@ -348,12 +347,12 @@ export class PurchaseOrdersService {
       const allReceived = fresh.every((l) => l.receivedQty >= l.quantity);
       const anyReceived = fresh.some((l) => l.receivedQty > 0);
 
-      let nextStatus: PurchaseOrderStatus = po.status as PurchaseOrderStatus;
+      let nextStatus: PurchaseOrderStatus = po.status;
       if (allReceived) nextStatus = PurchaseOrderStatus.RECEIVED;
       else if (anyReceived) nextStatus = PurchaseOrderStatus.PARTIALLY_RECEIVED;
 
       if (nextStatus !== po.status) {
-        const allowed = PURCHASE_ORDER_TRANSITIONS[po.status as PurchaseOrderStatus] ?? [];
+        const allowed = PURCHASE_ORDER_TRANSITIONS[po.status] ?? [];
         if (!allowed.includes(nextStatus)) {
           throw new ConflictException(
             `Invalid state derivation: ${po.status} → ${nextStatus}`,
@@ -415,7 +414,7 @@ export class PurchaseOrdersService {
         where: { id, tenantId: actor.tenantId, deletedAt: null },
       });
       if (!po) throw new NotFoundException('Purchase order not found');
-      const allowed = PURCHASE_ORDER_TRANSITIONS[po.status as PurchaseOrderStatus] ?? [];
+      const allowed = PURCHASE_ORDER_TRANSITIONS[po.status] ?? [];
       if (!allowed.includes(next)) {
         throw new ConflictException(`Cannot transition from ${po.status} to ${next}`);
       }

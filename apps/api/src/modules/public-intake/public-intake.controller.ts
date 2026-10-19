@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Post, Req, UnauthorizedException } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { FastifyRequest } from 'fastify';
 
 import { Public } from '../../common/decorators';
@@ -28,7 +28,7 @@ export class PublicIntakeController {
   @HttpCode(HttpStatus.ACCEPTED)
   @Throttle({
     global: {
-      limit: Number(process.env['RATE_LIMIT_PUBLIC_LEAD_RPM'] ?? 5),
+      limit: Number(process.env.RATE_LIMIT_PUBLIC_LEAD_RPM ?? 5),
       ttl: 60_000,
     },
   })
@@ -41,7 +41,7 @@ export class PublicIntakeController {
     @Headers('x-ac-tenant') tenantSlug?: string,
   ) {
     // With the proxy token configured, only the website's proxy may submit leads.
-    if (process.env['PUBLIC_LEAD_API_TOKEN'] && !isTrustedProxyRequest(req)) {
+    if (process.env.PUBLIC_LEAD_API_TOKEN && !isTrustedProxyRequest(req)) {
       throw new UnauthorizedException('Lead intake is only available through the website');
     }
     const ip = clientIpOf(req);

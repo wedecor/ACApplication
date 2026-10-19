@@ -1,10 +1,10 @@
-import { NotificationChannel } from '@ac/types';
 import type {
   NotificationMessage,
   NotificationRecipient,
   NotificationTransport,
   SendResult,
 } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 
 export interface TwilioSmsConfig {
   accountSid: string;

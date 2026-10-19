@@ -19,8 +19,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { APP_CONFIG } from '../../common/config/config.module';
-import { PaymentsService, type ReconcileSummary } from './payments.service';
 import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
+import { PaymentsService, type ReconcileSummary } from './payments.service';
 
 type ReconcileEnv = Pick<
   LoadedServerEnv,

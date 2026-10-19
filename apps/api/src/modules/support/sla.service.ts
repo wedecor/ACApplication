@@ -1,12 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   OPEN_TICKET_STATUSES,
   SlaTargetKind,
-  type TicketStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { warningWindowMinutes } from '../../common/support/sla';
@@ -42,7 +39,7 @@ export class SlaService {
         firstResponseMinutes: dto.firstResponseMinutes,
         resolutionMinutes: dto.resolutionMinutes,
         businessHoursOnly: dto.businessHoursOnly ?? false,
-        priorityOverrides: (dto.priorityOverrides ?? {}) as Prisma.InputJsonValue,
+        priorityOverrides: (dto.priorityOverrides ?? {}),
         isDefault: dto.isDefault ?? false,
         isActive: dto.isActive ?? true,
       },
@@ -71,7 +68,7 @@ export class SlaService {
         firstResponseMinutes: dto.firstResponseMinutes,
         resolutionMinutes: dto.resolutionMinutes,
         businessHoursOnly: dto.businessHoursOnly ?? false,
-        priorityOverrides: (dto.priorityOverrides ?? {}) as Prisma.InputJsonValue,
+        priorityOverrides: (dto.priorityOverrides ?? {}),
         isDefault: dto.isDefault ?? false,
         isActive: dto.isActive ?? true,
       },
@@ -107,7 +104,7 @@ export class SlaService {
    */
   async scanTenant(tenantId: string): Promise<{ warnings: number; breaches: number }> {
     const now = new Date();
-    const openStatuses = Array.from(OPEN_TICKET_STATUSES) as TicketStatus[];
+    const openStatuses = Array.from(OPEN_TICKET_STATUSES);
     const tickets = await this.prisma.client.supportTicket.findMany({
       where: {
         tenantId,

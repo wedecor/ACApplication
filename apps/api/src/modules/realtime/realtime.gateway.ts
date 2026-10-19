@@ -1,14 +1,4 @@
-import { Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import {
-  ConnectedSocket,
-  MessageBody,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { hasPermission } from '@ac/auth';
 import {
   type AmcSubscriptionActivatedEvent,
   type AmcSubscriptionRenewedEvent,
@@ -47,6 +37,7 @@ import {
   type PaymentSucceededEvent,
   type PayoutApprovedEvent,
   type PayoutPaidEvent,
+  Permission,
   type PurchaseOrderApprovedEvent,
   type PurchaseOrderCreatedEvent,
   type PurchaseOrderReceivedEvent,
@@ -65,12 +56,21 @@ import {
   type TicketEscalatedEvent,
   type TicketReplySentEvent,
   type TicketResolvedEvent,
-  type TicketSlaBreachWarningEvent,
   type TicketSlaBreachedEvent,
+  type TicketSlaBreachWarningEvent,
   type TicketStatusChangedEvent,
-  Permission,
 } from '@ac/types';
-import { hasPermission } from '@ac/auth';
+import { Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import type { Server, Socket } from 'socket.io';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -86,7 +86,7 @@ interface TenantLookup {
 }
 
 /** Payload id field → Prisma model, tried in order when an event has no tenant stamp. */
-const TENANT_LOOKUPS: Array<[string, string]> = [
+const TENANT_LOOKUPS: [string, string][] = [
   ['bookingId', 'booking'],
   ['ticketId', 'supportTicket'],
   ['conversationId', 'conversation'],
@@ -101,7 +101,19 @@ const TENANT_LOOKUPS: Array<[string, string]> = [
   ['customerId', 'customer'],
 ];
 
-const ROOM_PREFIX_PERMISSIONS: Array<{ prefix: string; permission: Permission }> = [
+/** What the gateway stores on each socket after authentication. */
+interface SocketSession {
+  userId?: string;
+  tenantId?: string;
+  permissions?: Permission[];
+  authReady?: Promise<void>;
+}
+
+function sessionOf(client: Socket): SocketSession {
+  return client.data as SocketSession;
+}
+
+const ROOM_PREFIX_PERMISSIONS: { prefix: string; permission: Permission }[] = [
   { prefix: 'dispatch:', permission: Permission.DISPATCH_VIEW },
   { prefix: 'technician:', permission: Permission.TECHNICIAN_TRACK },
   { prefix: 'finance:', permission: Permission.FINANCE_VIEW },
@@ -130,8 +142,8 @@ const ROOM_PREFIX_PERMISSIONS: Array<{ prefix: string; permission: Permission }>
   // Same allowlist as the HTTP API; native apps send no Origin and are allowed.
   cors: {
     origin: (origin: string | undefined, cb: (err: Error | null, ok?: boolean) => void) => {
-      const extra = (process.env['CORS_EXTRA_ORIGINS'] ?? '').split(',').map((o) => o.trim());
-      const allow = [process.env['WEB_URL'], process.env['ADMIN_URL'], ...extra].filter(Boolean);
+      const extra = (process.env.CORS_EXTRA_ORIGINS ?? '').split(',').map((o) => o.trim());
+      const allow = [process.env.WEB_URL, process.env.ADMIN_URL, ...extra].filter(Boolean);
       cb(null, !origin || allow.includes(origin));
     },
     credentials: true,
@@ -156,14 +168,14 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     // socket.io fires the client's `connect` before this async handler finishes,
     // so early `subscribe` messages wait on this promise instead of being refused.
     const ready = this.authenticate(client);
-    client.data['authReady'] = ready;
+    sessionOf(client).authReady = ready;
     await ready;
   }
 
   private async authenticate(client: Socket): Promise<void> {
     // JWT validation — disconnect anonymous sockets.
     const token =
-      (client.handshake.auth?.['token'] as string | undefined) ??
+      (client.handshake.auth?.token as string | undefined) ??
       this.extractBearer(client.handshake.headers.authorization);
     if (!token) {
       client.disconnect(true);
@@ -179,9 +191,9 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
         client.disconnect(true);
         return;
       }
-      client.data['userId'] = payload.sub;
-      client.data['tenantId'] = payload.tid;
-      client.data['permissions'] = payload.permissions ?? [];
+      sessionOf(client).userId = payload.sub;
+      sessionOf(client).tenantId = payload.tid;
+      sessionOf(client).permissions = payload.permissions ?? [];
       // Auto-join personal + tenant rooms.
       await client.join(`user:${payload.sub}`);
       await client.join(scopedRoom(payload.tid, 'tenant'));
@@ -206,12 +218,12 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { rooms: string[] },
   ): Promise<{ ok: true; rooms: string[] }> {
-    await (client.data['authReady'] as Promise<void> | undefined);
+    await (sessionOf(client).authReady);
     const requested = (body.rooms ?? []).slice(0, 50);
     const checks = await Promise.all(requested.map((r) => this.canJoin(client, r)));
     const allowed = requested.filter((_, i) => checks[i]);
-    const tenantId = client.data['tenantId'] as string;
-    await Promise.all(allowed.map((r) => client.join(scopedRoom(tenantId, r))));
+    const tenantId = sessionOf(client).tenantId!;
+    await Promise.all(allowed.map(async (r) => client.join(scopedRoom(tenantId, r))));
     return { ok: true, rooms: allowed };
   }
 
@@ -220,8 +232,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
     @ConnectedSocket() client: Socket,
     @MessageBody() body: { rooms: string[] },
   ): Promise<{ ok: true }> {
-    const tenantId = client.data['tenantId'] as string;
-    await Promise.all((body.rooms ?? []).map((r) => client.leave(scopedRoom(tenantId, r))));
+    const tenantId = sessionOf(client).tenantId!;
+    await Promise.all((body.rooms ?? []).map(async (r) => client.leave(scopedRoom(tenantId, r))));
     return { ok: true };
   }
 
@@ -743,8 +755,8 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   private async canJoin(client: Socket, room: string): Promise<boolean> {
-    const userId = client.data['userId'] as string | undefined;
-    const tenantId = client.data['tenantId'] as string | undefined;
+    const userId = sessionOf(client).userId;
+    const tenantId = sessionOf(client).tenantId;
     if (!userId || !tenantId) return false;
 
     if (room.startsWith('user:')) return room === `user:${userId}`;
@@ -781,13 +793,13 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   private clientHasPermission(client: Socket, required: Permission): boolean {
-    const permissions = client.data['permissions'] as Permission[] | undefined;
+    const permissions = sessionOf(client).permissions;
     return hasPermission(required, { permissions: permissions ?? [], roles: [] });
   }
 
   private extractBearer(header: string | string[] | undefined): string | null {
     const value = Array.isArray(header) ? header[0] : header;
-    if (!value || !value.startsWith('Bearer ')) return null;
+    if (!value?.startsWith('Bearer ')) return null;
     return value.slice('Bearer '.length);
   }
 }

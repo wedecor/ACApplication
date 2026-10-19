@@ -1,3 +1,11 @@
+import type { AuthPrincipal } from '@ac/auth';
+import {
+  ConversationChannel,
+  Permission,
+  TicketAuthorKind,
+  TicketPriority,
+  TicketSource,
+} from '@ac/types';
 import {
   BadRequestException,
   Body,
@@ -9,16 +17,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, MaxLength, Max, Min, MinLength } from 'class-validator';
-
-import {
-  ConversationChannel,
-  Permission,
-  TicketAuthorKind,
-  TicketPriority,
-  TicketSource,
-} from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { IsInt, IsOptional, IsString, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { PrismaService } from '../../common/prisma/prisma.service';

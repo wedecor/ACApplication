@@ -1,6 +1,6 @@
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { otp } from '@ac/auth';
 import { ActivityType, BookingStatus, DomainEventName } from '@ac/types';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 
 import { actor, buildService, makeBooking, publishedEventNames } from './bookings.test-helpers';
 
@@ -21,9 +21,9 @@ function issuedBooking(overrides: Parameters<typeof makeBooking>[0] = {}) {
 }
 
 describe('BookingsService.sendArrivalOtp', () => {
-  const originalEnv = process.env['NODE_ENV'];
+  const originalEnv = process.env.NODE_ENV;
   afterEach(() => {
-    process.env['NODE_ENV'] = originalEnv;
+    process.env.NODE_ENV = originalEnv;
     jest.restoreAllMocks();
     jest.useRealTimers();
   });
@@ -93,14 +93,14 @@ describe('BookingsService.sendArrivalOtp', () => {
 
   it('returns the plaintext code only in development', async () => {
     jest.spyOn(otp, 'generate').mockReturnValue(TEST_CODE);
-    process.env['NODE_ENV'] = 'development';
+    process.env.NODE_ENV = 'development';
     const { svc } = buildService(makeBooking({ status: S.TECHNICIAN_EN_ROUTE }));
     await expect(svc.sendArrivalOtp(actor, 'book_1')).resolves.toEqual({ devCode: TEST_CODE });
   });
 
   it.each(['test', 'production'])('does not leak the code when NODE_ENV=%s', async (env) => {
     jest.spyOn(otp, 'generate').mockReturnValue(TEST_CODE);
-    process.env['NODE_ENV'] = env;
+    process.env.NODE_ENV = env;
     const { svc } = buildService(makeBooking({ status: S.TECHNICIAN_EN_ROUTE }));
     await expect(svc.sendArrivalOtp(actor, 'book_1')).resolves.toEqual({ ok: true });
   });
@@ -260,7 +260,7 @@ describe('BookingsService.verifyArrivalOtp', () => {
     const booking = issuedBooking();
     const { svc } = buildService(booking);
     await expect(
-      svc.verifyArrivalOtp(actor, 'book_1', { code: booking.otpCodeHash as string }),
+      svc.verifyArrivalOtp(actor, 'book_1', { code: booking.otpCodeHash! }),
     ).rejects.toThrow('Invalid OTP');
   });
 

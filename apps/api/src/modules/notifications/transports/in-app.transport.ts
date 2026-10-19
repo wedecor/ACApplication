@@ -1,10 +1,10 @@
-import { NotificationChannel } from '@ac/types';
 import type {
   NotificationMessage,
   NotificationRecipient,
   NotificationTransport,
   SendResult,
 } from '@ac/notifications';
+import { NotificationChannel } from '@ac/types';
 
 import type { RealtimeGateway } from '../../realtime/realtime.gateway';
 
@@ -13,12 +13,9 @@ export class InAppTransport implements NotificationTransport {
 
   constructor(private readonly realtime: RealtimeGateway) {}
 
-  async send(
-    recipient: NotificationRecipient,
-    message: NotificationMessage,
-  ): Promise<SendResult> {
+  send(recipient: NotificationRecipient, message: NotificationMessage): Promise<SendResult> {
     if (!recipient.userId) {
-      return { channel: this.channel, status: 'failed', error: 'Missing userId for in-app' };
+      return Promise.resolve({ channel: this.channel, status: 'failed', error: 'Missing userId for in-app' });
     }
     this.realtime.emitToRoom(`user:${recipient.userId}`, 'notification.in_app', {
       template: message.template,
@@ -26,6 +23,6 @@ export class InAppTransport implements NotificationTransport {
       subject: message.subject,
       data: message.data,
     });
-    return { channel: this.channel, status: 'sent' };
+    return Promise.resolve({ channel: this.channel, status: 'sent' });
   }
 }

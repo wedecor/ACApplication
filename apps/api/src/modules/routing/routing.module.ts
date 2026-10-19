@@ -3,8 +3,8 @@ import { Global, Module } from '@nestjs/common';
 import { GoogleMapsProvider } from './providers/google-maps.provider';
 import { HaversineMapProvider } from './providers/haversine.provider';
 import { MapboxProvider } from './providers/mapbox.provider';
-import { MAP_PROVIDER } from './routing.tokens';
 import { RoutingService } from './routing.service';
+import { MAP_PROVIDER } from './routing.tokens';
 
 /**
  * Routing module — chooses a map provider based on env, exposes a typed
@@ -30,8 +30,8 @@ import { RoutingService } from './routing.service';
         google: GoogleMapsProvider,
         mapbox: MapboxProvider,
       ) => {
-        if (process.env['GOOGLE_MAPS_API_KEY']) return google;
-        if (process.env['MAPBOX_TOKEN']) return mapbox;
+        if (process.env.GOOGLE_MAPS_API_KEY) return google;
+        if (process.env.MAPBOX_TOKEN) return mapbox;
         return haversine;
       },
       inject: [HaversineMapProvider, GoogleMapsProvider, MapboxProvider],

@@ -9,14 +9,13 @@
  *    cause has cleared (e.g. stock replenished above reorder).
  */
 
+import { InventoryAlertKind,InventoryAlertStatus } from '@ac/types';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { InventoryAlertStatus, InventoryAlertKind } from '@ac/types';
-
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { InventoryAlertsService } from './inventory-alerts.service';
 import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
+import { InventoryAlertsService } from './inventory-alerts.service';
 
 @Injectable()
 export class InventorySchedulerService {

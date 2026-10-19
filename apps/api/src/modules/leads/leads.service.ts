@@ -1,3 +1,11 @@
+import type { AuthPrincipal } from '@ac/auth';
+import {
+  ActivityType,
+  canTransitionLead,
+  DomainEventName,
+  type LeadId,
+  TERMINAL_LEAD_STATUSES,
+} from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -6,18 +14,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ActivityType,
-  canTransitionLead,
-  DomainEventName,
-  type LeadId,
-  type LeadStatus,
-  TERMINAL_LEAD_STATUSES,
-} from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 import { ActivityService } from '../activity/activity.service';
 import { AddLeadNoteDto } from './dto/add-note.dto';
 import { AssignLeadDto } from './dto/assign-lead.dto';
@@ -26,7 +26,6 @@ import { CreateLeadDto } from './dto/create-lead.dto';
 import { ListLeadsDto } from './dto/list-leads.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { LeadsRepository } from './leads.repository';
-import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 /**
  * Lead orchestrator — owns the state machine, audit/timeline writes and
@@ -214,12 +213,12 @@ export class LeadsService {
 
   async update(actor: AuthPrincipal, id: string, dto: UpdateLeadDto) {
     const lead = await this.getById(actor, id);
-    if (TERMINAL_LEAD_STATUSES.has(lead.status as LeadStatus)) {
+    if (TERMINAL_LEAD_STATUSES.has(lead.status)) {
       throw new ForbiddenException('Lead is closed and cannot be edited');
     }
 
     // Build a diff for the timeline so ops can see exactly what changed.
-    const changed = diff(lead as Record<string, unknown>, dto as Record<string, unknown>);
+    const changed = diff(lead, dto as Record<string, unknown>);
     if (Object.keys(changed).length === 0) return lead;
 
     await assertIdsInTenant(this.prisma.client, actor.tenantId, [['city', dto.cityId, 'City']]);
@@ -296,7 +295,7 @@ export class LeadsService {
 
   async changeStatus(actor: AuthPrincipal, id: string, dto: ChangeLeadStatusDto) {
     const lead = await this.getById(actor, id);
-    if (!canTransitionLead(lead.status as LeadStatus, dto.status)) {
+    if (!canTransitionLead(lead.status, dto.status)) {
       throw new ForbiddenException(
         `Cannot transition lead from ${lead.status} to ${dto.status}`,
       );
@@ -304,9 +303,9 @@ export class LeadsService {
 
     const now = new Date();
     const stateTimestamps: Record<string, Date> = {};
-    if (dto.status === 'CONTACTED') stateTimestamps['contactedAt'] = now;
-    if (dto.status === 'QUALIFIED') stateTimestamps['qualifiedAt'] = now;
-    if (TERMINAL_LEAD_STATUSES.has(dto.status)) stateTimestamps['closedAt'] = now;
+    if (dto.status === 'CONTACTED') stateTimestamps.contactedAt = now;
+    if (dto.status === 'QUALIFIED') stateTimestamps.qualifiedAt = now;
+    if (TERMINAL_LEAD_STATUSES.has(dto.status)) stateTimestamps.closedAt = now;
 
     const updated = await this.prisma.client.$transaction(async (tx) => {
       const row = await this.repo.update(
@@ -331,7 +330,7 @@ export class LeadsService {
 
     this.events.publish(DomainEventName.LeadStatusChanged, {
       leadId: id as LeadId,
-      from: lead.status as LeadStatus,
+      from: lead.status,
       to: dto.status,
     });
 

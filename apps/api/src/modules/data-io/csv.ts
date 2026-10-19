@@ -16,7 +16,7 @@ export function escapeCsvCell(value: unknown): string {
   let s: string;
   if (value instanceof Date) s = value.toISOString();
   else if (typeof value === 'object') s = JSON.stringify(value);
-  else s = String(value);
+  else s = `${value as string | number | boolean | bigint}`;
 
   if (FORMULA_PREFIX.test(s) && !isPlainNumber(s)) s = `'${s}`;
   if (/[",\n\r]/.test(s)) s = `"${s.replace(/"/g, '""')}"`;
@@ -96,7 +96,7 @@ export class CsvParseError extends BadRequestException {}
 
 /** Normalise a header for alias matching: "Full Name" → "fullname". */
 export function normalizeHeader(h: string): string {
-  return h.trim().toLowerCase().replace(/[\s_\-]/g, '');
+  return h.trim().toLowerCase().replace(/[\s_-]/g, '');
 }
 
 /**

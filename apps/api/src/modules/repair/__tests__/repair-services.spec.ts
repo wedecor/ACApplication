@@ -1,5 +1,5 @@
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 import type { AuthPrincipal } from '@ac/auth';
+import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
 
 import { RepairEventName } from '../domain/events';
 import { JobCardsService } from '../job-cards/job-cards.service';
@@ -29,7 +29,20 @@ function mockPrisma() {
     update: jest.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'x', ...data })),
     count: jest.fn().mockResolvedValue(0),
   });
-  const client = {
+  type ModelMock = ReturnType<typeof model>;
+  interface ClientMock {
+    booking: ModelMock;
+    jobCard: ModelMock;
+    checklistTemplate: ModelMock;
+    technician: ModelMock;
+    workshopJob: ModelMock;
+    warrantyClaim: ModelMock;
+    customer: ModelMock;
+    customerAppliance: ModelMock;
+    $executeRawUnsafe: jest.Mock;
+    $transaction: jest.Mock;
+  }
+  const client: ClientMock = {
     booking: model(),
     jobCard: model(),
     checklistTemplate: model(),
@@ -70,7 +83,7 @@ describe('JobCardsService', () => {
     prisma.client.booking.findFirst.mockResolvedValue(booking);
     prisma.client.jobCard.findFirst.mockResolvedValue(null);
     await svc.upsert(staff, 'b1', { diagnosis: 'Low gas', readings: { gasPsi: 40 } });
-    const data = prisma.client.jobCard.create.mock.calls[0][0].data;
+    const data = prisma.client.jobCard.create.mock.calls[0]![0].data;
     expect(data).toEqual(
       expect.objectContaining({
         bookingId: 'b1',
@@ -95,7 +108,7 @@ describe('JobCardsService', () => {
       startedAt: new Date(),
     });
     await svc.upsert(staff, 'b1', { readings: { voltage: 230 } });
-    const data = prisma.client.jobCard.update.mock.calls[0][0].data;
+    const data = prisma.client.jobCard.update.mock.calls[0]![0].data;
     expect(data.readings).toEqual({ gasPsi: 40, voltage: 230 });
     expect(data.startedAt).toBeUndefined();
   });
@@ -134,7 +147,7 @@ describe('JobCardsService', () => {
       startedAt: new Date(),
     });
     await svc.complete(staff, 'b1', {});
-    const data = prisma.client.jobCard.update.mock.calls[0][0].data;
+    const data = prisma.client.jobCard.update.mock.calls[0]![0].data;
     expect(data).toEqual(expect.objectContaining({ status: 'COMPLETED', firstTimeFix: true }));
     expect(events.publish).toHaveBeenCalledWith(RepairEventName.JobCardCompleted, expect.anything());
   });
@@ -160,7 +173,7 @@ describe('WorkshopService.transition', () => {
   it('stamps the timestamp, appends history/photos and emits an event', async () => {
     const { svc, prisma, events } = build(baseJob);
     await svc.transition(staff, 'w1', { status: 'PICKED_UP', note: 'Collected', photos: ['b.jpg'] });
-    const data = prisma.client.workshopJob.update.mock.calls[0][0].data;
+    const data = prisma.client.workshopJob.update.mock.calls[0]![0].data;
     expect(data.status).toBe('PICKED_UP');
     expect(data.pickedUpAt).toBeInstanceOf(Date);
     expect(data.photos).toEqual(['a.jpg', 'b.jpg']);
@@ -298,7 +311,7 @@ describe('WarrantyService', () => {
     const [, dto, opts] = bookings.create.mock.calls[0];
     expect(dto).toEqual(expect.objectContaining({ estimatedAmountMinor: 0, applianceId: 'ap1', addressId: 'addr' }));
     expect(opts).toEqual({ parentBookingId: 'b1', isWarrantyRevisit: true });
-    expect(prisma.client.warrantyClaim.update.mock.calls[0][0].data).toEqual(
+    expect(prisma.client.warrantyClaim.update.mock.calls[0]![0].data).toEqual(
       expect.objectContaining({ revisitBookingId: 'b2' }),
     );
   });

@@ -1,3 +1,4 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
   type CanActivate,
   type ExecutionContext,
@@ -5,15 +6,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { AuthPrincipal } from '@ac/auth';
 import type { FastifyRequest } from 'fastify';
 import { ClsService } from 'nestjs-cls';
 
-import { PermissionsStaleException } from '../exceptions/permissions-stale.exception';
-import { IS_PUBLIC_KEY } from '../decorators';
 import { PermissionsLoader } from '../../modules/auth/permissions.loader';
 import { TokenService } from '../../modules/auth/token.service';
 import { RbacService } from '../../modules/rbac/rbac.service';
+import { IS_PUBLIC_KEY } from '../decorators';
+import { PermissionsStaleException } from '../exceptions/permissions-stale.exception';
 
 /**
  * Validates the Bearer access token, attaches the decoded principal to the

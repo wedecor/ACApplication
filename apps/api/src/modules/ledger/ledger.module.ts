@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { LedgerService } from './ledger.service';
 import { LedgerController } from './ledger.controller';
+import { LedgerService } from './ledger.service';
 
 /**
  * Customer ledger — central read/write surface for every financial event.

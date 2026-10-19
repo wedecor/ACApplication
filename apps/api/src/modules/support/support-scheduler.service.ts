@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { SlaService } from './sla.service';
 import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
+import { SlaService } from './sla.service';
 
 /**
  * Tenant-aware cron that runs SLA scans every minute. We iterate over

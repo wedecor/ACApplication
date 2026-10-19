@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { InvoicesModule } from '../invoices/invoices.module';
 import { PaymentsController } from './payments.controller';
-import { PaymentsReconcileScheduler } from './payments-reconcile.scheduler';
 import { PaymentsService } from './payments.service';
+import { PaymentsReconcileScheduler } from './payments-reconcile.scheduler';
 import { RazorpayProvider } from './providers/razorpay.provider';
 import { StripeProvider } from './providers/stripe.provider';
 

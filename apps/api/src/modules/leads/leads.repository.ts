@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { LeadStatus } from '@ac/types';
 import type { Lead, Prisma } from '@ac/database';
+import { LeadStatus } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { type ListLeadsDto } from './dto/list-leads.dto';
@@ -158,7 +158,8 @@ export class LeadsRepository {
         const [field, dir] = segment.split(':');
         if (!field || !allowed.has(field)) return null;
         const direction: Prisma.SortOrder = dir === 'asc' ? 'asc' : 'desc';
-        return { [field]: direction } as Prisma.LeadOrderByWithRelationInput;
+        const order: Prisma.LeadOrderByWithRelationInput = { [field]: direction };
+        return order;
       })
       .filter((v): v is Prisma.LeadOrderByWithRelationInput => v !== null);
   }

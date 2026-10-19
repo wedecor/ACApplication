@@ -1,3 +1,6 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { hasAllPermissions, outranks } from '@ac/auth';
+import { type Permission, type UserRole } from '@ac/types';
 import {
   type CanActivate,
   type ExecutionContext,
@@ -5,9 +8,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { type Permission, type UserRole } from '@ac/types';
-import { hasAllPermissions, outranks } from '@ac/auth';
-import type { AuthPrincipal } from '@ac/auth';
 import type { FastifyRequest } from 'fastify';
 
 import { ALLOW_AUTHENTICATED_KEY, IS_PUBLIC_KEY, PERMS_KEY, ROLES_KEY } from '../decorators';

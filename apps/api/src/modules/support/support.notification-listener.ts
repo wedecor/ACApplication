@@ -1,6 +1,3 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-
 import {
   type CallMissedEvent,
   type ConversationMessageReceivedEvent,
@@ -10,9 +7,11 @@ import {
   type TicketCreatedEvent,
   type TicketEscalatedEvent,
   type TicketReplySentEvent,
-  type TicketSlaBreachWarningEvent,
   type TicketSlaBreachedEvent,
+  type TicketSlaBreachWarningEvent,
 } from '@ac/types';
+import { Injectable, Logger } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -72,7 +71,7 @@ export class SupportNotificationListener {
   }
 
   @OnEvent(DomainEventName.TicketEscalated, { async: true })
-  async onTicketEscalated(event: TicketEscalatedEvent): Promise<void> {
+  onTicketEscalated(event: TicketEscalatedEvent): void {
     this.logger.log(
       `Ticket ${event.payload.ticketId} escalated to level ${event.payload.level}`,
     );
@@ -141,7 +140,7 @@ export class SupportNotificationListener {
   }
 
   @OnEvent(DomainEventName.CallMissed, { async: true })
-  async onCallMissed(event: CallMissedEvent): Promise<void> {
+  onCallMissed(event: CallMissedEvent): void {
     this.logger.log(
       `Missed call ${event.payload.callLogId} from ${event.payload.fromNumber} (queue=${event.payload.queue ?? '-'})`,
     );

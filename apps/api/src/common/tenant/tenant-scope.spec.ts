@@ -1,6 +1,6 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
-import { assertTenantMatch } from './tenant-scope';
+import { assertIdsInTenant,assertTenantMatch } from './tenant-scope';
 
 describe('assertTenantMatch', () => {
   it('throws NotFound when row is missing', () => {
@@ -17,7 +17,6 @@ describe('assertTenantMatch', () => {
 });
 
 describe('assertIdsInTenant', () => {
-  const { assertIdsInTenant } = jest.requireActual<typeof import('./tenant-scope')>('./tenant-scope');
 
   it('checks every provided id against the tenant and skips empty ones', async () => {
     const city = { findFirst: jest.fn().mockResolvedValue({ id: 'c1' }) };

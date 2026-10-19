@@ -2,10 +2,10 @@ import { Inject, Injectable, Logger, type OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 import { CampaignsService } from './campaigns.service';
 import { GROWTH_CONFIG, type GrowthConfig } from './growth.config';
 import { ReviewsService } from './reviews.service';
-import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 /** Default notification templates for growth flows (created only if missing). */
 export const GROWTH_TEMPLATES: readonly {

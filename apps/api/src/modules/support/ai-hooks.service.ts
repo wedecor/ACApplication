@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
-
 import type { ConversationChannel, TicketPriority } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 /**
  * AI extension points. The methods here are deliberately thin shims — they
@@ -21,6 +20,7 @@ import type { ConversationChannel, TicketPriority } from '@ac/types';
  */
 @Injectable()
 export class SupportAiHooksService {
+  // eslint-disable-next-line @typescript-eslint/require-await -- stub until an AI provider is wired; callers await it
   async categorise(args: {
     subject: string;
     body: string;
@@ -30,6 +30,7 @@ export class SupportAiHooksService {
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- stub until an AI provider is wired; callers await it
   async analyseSentiment(args: {
     body: string;
     channel: ConversationChannel;
@@ -38,19 +39,21 @@ export class SupportAiHooksService {
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- stub until an AI provider is wired; callers await it
   async suggestReply(args: {
     ticketId: string;
     last5Messages: string[];
     channel: ConversationChannel;
-    cannedResponses: Array<{ code: string; title: string; body: string }>;
-  }): Promise<{ suggestions: Array<{ body: string; source: 'ai' | 'canned'; cannedCode?: string }> } | null> {
+    cannedResponses: { code: string; title: string; body: string }[];
+  }): Promise<{ suggestions: { body: string; source: 'ai' | 'canned'; cannedCode?: string }[] } | null> {
     void args;
     return null;
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await -- stub until an AI provider is wired; callers await it
   async summariseConversation(args: {
     ticketId: string;
-    messages: Array<{ authorKind: string; body: string }>;
+    messages: { authorKind: string; body: string }[];
   }): Promise<{ summary: string } | null> {
     void args;
     return null;

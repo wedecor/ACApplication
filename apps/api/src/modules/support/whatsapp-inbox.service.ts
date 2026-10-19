@@ -1,7 +1,6 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
-
 import { ConversationChannel, MessageStatus } from '@ac/types';
 import { WhatsAppClient } from '@ac/whatsapp';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 
 import { isLocalDevelopment } from '../../common/security/webhook-auth';
 import { ConversationsService } from './conversations.service';
@@ -68,7 +67,7 @@ export class WhatsAppInboxService {
    */
   async handleWebhook(body: unknown): Promise<{ messages: number; statuses: number }> {
     const payload = body as WhatsAppWebhookPayload;
-    if (!payload || payload.object !== 'whatsapp_business_account') {
+    if (payload?.object !== 'whatsapp_business_account') {
       return { messages: 0, statuses: 0 };
     }
     let messages = 0;
@@ -176,7 +175,7 @@ function mapWhatsAppStatus(status: string): MessageStatus | null {
 
 interface WhatsAppWebhookPayload {
   object?: string;
-  entry?: Array<{ id: string; changes?: WhatsAppChange[] }>;
+  entry?: { id: string; changes?: WhatsAppChange[] }[];
 }
 
 interface WhatsAppChange {
@@ -186,7 +185,7 @@ interface WhatsAppChange {
 
 interface WhatsAppChangeValue {
   metadata?: { display_phone_number?: string; phone_number_id?: string };
-  contacts?: Array<{ wa_id: string; profile?: { name?: string } }>;
+  contacts?: { wa_id: string; profile?: { name?: string } }[];
   messages?: WhatsAppInboundMessage[];
   statuses?: WhatsAppStatusEvent[];
 }

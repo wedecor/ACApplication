@@ -1,7 +1,7 @@
 import { ForbiddenException } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { type Reflector } from '@nestjs/core';
 
-import { ALLOW_AUTHENTICATED_KEY, IS_PUBLIC_KEY, PERMS_KEY } from '../decorators';
+import { ALLOW_AUTHENTICATED_KEY, IS_PUBLIC_KEY } from '../decorators';
 import { RolesGuard } from './roles.guard';
 
 describe('RolesGuard (deny-by-default)', () => {

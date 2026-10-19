@@ -8,10 +8,9 @@
  * change.
  */
 
-import { Injectable } from '@nestjs/common';
-
-import { StockMovementKind } from '@ac/types';
 import type { AuthPrincipal } from '@ac/auth';
+import { StockMovementKind } from '@ac/types';
+import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { InventoryLedgerService } from './inventory-ledger.service';

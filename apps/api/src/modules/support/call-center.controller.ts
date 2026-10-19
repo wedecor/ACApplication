@@ -1,24 +1,22 @@
+import type { AuthPrincipal } from '@ac/auth';
+import type { LoadedServerEnv } from '@ac/config';
+import { Permission } from '@ac/types';
 import {
   Body,
   Controller,
   Get,
   Headers,
-  Param,
+ Inject,  Param,
   Post,
   Query,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import type { LoadedServerEnv } from '@ac/config';
+  UnauthorizedException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { CurrentUser, Public, RequirePermissions } from '../../common/decorators';
-import { isLocalDevelopment, verifyBearerSecret } from '../../common/security/webhook-auth';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
+import { isLocalDevelopment, verifyBearerSecret } from '../../common/security/webhook-auth';
+import { CallCenterService } from './call-center.service';
 import {
   AddRecordingDto,
   CallDispositionDto,
@@ -27,7 +25,6 @@ import {
   StartCallDto,
   UpdateCallStatusDto,
 } from './dto/call.dto';
-import { CallCenterService } from './call-center.service';
 
 @ApiTags('support:calls')
 @ApiBearerAuth()

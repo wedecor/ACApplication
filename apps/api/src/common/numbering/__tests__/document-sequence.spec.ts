@@ -37,7 +37,7 @@ describe('allocateDocumentNumber', () => {
       allocateDocumentNumber(prisma as never, 'tenant_1', { prefix: 'INV', table: 'invoice', year: 2026 }),
     ).resolves.toBe('INV-2026-000042');
     expect(findFirst.mock.calls[0][0].where).toEqual({ tenantId: 'tenant_1', number: { startsWith: 'INV-2026-' } });
-    expect(queryRaw.mock.calls[0].slice(1)).toEqual(['tenant_1', 'INV', 2026, 42]);
+    expect(queryRaw.mock.calls[0]!.slice(1)).toEqual(['tenant_1', 'INV', 2026, 42]);
   });
 
   it('uses the value the counter returns, so concurrent callers get distinct numbers', async () => {
@@ -51,7 +51,7 @@ describe('allocateDocumentNumber', () => {
   it('upserts atomically and never moves the counter below existing rows', async () => {
     const { prisma, queryRaw } = buildPrisma(null);
     await allocateDocumentNumber(prisma as never, 'tenant_1', { prefix: 'INV', table: 'invoice', year: 2026 });
-    const sql = queryRaw.mock.calls[0][0].join('?');
+    const sql = queryRaw.mock.calls[0]![0].join('?');
     expect(sql).toContain('ON CONFLICT ("tenantId", "prefix", "year") DO UPDATE');
     expect(sql).toContain('GREATEST');
     expect(sql).toContain('RETURNING "lastValue"');

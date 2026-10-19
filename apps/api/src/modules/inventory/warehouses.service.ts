@@ -7,10 +7,9 @@
  * warehouse with historical movements.
  */
 
+import type { AuthPrincipal } from '@ac/auth';
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-
-import type { AuthPrincipal } from '@ac/auth';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {

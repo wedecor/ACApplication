@@ -14,14 +14,14 @@
  * CREDIT (negative) → we owe / have received from customer (payment, refund).
  */
 
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
-import { PrismaService } from '../../common/prisma/prisma.service';
 import {
   LedgerEntryDirection,
   type LedgerEntryType,
 } from '@ac/types';
+import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
+
+import { PrismaService } from '../../common/prisma/prisma.service';
 
 export interface PostLedgerEntryInput {
   tenantId: string;
@@ -74,7 +74,7 @@ export class LedgerService {
 
       // Read the customer's previous balance with a row-lock — guarantees
       // concurrent writers see a stable snapshot.
-      const latest = await client.$queryRaw<Array<{ runningBalanceMinor: number }>>`
+      const latest = await client.$queryRaw<{ runningBalanceMinor: number }[]>`
         SELECT "runningBalanceMinor"
         FROM "customer_ledger_entries"
         WHERE "customerId" = ${input.customerId}

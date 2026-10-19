@@ -1,10 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
 import {
   BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import type { AuthPrincipal } from '@ac/auth';
 import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -187,7 +187,7 @@ export class CustomFieldsService {
       data: {
         ...(dto.label !== undefined ? { label: dto.label.trim() } : {}),
         ...(dto.fieldType !== undefined ? { fieldType: dto.fieldType } : {}),
-        ...(dto.options !== undefined ? { options: dto.options as Prisma.InputJsonValue } : {}),
+        ...(dto.options !== undefined ? { options: dto.options } : {}),
         ...(dto.required !== undefined ? { required: dto.required } : {}),
         ...(dto.isActive !== undefined ? { isActive: dto.isActive } : {}),
         ...(dto.sortOrder !== undefined ? { sortOrder: dto.sortOrder } : {}),

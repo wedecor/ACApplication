@@ -1,11 +1,12 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
-import { isLocalDevelopment, verifyHmacSha256 } from '../../common/security/webhook-auth';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+
 import { APP_CONFIG } from '../../common/config/config.module';
-import { NotificationMetricsService } from './notification-metrics.service';
+import { isLocalDevelopment, verifyHmacSha256 } from '../../common/security/webhook-auth';
 import { NotificationRepository } from './notification.repository';
+import { NotificationMetricsService } from './notification-metrics.service';
 
 @Injectable()
 export class NotificationWebhooksService {
@@ -90,14 +91,14 @@ export class NotificationWebhooksService {
   }
 
   async handleExpoReceipts(
-    receipts: Array<{ status: string; id?: string; message?: string; details?: unknown }>,
+    receipts: { status: string; id?: string; message?: string; details?: unknown }[],
   ): Promise<void> {
     for (const receipt of receipts) {
       if (!receipt.id) continue;
       const row = await this.repo.findByProviderRef(receipt.id);
       if (!row) continue;
       if (receipt.status === 'ok') {
-        await this.repo.markDelivered(row.id, 'expo', receipt as Record<string, unknown>);
+        await this.repo.markDelivered(row.id, 'expo', receipt);
       } else {
         await this.repo.markFailed(row.id, receipt.message ?? 'expo error', 'expo', receipt);
       }
@@ -105,18 +106,18 @@ export class NotificationWebhooksService {
   }
 
   async handleWhatsAppStatus(payload: {
-    entry?: Array<{
-      changes?: Array<{
+    entry?: {
+      changes?: {
         value?: {
-          statuses?: Array<{
+          statuses?: {
             id: string;
             status: string;
             timestamp: string;
-            errors?: Array<{ title?: string }>;
-          }>;
+            errors?: { title?: string }[];
+          }[];
         };
-      }>;
-    }>;
+      }[];
+    }[];
   }): Promise<void> {
     for (const entry of payload.entry ?? []) {
       for (const change of entry.changes ?? []) {

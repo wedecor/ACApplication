@@ -1,5 +1,5 @@
-import { Permission, UserRole } from '@ac/types';
 import { DEFAULT_ROLE_PERMISSIONS, hasPermission } from '@ac/auth';
+import { Permission, UserRole } from '@ac/types';
 
 describe('@ac/auth hasPermission (DB-only)', () => {
   it('does not union DEFAULT_ROLE_PERMISSIONS for roles', () => {

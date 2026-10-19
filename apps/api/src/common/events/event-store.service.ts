@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DomainEventRecordStatus, type Prisma } from '@prisma/client';
 import type { AnyDomainEvent } from '@ac/types';
 import { DOMAIN_EVENT_DLQ } from '@ac/workflow';
+import { Injectable, Logger } from '@nestjs/common';
+import { DomainEventRecordStatus, type Prisma } from '@prisma/client';
 import { Queue } from 'bullmq';
 
 import { PrismaService } from '../prisma/prisma.service';

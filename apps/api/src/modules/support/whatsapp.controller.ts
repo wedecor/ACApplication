@@ -13,10 +13,10 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 
-type Request = FastifyRequest & { rawBody?: Buffer | string };
-
 import { Public } from '../../common/decorators';
 import { WhatsAppInboxService } from './whatsapp-inbox.service';
+
+type Request = FastifyRequest & { rawBody?: Buffer | string };
 
 /**
  * Public WhatsApp Cloud API webhook endpoints.
@@ -56,7 +56,7 @@ export class WhatsAppWebhookController {
     @Body() body: unknown,
   ): Promise<{ messages: number; statuses: number }> {
     const rawBody =
-      ((req as unknown as { rawBody?: string | Buffer }).rawBody as string | Buffer | undefined) ??
+      ((req as unknown as { rawBody?: string | Buffer }).rawBody) ??
       JSON.stringify(body);
     const rawString = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf8');
     if (!this.inbox.verifySignature(rawString, signature)) {

@@ -50,7 +50,7 @@ export class SingleInstanceRegistrar implements OnModuleInit {
   constructor(private readonly redis: RedisService) {}
 
   onModuleInit(): void {
-    setSingleInstanceStore(this.redis.default as unknown as LockStore);
+    setSingleInstanceStore(this.redis.default);
   }
 }
 

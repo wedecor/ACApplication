@@ -1,5 +1,5 @@
-import { ConflictException } from '@nestjs/common';
 import { BookingPriority, DispatchAlertKind, DispatchDecision, ServiceCategory } from '@ac/types';
+import { ConflictException } from '@nestjs/common';
 
 import { DispatchService } from '../dispatch.service';
 
@@ -11,7 +11,7 @@ import { DispatchService } from '../dispatch.service';
  * contextual scoring + persistence behaviour.
  */
 function buildService(overrides: Partial<{
-  candidates: Array<{ technician: { id: string; lastLatitude: number | null; lastLongitude: number | null }; score: number; distanceKm: number | null; activeJobs: number; breakdown: Record<string, number> }>;
+  candidates: { technician: { id: string; lastLatitude: number | null; lastLongitude: number | null }; score: number; distanceKm: number | null; activeJobs: number; breakdown: Record<string, number> }[];
   prismaBookingId: string | null;
 }> = {}) {
   const assignment = {
@@ -135,7 +135,7 @@ describe('DispatchService.recommend', () => {
         },
       ],
     });
-    (prisma.client.technician.findMany as jest.Mock).mockResolvedValueOnce([]);
+    (prisma.client.technician.findMany).mockResolvedValueOnce([]);
     const out = await service.recommend({ userId: 'u', tenantId: 't' } as never, 'bk_1');
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({
@@ -153,7 +153,7 @@ describe('DispatchService.autoAssign', () => {
     await expect(
       service.autoAssign({ userId: 'u', tenantId: 't' } as never, 'bk_1'),
     ).rejects.toBeInstanceOf(ConflictException);
-    const calls = (prisma.client.dispatchEvent.create as jest.Mock).mock.calls;
+    const calls = (prisma.client.dispatchEvent.create).mock.calls;
     expect(calls[0]?.[0].data.kind).toBe(DispatchAlertKind.NO_CANDIDATES);
   });
 
@@ -188,7 +188,7 @@ describe('DispatchService.autoAssign', () => {
     });
     await service.autoAssign({ userId: 'u', tenantId: 't' } as never, 'bk_1');
     expect(bookings.assignTechnician).toHaveBeenCalled();
-    const createCall = (prisma.client.dispatchAssignment.create as jest.Mock).mock.calls[0]?.[0];
+    const createCall = (prisma.client.dispatchAssignment.create).mock.calls[0]?.[0];
     expect(createCall.data.decision).toBe(DispatchDecision.AUTO_ASSIGNED);
   });
 });

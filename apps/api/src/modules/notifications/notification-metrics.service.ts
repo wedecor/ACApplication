@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import type { LoadedServerEnv } from '@ac/config';
 import { NotificationChannel } from '@ac/types';
+import { Inject, Injectable } from '@nestjs/common';
 import { collectDefaultMetrics, Counter, Histogram, Registry } from 'prom-client';
 
 import { APP_CONFIG } from '../../common/config/config.module';

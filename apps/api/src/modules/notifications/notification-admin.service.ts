@@ -1,12 +1,12 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
-import { Permission } from '@ac/types';
 import type { AuthPrincipal } from '@ac/auth';
 import { hasPermission } from '@ac/auth';
+import { Permission } from '@ac/types';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
+import { NotificationRepository } from './notification.repository';
 import { NotificationMetricsService } from './notification-metrics.service';
 import { NotificationQueueService } from './notification-queue.service';
 import { NotificationRateLimiterService } from './notification-rate-limiter.service';
-import { NotificationRepository } from './notification.repository';
 import { ProviderHealthService } from './provider-health.service';
 
 @Injectable()
@@ -57,7 +57,7 @@ export class NotificationAdminService {
       throw new ForbiddenException('DLQ job not found');
     }
     const row = await this.repo.findById(job.data.notificationId);
-    if (!row || row.tenantId !== actor.tenantId) {
+    if (row?.tenantId !== actor.tenantId) {
       throw new ForbiddenException('DLQ job not accessible');
     }
     return this.queue.retryDlqJob(jobId);

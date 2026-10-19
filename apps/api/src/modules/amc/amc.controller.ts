@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { AMCSubscriptionStatus, Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -14,17 +16,14 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 
-import { AMCSubscriptionStatus, Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
+import { AmcPlansService } from './amc-plans.service';
+import { AmcSubscriptionsService } from './amc-subscriptions.service';
 import {
   CreateAmcPlanDto,
   CreateAmcSubscriptionDto,
   UpdateAmcPlanDto,
 } from './dto/amc.dto';
-import { AmcPlansService } from './amc-plans.service';
-import { AmcSubscriptionsService } from './amc-subscriptions.service';
 
 @ApiTags('amc')
 @ApiBearerAuth()

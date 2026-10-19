@@ -1,3 +1,5 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission } from '@ac/types';
 import {
   Body,
   Controller,
@@ -10,17 +12,14 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
-import { Permission } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
+import { CannedResponsesService } from './canned-responses.service';
 import {
   CreateCannedResponseDto,
   ListCannedResponsesDto,
   UpdateCannedResponseDto,
 } from './dto/canned-response.dto';
-import { CannedResponsesService } from './canned-responses.service';
 
 @ApiTags('support:canned-responses')
 @ApiBearerAuth()

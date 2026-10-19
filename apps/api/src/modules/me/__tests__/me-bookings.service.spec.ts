@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 
-import { haversineKm, MeBookingsService, toBookingSummary, type MyBookingRow } from '../me-bookings.service';
+import { haversineKm, MeBookingsService, type MyBookingRow,toBookingSummary } from '../me-bookings.service';
 
 const actor = { userId: 'u1', tenantId: 't1' } as never;
 const customer = { id: 'c1', tenantId: 't1', userId: 'u1', fullName: 'A', phone: '+91', email: null, cityId: null, defaultAddressId: null };
@@ -55,7 +55,7 @@ const row = (over: Partial<MyBookingRow> = {}): MyBookingRow =>
     address: { line1: 'L1', line2: null, city: 'Bengaluru', pincode: '560001', landmark: null, latitude: null, longitude: null },
     technician: { id: 'tech1', fullName: 'Ravi', phone: '+9199', rating: 4.5, totalJobs: 10, user: { avatarUrl: null } },
     ...over,
-  }) as MyBookingRow;
+  });
 
 describe('toBookingSummary', () => {
   it('maps a row to the app contract', () => {

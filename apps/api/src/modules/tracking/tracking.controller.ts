@@ -1,8 +1,8 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { Permission, TechnicianStatus } from '@ac/types';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Permission, TechnicianStatus } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
 import { UploadLocationDto } from './dto/upload-location.dto';

@@ -1,17 +1,15 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import type { AuthPrincipal } from '@ac/auth';
+import type { Prisma, Technician } from '@ac/database';
 import {
   type BookingId,
   BookingPriority,
-  BookingStatus,
   DispatchAlertKind,
   DispatchDecision,
   DomainEventName,
-  type ServiceCategory,
-  TERMINAL_BOOKING_STATUSES,
   type TechnicianId,
+  TERMINAL_BOOKING_STATUSES,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-import type { Prisma, Technician } from '@ac/database';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -87,7 +85,7 @@ export class DispatchService {
     bookingId: string,
   ): Promise<DispatchRecommendation[]> {
     const booking = await this.loadBooking(actor, bookingId);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       return [];
     }
 
@@ -95,7 +93,7 @@ export class DispatchService {
     const candidates = await this.assignment.findCandidates({
       tenantId: actor.tenantId,
       cityId: booking.cityId,
-      category: booking.category as ServiceCategory,
+      category: booking.category,
       geo: this.geoOf(booking),
       scheduledAt: booking.scheduledAt,
       excludeTechnicianIds: Array.from(excluded),
@@ -116,7 +114,7 @@ export class DispatchService {
         technicianId: c.technicianId,
         decision: DispatchDecision.RECOMMENDED,
         score: c.score,
-        breakdown: c.breakdown as never,
+        breakdown: c.breakdown,
         distanceKm: c.distanceKm,
         etaMin: c.etaMin,
         actorUserId: actor.userId,
@@ -129,7 +127,7 @@ export class DispatchService {
   /** POST /dispatch/auto-assign/:bookingId */
   async autoAssign(actor: AuthPrincipal, bookingId: string) {
     const booking = await this.loadBooking(actor, bookingId);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Cannot assign a closed booking');
     }
     if (booking.technicianId) {
@@ -140,7 +138,7 @@ export class DispatchService {
     const candidates = await this.assignment.findCandidates({
       tenantId: actor.tenantId,
       cityId: booking.cityId,
-      category: booking.category as ServiceCategory,
+      category: booking.category,
       geo: this.geoOf(booking),
       scheduledAt: booking.scheduledAt,
       excludeTechnicianIds: Array.from(excluded),
@@ -247,7 +245,7 @@ export class DispatchService {
     input: { bookingId: string; toTechnicianId?: string; autoPick?: boolean; reason?: string },
   ) {
     const booking = await this.loadBooking(actor, input.bookingId);
-    if (TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)) {
+    if (TERMINAL_BOOKING_STATUSES.has(booking.status)) {
       throw new ForbiddenException('Cannot reassign a closed booking');
     }
 
@@ -261,7 +259,7 @@ export class DispatchService {
       const candidates = await this.assignment.findCandidates({
         tenantId: actor.tenantId,
         cityId: booking.cityId,
-        category: booking.category as ServiceCategory,
+        category: booking.category,
         geo: this.geoOf(booking),
         scheduledAt: booking.scheduledAt,
         excludeTechnicianIds: Array.from(excluded),

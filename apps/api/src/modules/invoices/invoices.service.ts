@@ -17,16 +17,8 @@
  */
 
 import { randomBytes } from 'node:crypto';
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 
+import type { AuthPrincipal } from '@ac/auth';
 import {
   CreditNoteStatus,
   DomainEventName,
@@ -37,9 +29,16 @@ import {
   PaymentStatus,
   RefundStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import {
   computeInvoiceTotals,
@@ -47,6 +46,7 @@ import {
   ensureInteger,
   nextDocumentNumber,
 } from '../../common/finance';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { PdfService } from '../pdf/pdf.service';
 import type {
@@ -54,9 +54,9 @@ import type {
   CreateInvoiceLineItemDto,
 } from './dto/create-invoice.dto';
 import type { ListInvoicesDto } from './dto/list-invoices.dto';
-import type { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import type { RecordPaymentDto } from './dto/record-payment.dto';
 import type { RefundInvoiceDto } from './dto/refund-invoice.dto';
+import type { UpdateInvoiceDto } from './dto/update-invoice.dto';
 
 const EDITABLE_STATUSES = new Set<InvoiceStatus>([InvoiceStatus.DRAFT]);
 const TERMINAL_STATUSES = new Set<InvoiceStatus>([
@@ -204,9 +204,7 @@ export class InvoicesService {
     if (dto.minDueAmountMinor) where.dueAmountMinor = { gte: dto.minDueAmountMinor };
     if (dto.overdueOnly) {
       where.dueDate = { lt: new Date() };
-      where.dueAmountMinor = { ...(where.dueAmountMinor as object | undefined), gt: 0 } as
-        | number
-        | Prisma.IntFilter<'Invoice'>;
+      where.dueAmountMinor = { ...(where.dueAmountMinor as object | undefined), gt: 0 };
       where.status = { in: [InvoiceStatus.SENT, InvoiceStatus.PARTIALLY_PAID] };
     }
     if (dto.q) {
@@ -259,7 +257,7 @@ export class InvoicesService {
         include: { lineItems: true },
       });
       if (!invoice) throw new NotFoundException('Invoice not found');
-      if (!EDITABLE_STATUSES.has(invoice.status as InvoiceStatus)) {
+      if (!EDITABLE_STATUSES.has(invoice.status)) {
         // Allow soft fields after issue
         const safeUpdate: Prisma.InvoiceUpdateInput = {};
         if (dto.notes !== undefined) safeUpdate.notes = dto.notes;
@@ -357,7 +355,7 @@ export class InvoicesService {
         include: { lineItems: true },
       });
       if (!invoice) throw new NotFoundException('Invoice not found');
-      if (TERMINAL_STATUSES.has(invoice.status as InvoiceStatus)) {
+      if (TERMINAL_STATUSES.has(invoice.status)) {
         throw new ConflictException('Already in a terminal state');
       }
       if (invoice.amountPaidMinor > 0) {
@@ -469,7 +467,7 @@ export class InvoicesService {
         },
       });
       if (!invoice) throw new NotFoundException('Invoice not found');
-      if (TERMINAL_STATUSES.has(invoice.status as InvoiceStatus)) {
+      if (TERMINAL_STATUSES.has(invoice.status)) {
         throw new ConflictException('Cannot settle a closed invoice');
       }
       if (invoice.status === InvoiceStatus.DRAFT) {
@@ -667,7 +665,7 @@ export class InvoicesService {
         amountPaidMinor: invoice.amountPaidMinor,
         amountRefundedMinor: newRefunded,
         creditedMinor: credited._sum.amountMinor ?? 0,
-        status: invoice.status as InvoiceStatus,
+        status: invoice.status,
       });
       const updated = await tx.invoice.update({
         where: { id: invoice.id },
@@ -736,7 +734,7 @@ export class InvoicesService {
         amountPaidMinor: invoice.amountPaidMinor,
         amountRefundedMinor: newRefunded,
         creditedMinor: credited._sum.amountMinor ?? 0,
-        status: invoice.status as InvoiceStatus,
+        status: invoice.status,
       });
       await tx.invoice.update({
         where: { id: invoice.id },

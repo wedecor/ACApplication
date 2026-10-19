@@ -1,7 +1,7 @@
 import { BadRequestException, PayloadTooLargeException, ServiceUnavailableException } from '@nestjs/common';
 
 import { presignUrl } from '../sigv4';
-import { StorageService, type StorageEnv } from '../storage.service';
+import { type StorageEnv,StorageService } from '../storage.service';
 import { assertUploadAllowed, buildObjectKey } from '../upload-policy';
 
 describe('sigv4.presignUrl', () => {

@@ -414,7 +414,7 @@ export class DataImportService {
       const res = err.getResponse();
       if (typeof res === 'string') return res;
       const msg = (res as { message?: unknown }).message;
-      return Array.isArray(msg) ? msg.join('; ') : String(msg ?? err.message);
+      return Array.isArray(msg) ? msg.join('; ') : typeof msg === 'string' ? msg : err.message;
     }
     // Log only the error class/code — Prisma messages can echo row PII.
     const code = (err as { code?: unknown } | null)?.code;

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { HaversineMapProvider } from './haversine.provider';
 import { type LatLng, type MapProvider, type RouteEstimateResult } from '../routing.tokens';
+import { HaversineMapProvider } from './haversine.provider';
 
 /**
  * Mapbox Directions adapter. Same contract as the Google adapter — falls
@@ -16,7 +16,7 @@ export class MapboxProvider implements MapProvider {
   constructor(private readonly haversine: HaversineMapProvider) {}
 
   async estimate(origin: LatLng, destination: LatLng): Promise<RouteEstimateResult> {
-    const token = process.env['MAPBOX_TOKEN'];
+    const token = process.env.MAPBOX_TOKEN;
     if (!token) return this.haversine.estimate(origin, destination);
 
     const coords = `${origin.longitude},${origin.latitude};${destination.longitude},${destination.latitude}`;
@@ -31,7 +31,7 @@ export class MapboxProvider implements MapProvider {
       const res = await fetch(url, { signal: ac.signal });
       const json = (await res.json()) as {
         code?: string;
-        routes?: Array<{ distance: number; duration: number; geometry?: string }>;
+        routes?: { distance: number; duration: number; geometry?: string }[];
       };
       const route = json.routes?.[0];
       if (json.code !== 'Ok' || !route) {
@@ -46,7 +46,7 @@ export class MapboxProvider implements MapProvider {
       };
     } catch (err) {
       this.logger.warn({ err }, 'Mapbox estimate failed — falling back to Haversine');
-      return this.haversine.estimate(origin, destination);
+      return await this.haversine.estimate(origin, destination);
     } finally {
       clearTimeout(timer);
     }

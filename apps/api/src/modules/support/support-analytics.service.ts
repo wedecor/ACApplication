@@ -1,6 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   CallStatus,
   ConversationChannel,
@@ -8,7 +6,8 @@ import {
   TicketPriority,
   TicketStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
@@ -97,14 +96,14 @@ export class SupportAnalyticsService {
     const dr = this.resolveRange(range);
     // Use raw SQL for percentiles — Prisma doesn't support PERCENTILE_DISC.
     const rows = await this.prisma.client.$queryRaw<
-      Array<{
+      {
         avg_first_seconds: number | null;
         p50_first_seconds: number | null;
         p90_first_seconds: number | null;
         avg_resolution_seconds: number | null;
         p50_resolution_seconds: number | null;
         p90_resolution_seconds: number | null;
-      }>
+      }[]
     >`
       SELECT
         AVG(EXTRACT(EPOCH FROM ("firstResponseAt" - "createdAt")))      AS avg_first_seconds,
@@ -136,14 +135,14 @@ export class SupportAnalyticsService {
   async agentProductivity(actor: AuthPrincipal, range: SupportRange) {
     const dr = this.resolveRange(range);
     const rows = await this.prisma.client.$queryRaw<
-      Array<{
+      {
         agentid: string;
         first_name: string | null;
         last_name: string | null;
         handled: number;
         resolved: number;
         avg_resolution_seconds: number | null;
-      }>
+      }[]
     >`
       SELECT
         u.id AS agentId,
@@ -232,7 +231,7 @@ export class SupportAnalyticsService {
       }),
     ]);
     const missed = byStatus
-      .filter((r) => MISSED_CALL_STATUSES.has(r.status as CallStatus))
+      .filter((r) => MISSED_CALL_STATUSES.has(r.status))
       .reduce((sum, r) => sum + r._count._all, 0);
     return {
       total,
@@ -327,16 +326,16 @@ export class SupportAnalyticsService {
 }
 
 function priorityRollup(
-  rows: Array<{ priority: TicketPriority; _count: { _all: number } }>,
-): Array<{ priority: TicketPriority; count: number }> {
+  rows: { priority: TicketPriority; _count: { _all: number } }[],
+): { priority: TicketPriority; count: number }[] {
   const map: Partial<Record<TicketPriority, number>> = {};
   for (const r of rows) map[r.priority] = r._count._all;
   return Object.values(TicketPriority).map((p) => ({ priority: p, count: map[p] ?? 0 }));
 }
 
 function statusRollup(
-  rows: Array<{ status: TicketStatus; _count: { _all: number } }>,
-): Array<{ status: TicketStatus; count: number }> {
+  rows: { status: TicketStatus; _count: { _all: number } }[],
+): { status: TicketStatus; count: number }[] {
   const map: Partial<Record<TicketStatus, number>> = {};
   for (const r of rows) map[r.status] = r._count._all;
   return Object.values(TicketStatus).map((s) => ({ status: s, count: map[s] ?? 0 }));

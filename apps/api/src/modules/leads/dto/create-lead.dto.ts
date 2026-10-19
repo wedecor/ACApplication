@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { type LeadPriority, LeadSource, type ServiceCategory } from '@ac/types';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
   IsArray,
@@ -23,7 +23,7 @@ export class CreateLeadDto {
   customerName!: string;
 
   @ApiProperty({ example: '+919876543210' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
   @Matches(PHONE_REGEX, { message: 'phone must be E.164 (+countrycode...)' })
   phone!: string;
 
@@ -113,7 +113,9 @@ export class CreateLeadDto {
   @ApiPropertyOptional({ type: [String] })
   @IsOptional()
   @IsArray()
-  @Transform(({ value }) => (Array.isArray(value) ? value.map((v: string) => v.trim().toLowerCase()) : value))
+  @Transform(({ value }: { value: unknown }) =>
+    Array.isArray(value) ? value.map((v) => String(v).trim().toLowerCase()) : value,
+  )
   tags?: string[];
 
   @ApiPropertyOptional({ description: 'External integration idempotency key.' })

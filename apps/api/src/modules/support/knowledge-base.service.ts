@@ -1,10 +1,10 @@
+import type { AuthPrincipal } from '@ac/auth';
+import { KbArticleStatus, KbVisibility } from '@ac/types';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
-import { KbArticleStatus, KbVisibility } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
-
 import { PrismaService } from '../../common/prisma/prisma.service';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 import type {
   CreateKbArticleDto,
   CreateKbCategoryDto,
@@ -13,7 +13,6 @@ import type {
   UpdateKbArticleDto,
   UpdateKbCategoryDto,
 } from './dto/kb.dto';
-import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 @Injectable()
 export class KnowledgeBaseService {

@@ -1,20 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   CallDirection,
   CallStatus,
+  type CustomerId,
   DomainEventName,
   MISSED_CALL_STATUSES,
-  type CustomerId,
   type UserId,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';
-import { nextSupportNumber } from '../../common/support/numbering';
 import { normaliseE164 } from '../../common/support/channels';
+import { nextSupportNumber } from '../../common/support/numbering';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 import type {
   AddRecordingDto,
   CallDispositionDto,
@@ -23,7 +23,6 @@ import type {
   StartCallDto,
   UpdateCallStatusDto,
 } from './dto/call.dto';
-import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 @Injectable()
 export class CallCenterService {
@@ -117,7 +116,7 @@ export class CallCenterService {
       ...(dto.metadata ? { metadata: dto.metadata as Prisma.InputJsonValue } : {}),
     };
     if (dto.status === CallStatus.IN_PROGRESS && !call.answeredAt) data.answeredAt = now;
-    const terminalStatuses: ReadonlyArray<CallStatus> = [
+    const terminalStatuses: readonly CallStatus[] = [
       CallStatus.COMPLETED,
       CallStatus.MISSED,
       CallStatus.NO_ANSWER,

@@ -1,8 +1,8 @@
+import { otp } from '@ac/auth';
+import { ActivityType, BookingStatus, Permission, UserRole } from '@ac/types';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
-import { otp } from '@ac/auth';
-import { ActivityType, BookingStatus, Permission, UserRole } from '@ac/types';
 import { Logger } from 'nestjs-pino';
 
 import { AppModule } from '../src/app.module';
@@ -74,7 +74,7 @@ describe('Booking lifecycle (e2e)', () => {
       headers: { authorization: `Bearer ${accessToken}` },
     });
     const body = res.body ? (JSON.parse(res.body) as Json) : {};
-    const data = body['success'] === true && 'data' in body ? (body['data'] as Json) : body;
+    const data = body.success === true && 'data' in body ? (body.data as Json) : body;
     return { status: res.statusCode, body, data };
   }
 
@@ -207,7 +207,7 @@ describe('Booking lifecycle (e2e)', () => {
     });
     expect(res.status).toBe(201);
     expect(res.data).toEqual(expect.objectContaining({ id: expect.any(String), status: 'NEW' }));
-    leadId = res.data['id'] as string;
+    leadId = res.data.id as string;
     created.leads.push(leadId);
   });
 
@@ -228,7 +228,7 @@ describe('Booking lifecycle (e2e)', () => {
     expect(res.data).toEqual(
       expect.objectContaining({ id: expect.any(String), status: BookingStatus.PENDING, leadId }),
     );
-    bookingId = res.data['id'] as string;
+    bookingId = res.data.id as string;
     created.bookings.push(bookingId);
 
     const lead = await prisma.lead.findUnique({ where: { id: leadId }, select: { status: true, bookingId: true } });
@@ -337,8 +337,8 @@ describe('Booking lifecycle (e2e)', () => {
         subtotalMinor: FINAL_AMOUNT_MINOR,
       }),
     );
-    expect(res.data['totalMinor']).toBeGreaterThanOrEqual(FINAL_AMOUNT_MINOR);
-    created.invoices.push(res.data['id'] as string);
+    expect(res.data.totalMinor).toBeGreaterThanOrEqual(FINAL_AMOUNT_MINOR);
+    created.invoices.push(res.data.id as string);
 
     const dupe = await call('POST', '/invoices', {
       customerId,
@@ -351,8 +351,8 @@ describe('Booking lifecycle (e2e)', () => {
   it('8. records the full timeline', async () => {
     const res = await call('GET', `/bookings/${bookingId}/activities`);
     expect(res.status).toBe(200);
-    const items = (Array.isArray(res.data) ? res.data : (res.data['items'] as unknown[])) as Json[];
-    const types = items.map((a) => a['type']);
+    const items = (Array.isArray(res.data) ? res.data : (res.data.items as unknown[])) as Json[];
+    const types = items.map((a) => a.type);
     for (const t of [
       ActivityType.CREATED,
       ActivityType.ASSIGNED,
@@ -376,7 +376,7 @@ async function cleanup(
   prisma: PrismaService['client'],
   ids: Record<'users' | 'customers' | 'technicians' | 'cities' | 'leads' | 'bookings' | 'invoices' | 'addresses', string[]>,
 ): Promise<void> {
-  const roots: Array<[table: string, ids: string[]]> = [
+  const roots: [table: string, ids: string[]][] = [
     ['invoices', ids.invoices],
     ['bookings', ids.bookings],
     ['leads', ids.leads],
@@ -389,7 +389,7 @@ async function cleanup(
   const allIds = roots.flatMap(([, v]) => v);
   if (allIds.length === 0) return;
 
-  const fks = await prisma.$queryRawUnsafe<Array<{ tbl: string; col: string; ref: string }>>(`
+  const fks = await prisma.$queryRawUnsafe<{ tbl: string; col: string; ref: string }[]>(`
     SELECT kcu.table_name AS tbl, kcu.column_name AS col, ccu.table_name AS ref
     FROM information_schema.table_constraints tc
     JOIN information_schema.key_column_usage kcu
@@ -428,6 +428,6 @@ async function cleanup(
     }
     if (errors.length === 0) return;
   }
-  // eslint-disable-next-line no-console
+   
   console.warn(`[booking-lifecycle e2e] cleanup incomplete:\n${errors.join('\n')}`);
 }

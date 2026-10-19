@@ -1,9 +1,9 @@
-import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import {
   DomainEventName,
   PaymentMethod,
   PaymentTransactionStatus,
 } from '@ac/types';
+import { ConflictException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 
 import {
   DEFAULT_RECONCILE_BATCH_SIZE,
@@ -24,7 +24,7 @@ import type {
  * this caller won the transition, `count: 0` means someone else did.
  */
 
-type Txn = {
+interface Txn {
   id: string;
   tenantId: string;
   customerId: string;
@@ -35,7 +35,7 @@ type Txn = {
   orderRef: string | null;
   paymentRef: string | null;
   version: number;
-};
+}
 
 function txn(overrides: Partial<Txn> = {}): Txn {
   return {

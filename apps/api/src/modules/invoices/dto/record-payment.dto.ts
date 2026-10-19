@@ -1,13 +1,12 @@
-import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
-
 import { PaymentMethod } from '@ac/types';
+import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class RecordPaymentDto {
   @IsInt()
   @Min(1)
   amountMinor!: number;
 
-  @IsEnum(PaymentMethod as Record<string, string>)
+  @IsEnum(PaymentMethod)
   method!: PaymentMethod;
 
   @IsOptional()

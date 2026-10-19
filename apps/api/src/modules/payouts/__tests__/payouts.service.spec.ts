@@ -1,14 +1,14 @@
-import { BookingStatus, CommissionStatus, CommissionType, DomainEventName } from '@ac/types';
+import { BookingStatus, CommissionStatus, CommissionType } from '@ac/types';
 
 import { PayoutsService } from '../payouts.service';
 
-type PrismaMock = {
+interface PrismaMock {
   client: {
     booking: { findUnique: jest.Mock };
     technicianCommissionRule: { findUnique: jest.Mock };
     technicianCommission: { create: jest.Mock; aggregate: jest.Mock };
   };
-};
+}
 
 const baseRule = {
   type: CommissionType.PERCENTAGE,

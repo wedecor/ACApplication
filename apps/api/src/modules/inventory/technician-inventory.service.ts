@@ -20,9 +20,7 @@
  * recover the cost from the technician.
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   type BookingId,
   DomainEventName,
@@ -32,7 +30,8 @@ import {
   type TechnicianId,
   TechnicianStockStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { PrismaService } from '../../common/prisma/prisma.service';

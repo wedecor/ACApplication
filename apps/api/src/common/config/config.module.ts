@@ -1,6 +1,6 @@
+import { type LoadedServerEnv,loadServerEnv } from '@ac/config';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
-import { loadServerEnv, type LoadedServerEnv } from '@ac/config';
 
 export const APP_CONFIG = Symbol('APP_CONFIG');
 

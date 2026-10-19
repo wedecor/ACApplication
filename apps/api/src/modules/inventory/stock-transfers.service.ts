@@ -19,20 +19,19 @@
  * "ghost" stock floating between two snapshots.
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-
+import type { AuthPrincipal } from '@ac/auth';
 import {
   DomainEventName,
   STOCK_TRANSFER_TRANSITIONS,
   StockMovementKind,
   StockTransferStatus,
 } from '@ac/types';
-import type { AuthPrincipal } from '@ac/auth';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 
 import { DomainEventBus } from '../../common/events/domain-event-bus.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
 import { nextInventoryNumber } from '../../common/inventory/codes';
+import { PrismaService } from '../../common/prisma/prisma.service';
 import {
   CreateTransferDto,
   ReceiveTransferDto,
@@ -141,7 +140,7 @@ export class StockTransfersService {
   async approve(actor: AuthPrincipal, id: string) {
     return this.prisma.client.$transaction(async (tx) => {
       const t = await this.assertTransfer(tx, actor.tenantId, id);
-      this.assertTransition(t.status as StockTransferStatus, StockTransferStatus.APPROVED);
+      this.assertTransition(t.status, StockTransferStatus.APPROVED);
       // Reserve at the source warehouse so no one else can pick this stock.
       for (const line of t.items) {
         await this.ledger.postInTx(tx, {
@@ -172,7 +171,7 @@ export class StockTransfersService {
   async reject(actor: AuthPrincipal, id: string, reason?: string) {
     return this.prisma.client.$transaction(async (tx) => {
       const t = await this.assertTransfer(tx, actor.tenantId, id);
-      this.assertTransition(t.status as StockTransferStatus, StockTransferStatus.REJECTED);
+      this.assertTransition(t.status, StockTransferStatus.REJECTED);
       const updated = await tx.stockTransfer.update({
         where: { id },
         data: {
@@ -193,7 +192,7 @@ export class StockTransfersService {
   async dispatch(actor: AuthPrincipal, id: string) {
     return this.prisma.client.$transaction(async (tx) => {
       const t = await this.assertTransfer(tx, actor.tenantId, id);
-      this.assertTransition(t.status as StockTransferStatus, StockTransferStatus.IN_TRANSIT);
+      this.assertTransition(t.status, StockTransferStatus.IN_TRANSIT);
 
       for (const line of t.items) {
         // Release the reservation and move stock out in the same step.
@@ -237,7 +236,7 @@ export class StockTransfersService {
   async receive(actor: AuthPrincipal, id: string, dto: ReceiveTransferDto) {
     return this.prisma.client.$transaction(async (tx) => {
       const t = await this.assertTransfer(tx, actor.tenantId, id);
-      this.assertTransition(t.status as StockTransferStatus, StockTransferStatus.RECEIVED);
+      this.assertTransition(t.status, StockTransferStatus.RECEIVED);
 
       const lineById = new Map(t.items.map((l) => [l.id, l]));
       for (const incoming of dto.items) {

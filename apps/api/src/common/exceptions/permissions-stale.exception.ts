@@ -1,5 +1,5 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
 import { ApiErrorCode } from '@ac/types';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 /** Raised when JWT permission version does not match tenant RBAC revision. */
 export class PermissionsStaleException extends HttpException {

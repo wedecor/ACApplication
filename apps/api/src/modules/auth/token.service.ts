@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
 import { TokenService as CoreTokenService } from '@ac/auth';
 import type { LoadedServerEnv } from '@ac/config';
+import { Inject, Injectable } from '@nestjs/common';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 

@@ -1,7 +1,8 @@
+import { randomUUID } from 'node:crypto';
+
+import { type AnyDomainEvent, type DomainEventName, type UserId } from '@ac/types';
 import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { type AnyDomainEvent, type DomainEventName, type UserId } from '@ac/types';
-import { randomUUID } from 'node:crypto';
 import { ClsService } from 'nestjs-cls';
 
 import { EventStoreService } from './event-store.service';
