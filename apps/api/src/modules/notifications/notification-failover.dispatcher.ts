@@ -127,11 +127,15 @@ export class NotificationFailoverDispatcher extends NotificationDispatcher imple
       });
     }
     if (email.length === 0) {
-      email.push({
-        name: 'console',
-        priority: 99,
-        transport: new ConsoleTransport(NotificationChannel.EMAIL),
-      });
+      if (this.env.NODE_ENV === 'production') {
+        this.logger.error('No real email provider configured in production — email notifications disabled');
+      } else {
+        email.push({
+          name: 'console',
+          priority: 99,
+          transport: new ConsoleTransport(NotificationChannel.EMAIL),
+        });
+      }
     }
     this.providers.set(NotificationChannel.EMAIL, email);
 
@@ -142,12 +146,14 @@ export class NotificationFailoverDispatcher extends NotificationDispatcher imple
         priority: 1,
         transport: new ExpoPushTransport({ accessToken: this.env.EXPO_ACCESS_TOKEN }),
       });
-    } else {
+    } else if (this.env.NODE_ENV !== 'production') {
       push.push({
         name: 'console',
         priority: 99,
         transport: new ConsoleTransport(NotificationChannel.PUSH),
       });
+    } else {
+      this.logger.error('No real push provider configured in production — push notifications disabled');
     }
     this.providers.set(NotificationChannel.PUSH, push);
 
@@ -166,12 +172,14 @@ export class NotificationFailoverDispatcher extends NotificationDispatcher imple
           verifyToken: this.env.WHATSAPP_VERIFY_TOKEN,
         }),
       });
-    } else {
+    } else if (this.env.NODE_ENV !== 'production') {
       whatsapp.push({
         name: 'console',
         priority: 99,
         transport: new ConsoleTransport(NotificationChannel.WHATSAPP),
       });
+    } else {
+      this.logger.error('No real whatsapp provider configured in production — whatsapp notifications disabled');
     }
     this.providers.set(NotificationChannel.WHATSAPP, whatsapp);
 
