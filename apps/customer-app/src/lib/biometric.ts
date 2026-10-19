@@ -19,9 +19,14 @@ export async function isBiometricAvailable(): Promise<boolean> {
   return enrolled;
 }
 
+/**
+ * Challenge the user with biometrics, falling back to the device passcode.
+ * Returns false on cancel/failure — "no biometrics enrolled" is not a pass.
+ * Only a device with no lock at all can't be challenged; then it returns true.
+ */
 export async function requireBiometric(reason = 'Confirm it’s you'): Promise<boolean> {
-  const available = await isBiometricAvailable();
-  if (!available) return true;
+  const level = await LocalAuthentication.getEnrolledLevelAsync();
+  if (level === LocalAuthentication.SecurityLevel.NONE) return true;
   const res = await LocalAuthentication.authenticateAsync({
     promptMessage: reason,
     cancelLabel: 'Cancel',

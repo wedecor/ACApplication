@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 vi.mock('../api', () => ({ api: vi.fn() }));
-vi.mock('../auth', () => ({ getOrCreateDeviceId: vi.fn(), setAuthSession: vi.fn() }));
+vi.mock('../auth', () => ({ clearAuthSession: vi.fn(), getOrCreateDeviceId: vi.fn(), setAuthSession: vi.fn() }));
+vi.mock('@react-native-async-storage/async-storage', () => ({ default: { getAllKeys: vi.fn(), multiRemove: vi.fn() } }));
 
 const { toE164 } = await import('../session-api');
 
@@ -19,5 +20,14 @@ describe('toE164', () => {
   it('rejects numbers that are not valid mobiles', () => {
     expect(toE164('12345')).toBeNull();
     expect(toE164('5876543210')).toBeNull();
+  });
+});
+
+describe('localWorkKeys', () => {
+  it('wipes technician work data and nothing else', async () => {
+    const { localWorkKeys } = await import('../session-api');
+    expect(
+      localWorkKeys(['ac.tech.writeQueue', 'ac.tech.jobcardDraft.b1', 'ac.tech.jobcardSnapshot.b1', 'other.app.key']),
+    ).toEqual(['ac.tech.writeQueue', 'ac.tech.jobcardDraft.b1', 'ac.tech.jobcardSnapshot.b1']);
   });
 });

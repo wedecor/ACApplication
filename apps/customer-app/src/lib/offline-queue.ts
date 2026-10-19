@@ -52,6 +52,16 @@ export async function hydrateQueue(): Promise<void> {
   }
 }
 
+/** Drop every queued action — on logout, so they never replay under another account. */
+export async function clearQueue(): Promise<void> {
+  memoryQueue = [];
+  try {
+    await AsyncStorage.removeItem(KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function enqueue(req: Omit<QueuedRequest, 'id' | 'enqueuedAt' | 'retries'>): Promise<void> {
   await hydrateQueue();
   memoryQueue.push({

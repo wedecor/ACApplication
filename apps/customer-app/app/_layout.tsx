@@ -7,7 +7,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '../global.css';
 
-import { useAuthStore } from '@/state/auth-store';
+import { BiometricGate } from '@/components/biometric-gate';
+import { onSessionReset, useAuthStore } from '@/state/auth-store';
 import { realtime } from '@/lib/realtime';
 import { identifyUser, track, Events } from '@/lib/analytics';
 import {
@@ -90,7 +91,10 @@ export default function RootLayout() {
       track(Events.AppOpen);
       await useAuthStore.getState().hydrate();
     })();
+    // Logging out wipes the in-memory cache too, not just the persisted copy.
+    const stopReset = onSessionReset(() => queryClient.clear());
     return () => {
+      stopReset();
       detach?.();
       stopDrainer?.();
       detachForeground?.();
@@ -104,12 +108,14 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <StatusBar style="auto" />
           <AuthGate>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animation: 'slide_from_right',
-              }}
-            />
+            <BiometricGate>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                }}
+              />
+            </BiometricGate>
           </AuthGate>
         </QueryClientProvider>
       </SafeAreaProvider>

@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { api, ApiError, onAuthLost } from '@/lib/api-client';
 import { getDeviceFingerprint } from '@/lib/device';
 import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { clearQueue } from '@/lib/offline-queue';
+import { clearPersistedQueries } from '@/lib/query-persistence';
 
 export interface CustomerProfile {
   id: string;
@@ -44,6 +46,19 @@ async function persistTokens(tokens: { accessToken: string; refreshToken: string
   await secureStore.setItem(SecureKeys.RefreshToken, tokens.refreshToken);
 }
 
+const sessionResetListeners = new Set<() => void>();
+
+/** Called when the session ends (e.g. to clear the in-memory query cache). */
+export function onSessionReset(listener: () => void): () => void {
+  sessionResetListeners.add(listener);
+  return () => sessionResetListeners.delete(listener);
+}
+
+/**
+ * Everything tied to the signed-in customer: tokens, profile, the biometric
+ * opt-in, cached API data (bookings, invoices, addresses) and queued offline
+ * actions — so the next person on this device sees and replays nothing.
+ */
 async function clearAuthArtifacts() {
   await Promise.all([
     secureStore.removeItem(SecureKeys.AccessToken),
@@ -51,7 +66,11 @@ async function clearAuthArtifacts() {
     secureStore.removeItem(SecureKeys.UserId),
     secureStore.removeItem(SecureKeys.TenantId),
     secureStore.removeItem(SecureKeys.Profile),
+    secureStore.removeItem(SecureKeys.BiometricEnabled),
+    clearPersistedQueries(),
+    clearQueue(),
   ]);
+  for (const listener of sessionResetListeners) listener();
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({

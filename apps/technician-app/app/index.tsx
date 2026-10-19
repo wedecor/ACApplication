@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 
-import { clearAuthSession, getTechnicianId } from '../src/lib/auth';
+import { getTechnicianId } from '../src/lib/auth';
 import { formatJobWhen, formatPhone, humanizeStatus } from '../src/lib/format';
 import {
   flushQueue,
@@ -20,6 +20,7 @@ import {
   startForegroundTracking,
   stopAllTracking,
 } from '../src/lib/location';
+import { signOut } from '../src/lib/session-api';
 import { getSocket } from '../src/lib/socket';
 import { type JobSummary, technicianApi } from '../src/lib/technician-api';
 import { flushWriteQueue } from '../src/lib/write-queue';
@@ -200,24 +201,33 @@ export default function HomeScreen() {
 
       <Pressable
         accessibilityRole="button"
-        onPress={() =>
-          Alert.alert('Sign out?', 'Go offline and sign out of this device.', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Sign out',
-              style: 'destructive',
-              onPress: () => {
-                void (async () => {
-                  if (online && techId) await technicianApi.setStatus(techId, 'OFFLINE').catch(() => undefined);
-                  await stopAllTracking().catch(() => undefined);
-                  await clearAuthSession();
-                  qc.clear();
-                  router.replace('/login');
-                })();
+        onPress={() => {
+          void (async () => {
+            // Try to deliver queued job updates first; anything left would be lost.
+            const pending = await flushWriteQueue()
+              .then((r) => r.remaining)
+              .catch(() => 0);
+            const message = pending
+              ? `${pending} job update${pending === 1 ? ' has' : 's have'} not synced yet and will be lost. Sign out anyway?`
+              : 'Go offline and sign out of this device.';
+            Alert.alert('Sign out?', message, [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Sign out',
+                style: 'destructive',
+                onPress: () => {
+                  void (async () => {
+                    if (online && techId) await technicianApi.setStatus(techId, 'OFFLINE').catch(() => undefined);
+                    await stopAllTracking().catch(() => undefined);
+                    await signOut();
+                    qc.clear();
+                    router.replace('/login');
+                  })();
+                },
               },
-            },
-          ])
-        }
+            ]);
+          })();
+        }}
         style={{ marginTop: 24, marginHorizontal: 16, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}
       >
         <Text style={{ color: '#B91C1C', fontWeight: '600' }}>Sign out</Text>
