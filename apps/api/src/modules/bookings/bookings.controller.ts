@@ -53,6 +53,7 @@ export class BookingsController {
 
   @Get()
   @RequirePermissions(Permission.BOOKING_READ)
+  @ApiOperation({ summary: 'List bookings with pagination and filters.' })
   async list(@CurrentUser() actor: AuthPrincipal, @Query() query: ListBookingsDto) {
     const { items, total } = await this.bookings.list(actor, query);
     return {
@@ -63,12 +64,14 @@ export class BookingsController {
 
   @Get(':id')
   @RequirePermissions(Permission.BOOKING_READ)
+  @ApiOperation({ summary: 'Get booking details by ID.' })
   get(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.bookings.getDetail(actor, id);
   }
 
   @Patch(':id')
   @RequirePermissions(Permission.BOOKING_UPDATE)
+  @ApiOperation({ summary: 'Update booking details.' })
   update(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -101,6 +104,7 @@ export class BookingsController {
 
   @Post(':id/reschedule')
   @RequirePermissions(Permission.BOOKING_RESCHEDULE)
+  @ApiOperation({ summary: 'Reschedule a booking to a new time slot.' })
   reschedule(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -130,6 +134,7 @@ export class BookingsController {
 
   @Post(':id/notes')
   @RequirePermissions(Permission.BOOKING_UPDATE)
+  @ApiOperation({ summary: 'Add an internal or public note to a booking.' })
   addNote(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -140,12 +145,14 @@ export class BookingsController {
 
   @Get(':id/notes')
   @RequirePermissions(Permission.BOOKING_READ)
+  @ApiOperation({ summary: 'List notes for a booking.' })
   listNotes(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.bookings.listNotes(actor, id);
   }
 
   @Post(':id/attachments')
   @RequirePermissions(Permission.BOOKING_UPDATE)
+  @ApiOperation({ summary: 'Add an attachment to a booking.' })
   addAttachment(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -156,12 +163,14 @@ export class BookingsController {
 
   @Get(':id/attachments')
   @RequirePermissions(Permission.BOOKING_READ)
+  @ApiOperation({ summary: 'List attachments for a booking.' })
   listAttachments(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.bookings.listAttachments(actor, id);
   }
 
   @Post(':id/signature')
   @RequirePermissions(Permission.BOOKING_UPDATE)
+  @ApiOperation({ summary: 'Record customer signature for job completion.' })
   setSignature(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -172,6 +181,7 @@ export class BookingsController {
 
   @Get(':id/activities')
   @RequirePermissions(Permission.BOOKING_READ)
+  @ApiOperation({ summary: 'List audit activity log for a booking.' })
   listActivities(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.bookings.listActivities(actor, id);
   }
