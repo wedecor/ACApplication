@@ -26,6 +26,7 @@ import { DomainEventBus } from '../../common/events/domain-event-bus.service';
 import { AmcSubscriptionsService } from '../amc/amc-subscriptions.service';
 import { PayoutsService } from '../payouts/payouts.service';
 import { QuotationsService } from '../quotations/quotations.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 @Injectable()
 export class FinanceSchedulerService {
@@ -49,6 +50,7 @@ export class FinanceSchedulerService {
   }
 
   @Cron(CronExpression.EVERY_30_MINUTES)
+  @SingleInstance(HOLD.thirtyMinutes)
   async expireQuotations(): Promise<void> {
     if (this.gated('expireQuotations')) return;
     try {
@@ -60,6 +62,7 @@ export class FinanceSchedulerService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
+  @SingleInstance(HOLD.hour)
   async overdueInvoices(): Promise<void> {
     if (this.gated('overdueInvoices')) return;
     const today = new Date();
@@ -98,6 +101,7 @@ export class FinanceSchedulerService {
   }
 
   @Cron('0 */4 * * *') // every 4 hours
+  @SingleInstance(HOLD.fourHours)
   async materialiseAmcVisits(): Promise<void> {
     if (this.gated('materialiseAmcVisits')) return;
     try {
@@ -108,6 +112,7 @@ export class FinanceSchedulerService {
   }
 
   @Cron('0 8 * * *') // daily at 08:00
+  @SingleInstance(HOLD.day)
   async amcRenewalSweep(): Promise<void> {
     if (this.gated('amcRenewalSweep')) return;
     try {
@@ -121,6 +126,7 @@ export class FinanceSchedulerService {
   }
 
   @Cron('0 9 * * *') // daily at 09:00
+  @SingleInstance(HOLD.day)
   async amcMissedVisitSweep(): Promise<void> {
     if (this.gated('amcMissedVisitSweep')) return;
     try {
@@ -136,6 +142,7 @@ export class FinanceSchedulerService {
    * whose rule says WEEKLY. Manual payouts continue to work side-by-side.
    */
   @Cron('0 6 * * 1') // Monday 06:00
+  @SingleInstance(HOLD.week)
   async weeklyPayoutClose(): Promise<void> {
     if (this.gated('weeklyPayoutClose')) return;
     const rules = await this.prisma.client.technicianCommissionRule.findMany({

@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 
 import { RedisService } from './common/redis/redis.service';
+import { SingleInstanceRegistrar } from './common/scheduling/single-instance';
 import { AppThrottlerGuard } from './common/throttle/app-throttler.guard';
 import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage';
 
@@ -133,6 +134,7 @@ import { TracingInterceptor } from './common/interceptors/tracing.interceptor';
     PublicIntakeModule,
   ],
   providers: [
+    SingleInstanceRegistrar,
     { provide: APP_GUARD, useClass: AppThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: TracingInterceptor },
   ],

@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { EscalationEngineService } from './escalation-engine.service';
 import { WorkflowEngineService } from './workflow-engine.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 @Injectable()
 export class WorkflowSchedulerService {
@@ -16,6 +17,7 @@ export class WorkflowSchedulerService {
 
   /** Recover missed cron schedules and run SLA policy sweeps. */
   @Cron(CronExpression.EVERY_MINUTE, { name: 'workflow.scheduler' })
+  @SingleInstance(HOLD.minute)
   async tick(): Promise<void> {
     try {
       await this.runDueSchedules();

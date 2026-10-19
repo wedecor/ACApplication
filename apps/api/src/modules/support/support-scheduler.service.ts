@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { SlaService } from './sla.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 /**
  * Tenant-aware cron that runs SLA scans every minute. We iterate over
@@ -19,6 +20,7 @@ export class SupportSchedulerService {
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
+  @SingleInstance(HOLD.minute)
   async runSlaScan(): Promise<void> {
     try {
       const tenants = await this.prisma.client.tenant.findMany({

@@ -13,6 +13,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { DispatchService } from '../dispatch/dispatch.service';
 import { RoutingService } from '../routing/routing.service';
 import { TechnicianAvailabilityService } from '../technician-availability/technician-availability.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 const OVERDUE_GRACE_MIN = 15;
 const DELAYED_GRACE_MIN = 10;
@@ -39,6 +40,7 @@ export class SlaMonitorService {
 
   /** Sweep technicians silent > OFFLINE_TIMEOUT_MS. */
   @Cron(CronExpression.EVERY_MINUTE, { name: 'sla.tech-sweep' })
+  @SingleInstance(HOLD.minute)
   async sweepStaleTechs() {
     try {
       const out = await this.availability.sweepStaleTechnicians();
@@ -52,6 +54,7 @@ export class SlaMonitorService {
 
   /** Alert on bookings past their scheduledAt + grace, still un-finished. */
   @Cron(CronExpression.EVERY_MINUTE, { name: 'sla.booking-overdue' })
+  @SingleInstance(HOLD.minute)
   async overdueBookings() {
     try {
       const cutoff = new Date(Date.now() - OVERDUE_GRACE_MIN * 60_000);
@@ -83,6 +86,7 @@ export class SlaMonitorService {
 
   /** Detect technicians en-route who won't make their ETA. */
   @Cron(CronExpression.EVERY_MINUTE, { name: 'sla.delayed-en-route' })
+  @SingleInstance(HOLD.minute)
   async delayedEnRoute() {
     try {
       const enRoute = await this.prisma.client.booking.findMany({
@@ -146,6 +150,7 @@ export class SlaMonitorService {
 
   /** Raise an alert when a city's available pool drops below LOW_AVAILABILITY_RATIO. */
   @Cron('*/5 * * * *', { name: 'sla.low-availability' })
+  @SingleInstance(HOLD.fiveMinutes)
   async lowAvailability() {
     try {
       const cities = await this.prisma.client.city.findMany({ where: { isActive: true } });
@@ -186,6 +191,7 @@ export class SlaMonitorService {
 
   /** Prune expired route-cache rows + roll daily aggregates. */
   @Cron(CronExpression.EVERY_5_MINUTES, { name: 'sla.maintenance' })
+  @SingleInstance(HOLD.fiveMinutes)
   async maintenance() {
     try {
       const pruned = await this.routing.pruneExpired();

@@ -16,6 +16,7 @@ import { InventoryAlertStatus, InventoryAlertKind } from '@ac/types';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { InventoryAlertsService } from './inventory-alerts.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 @Injectable()
 export class InventorySchedulerService {
@@ -36,6 +37,7 @@ export class InventorySchedulerService {
   }
 
   @Cron(CronExpression.EVERY_10_MINUTES)
+  @SingleInstance(HOLD.tenMinutes)
   async scanLowStock(): Promise<void> {
     if (this.gated('scanLowStock')) return;
     try {
@@ -47,6 +49,7 @@ export class InventorySchedulerService {
   }
 
   @Cron('0 */6 * * *')
+  @SingleInstance(HOLD.sixHours)
   async scanExpiryAndAgeing(): Promise<void> {
     if (this.gated('scanExpiryAndAgeing')) return;
     try {
@@ -57,6 +60,7 @@ export class InventorySchedulerService {
   }
 
   @Cron('0 7 * * *')
+  @SingleInstance(HOLD.day)
   async scanPendingTransfers(): Promise<void> {
     if (this.gated('scanPendingTransfers')) return;
     try {
@@ -68,6 +72,7 @@ export class InventorySchedulerService {
   }
 
   @Cron('30 7 * * *')
+  @SingleInstance(HOLD.day)
   async scanOverduePos(): Promise<void> {
     if (this.gated('scanOverduePos')) return;
     try {
@@ -79,6 +84,7 @@ export class InventorySchedulerService {
   }
 
   @Cron(CronExpression.EVERY_HOUR)
+  @SingleInstance(HOLD.hour)
   async autoReleaseExpiredAlerts(): Promise<void> {
     if (this.gated('autoReleaseExpiredAlerts')) return;
     // Auto-resolve LOW_STOCK / OUT_OF_STOCK alerts whose underlying available

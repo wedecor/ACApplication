@@ -5,6 +5,7 @@ import { NotificationChannel } from '@ac/types';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ACTIVE_TASK_STATUSES } from './tasks.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 /**
  * Sends a reminder (in-app + push) to the assignee once a task's
@@ -21,6 +22,7 @@ export class TaskReminderScheduler {
   ) {}
 
   @Cron(CronExpression.EVERY_MINUTE)
+  @SingleInstance(HOLD.minute)
   async tick(): Promise<void> {
     if (process.env['TASK_REMINDERS_DISABLED'] === '1') return;
     try {

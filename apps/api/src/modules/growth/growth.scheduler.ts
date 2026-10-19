@@ -5,6 +5,7 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { CampaignsService } from './campaigns.service';
 import { GROWTH_CONFIG, type GrowthConfig } from './growth.config';
 import { ReviewsService } from './reviews.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 /** Default notification templates for growth flows (created only if missing). */
 export const GROWTH_TEMPLATES: readonly {
@@ -68,6 +69,7 @@ export class GrowthScheduler implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_MINUTE)
+  @SingleInstance(HOLD.minute)
   async dueCampaigns(): Promise<void> {
     if (this.config.schedulerDisabled) return;
     try {
@@ -79,6 +81,7 @@ export class GrowthScheduler implements OnModuleInit {
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
+  @SingleInstance(HOLD.fiveMinutes)
   async reviewRequests(): Promise<void> {
     if (this.config.schedulerDisabled) return;
     try {

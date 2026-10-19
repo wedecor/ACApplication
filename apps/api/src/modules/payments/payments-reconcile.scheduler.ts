@@ -20,6 +20,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { PaymentsService, type ReconcileSummary } from './payments.service';
+import { HOLD, SingleInstance } from '../../common/scheduling/single-instance';
 
 type ReconcileEnv = Pick<
   LoadedServerEnv,
@@ -37,6 +38,7 @@ export class PaymentsReconcileScheduler {
   ) {}
 
   @Cron(CronExpression.EVERY_10_MINUTES, { name: 'payments.reconcileStale' })
+  @SingleInstance(HOLD.tenMinutes)
   async reconcileStalePayments(): Promise<ReconcileSummary | null> {
     if (!this.env.PAYMENTS_RECONCILE_ENABLED || process.env.FINANCE_SCHEDULER_DISABLED === '1') {
       this.logger.debug('Payment reconcile skipped (disabled)');
