@@ -37,6 +37,7 @@ export class PaymentsController {
 
   @Get('history')
   @RequirePermissions(Permission.PAYMENT_VIEW)
+  @ApiOperation({ summary: 'List payment transaction history with pagination.' })
   async history(@CurrentUser() actor: AuthPrincipal, @Query() dto: ListPaymentsDto) {
     const result = await this.payments.list(actor, dto);
     return {
@@ -47,6 +48,7 @@ export class PaymentsController {
 
   @Post('refund/:paymentId')
   @RequirePermissions(Permission.PAYMENT_REFUND)
+  @ApiOperation({ summary: 'Issue a partial or full refund for a payment.' })
   refundPayment(
     @CurrentUser() actor: AuthPrincipal,
     @Param('paymentId') paymentId: string,
@@ -60,6 +62,7 @@ export class PaymentsController {
   @Post('webhook/razorpay')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Handle incoming Razorpay payment webhooks.' })
   async razorpayWebhook(
     @Req() req: FastifyRequest & { rawBody?: Buffer | string },
     @Headers('x-razorpay-signature') signature: string,
@@ -71,6 +74,7 @@ export class PaymentsController {
   @Post('webhook/stripe')
   @Public()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Handle incoming Stripe payment webhooks.' })
   async stripeWebhook(
     @Req() req: FastifyRequest & { rawBody?: Buffer | string },
     @Headers('stripe-signature') signature: string,
