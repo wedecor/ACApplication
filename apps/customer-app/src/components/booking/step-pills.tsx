@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
-import { STEP_ORDER, type BookingStep } from '@/state/booking-draft';
+import { type BookingStep,STEP_ORDER } from '@/state/booking-draft';
 import { colors, spacing } from '@/theme/tokens';
 
 interface Props {

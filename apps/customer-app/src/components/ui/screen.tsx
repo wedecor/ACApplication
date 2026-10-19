@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { ScrollView, type ScrollViewProps, StyleSheet, View } from 'react-native';
-import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { type Edge,SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors, spacing } from '@/theme/tokens';
 

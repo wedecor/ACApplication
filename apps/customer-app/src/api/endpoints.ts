@@ -18,6 +18,7 @@ import type {
   PaymentIntent,
   PaymentMethod,
   ReferralSummary,
+  SupportMessage,
   SupportTicketSummary,
   TechnicianLocation,
   UserDevice,
@@ -111,7 +112,7 @@ export const supportApi = {
     api.post<SupportTicketSummary>('/v1/me/support/tickets', body),
   ticket: (id: string) => api.get<SupportTicketSummary>(`/v1/me/support/tickets/${id}`),
   messages: (id: string) =>
-    api.get<import('./types').SupportMessage[]>(`/v1/me/support/tickets/${id}/messages`),
+    api.get<SupportMessage[]>(`/v1/me/support/tickets/${id}/messages`),
   sendMessage: (id: string, body: string) =>
     api.post<{ ok: true; messageId: string }>(
       `/v1/me/support/tickets/${id}/messages`,

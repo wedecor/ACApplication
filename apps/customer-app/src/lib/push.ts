@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 import { api, ApiError } from '@/lib/api-client';
 import { getDeviceFingerprint } from '@/lib/device';
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 /**
  * Push notification plumbing.
@@ -15,13 +15,14 @@ import { secureStore, SecureKeys } from '@/lib/secure-store';
  *   notification module can target this device.
  */
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
+  handleNotification: () =>
+    Promise.resolve({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
 });
 
 export async function ensureNotificationChannels(): Promise<void> {
@@ -48,7 +49,7 @@ export async function ensureNotificationChannels(): Promise<void> {
 export async function registerForPushNotifications(): Promise<string | null> {
   if (!Device.isDevice) return null;
   const existing = await Notifications.getPermissionsAsync();
-  let status = existing.status;
+  let status: string = existing.status;
   if (status !== 'granted') {
     const ask = await Notifications.requestPermissionsAsync();
     status = ask.status;

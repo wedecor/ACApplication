@@ -1,13 +1,13 @@
 import { Pencil, Star, Trash2 } from 'lucide-react-native';
 import { Alert, Pressable, View } from 'react-native';
 
+import { SubHeader } from '@/components/layout/sub-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
 import {
   useAddresses,
   useDeleteAddress,

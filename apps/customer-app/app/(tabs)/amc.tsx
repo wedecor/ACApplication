@@ -4,6 +4,7 @@ import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
 
+import type { AmcSubscription } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,12 +13,10 @@ import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useAmcPlans, useMyAmc, useRenewAmc } from '@/hooks/use-amc';
-import { track, Events } from '@/lib/analytics';
+import { Events,track } from '@/lib/analytics';
 import { formatDate, formatRupees } from '@/lib/format';
-import { colors, radius, spacing } from '@/theme/tokens';
-
-import type { AmcSubscription } from '@/api/types';
 import { humanizeStatus } from '@/lib/status';
+import { colors, radius, spacing } from '@/theme/tokens';
 
 export default function AmcScreen() {
   const plans = useAmcPlans();
@@ -36,8 +35,8 @@ export default function AmcScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => {
-            plans.refetch();
-            mine.refetch();
+            void plans.refetch();
+            void mine.refetch();
           }}
         />
       }
@@ -58,7 +57,7 @@ export default function AmcScreen() {
                 key={sub.id}
                 subscription={sub}
                 onRenew={() => renew.mutate(sub.id)}
-                renewing={renew.isPending && renew.variables === sub.id}
+                renewing={renew.isPending ? renew.variables === sub.id : false}
               />
             ))}
           </View>

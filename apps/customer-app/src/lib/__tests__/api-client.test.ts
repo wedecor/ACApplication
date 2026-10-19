@@ -1,10 +1,10 @@
 import { api, ApiError, onAuthLost, unwrapEnvelope } from '../api-client';
-import { secureStore, SecureKeys } from '../secure-store';
+import { SecureKeys,secureStore } from '../secure-store';
 
 describe('api-client', () => {
   let originalFetch: typeof fetch;
   beforeEach(() => {
-    originalFetch = global.fetch as typeof fetch;
+    originalFetch = global.fetch;
     void secureStore.removeItem(SecureKeys.AccessToken);
     void secureStore.removeItem(SecureKeys.RefreshToken);
   });
@@ -14,18 +14,18 @@ describe('api-client', () => {
 
   it('attaches Authorization header when an access token is stored', async () => {
     await secureStore.setItem(SecureKeys.AccessToken, 'TOKEN');
-    const calls: Array<{ url: string; init?: RequestInit }> = [];
+    const calls: { url: string; init?: RequestInit }[] = [];
     global.fetch = jest.fn(async (input: any, init?: RequestInit) => {
       calls.push({ url: typeof input === 'string' ? input : input.url, init });
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    }) as unknown as typeof fetch;
+    });
     await api.get('/v1/users/me');
     const headers = calls[0]!.init?.headers as Record<string, string>;
     expect(headers.Authorization).toBe('Bearer TOKEN');
   });
 
   it('throws ApiError with status on non-2xx', async () => {
-    global.fetch = jest.fn(async () => new Response(JSON.stringify({ message: 'nope' }), { status: 400 })) as unknown as typeof fetch;
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({ message: 'nope' }), { status: 400 }));
     await expect(api.get('/v1/x')).rejects.toBeInstanceOf(ApiError);
   });
 
@@ -43,7 +43,7 @@ describe('api-client', () => {
         return new Response('', { status: 401 });
       }
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
-    }) as unknown as typeof fetch;
+    });
     const result = await api.get<{ ok: boolean }>('/v1/users/me');
     expect(result.ok).toBe(true);
     expect(await secureStore.getItem(SecureKeys.AccessToken)).toBe('NEW');
@@ -56,7 +56,7 @@ describe('api-client', () => {
       const url = typeof input === 'string' ? input : input.url;
       if (url.includes('/auth/refresh')) return new Response('', { status: 401 });
       return new Response('', { status: 401 });
-    }) as unknown as typeof fetch;
+    });
     const handler = jest.fn();
     const unsub = onAuthLost(handler);
     await expect(api.get('/v1/users/me')).rejects.toBeInstanceOf(ApiError);
@@ -65,14 +65,14 @@ describe('api-client', () => {
   });
 
   it('returns undefined for 204 responses', async () => {
-    global.fetch = jest.fn(async () => new Response(null, { status: 204 })) as unknown as typeof fetch;
+    global.fetch = jest.fn(async () => new Response(null, { status: 204 }));
     await expect(api.delete('/v1/x')).resolves.toBeUndefined();
   });
 
   it('wraps network errors as ApiError with status 0', async () => {
     global.fetch = jest.fn(async () => {
       throw new Error('boom');
-    }) as unknown as typeof fetch;
+    });
     try {
       await api.get('/v1/x');
       fail('expected throw');
@@ -88,7 +88,7 @@ describe('api-client', () => {
     global.fetch = jest.fn(async (input: any) => {
       calls.push(typeof input === 'string' ? input : input.url);
       return new Response(JSON.stringify({ success: true, data: [{ id: 'b1' }], requestId: 'r' }), { status: 200 });
-    }) as unknown as typeof fetch;
+    });
     const res = await api.get<{ id: string }[]>('/v1/me/bookings');
     expect(res).toEqual([{ id: 'b1' }]);
     expect(calls[0]).toMatch(/\/api\/v1\/me\/bookings$/);
@@ -100,7 +100,7 @@ describe('api-client', () => {
         new Response(JSON.stringify({ success: false, error: { code: 'X', message: 'Booking not found', statusCode: 404 } }), {
           status: 404,
         }),
-    ) as unknown as typeof fetch;
+    );
     await expect(api.get('/v1/x')).rejects.toThrow('Booking not found');
   });
 

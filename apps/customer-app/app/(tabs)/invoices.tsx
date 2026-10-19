@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ReceiptText } from 'lucide-react-native';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 
+import type { InvoiceSummary } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty';
@@ -10,10 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useInvoices } from '@/hooks/use-invoices';
 import { formatDate, formatRupees } from '@/lib/format';
-import { spacing } from '@/theme/tokens';
-
-import type { InvoiceSummary } from '@/api/types';
 import { humanizeStatus } from '@/lib/status';
+import { spacing } from '@/theme/tokens';
 
 const STATUS_TONE: Record<InvoiceSummary['status'], 'success' | 'warn' | 'danger' | 'brand' | 'neutral'> = {
   PAID: 'success',

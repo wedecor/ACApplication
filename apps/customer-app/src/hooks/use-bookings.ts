@@ -2,12 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { bookingsApi } from '@/api/endpoints';
 import { qk } from '@/api/keys';
-import { track, Events } from '@/lib/analytics';
+import type { BookingDetail, BookingSummary, CreateBookingInput } from '@/api/types';
+import { Events,track } from '@/lib/analytics';
+import { RealtimeEvents,Rooms } from '@/lib/realtime';
 
 import { useRealtimeEvent, useRealtimeRoom } from './use-realtime';
-import { Rooms, RealtimeEvents } from '@/lib/realtime';
-
-import type { BookingDetail, BookingSummary, CreateBookingInput } from '@/api/types';
 
 export function useBookings(status?: 'active' | 'completed' | 'cancelled') {
   return useQuery({
@@ -34,7 +33,7 @@ export function useBookingDetail(id: string | undefined) {
       qc.setQueryData<BookingDetail | undefined>(qk.bookingDetail(id), (prev) =>
         prev ? { ...prev, ...payload.booking } : prev,
       );
-      qc.invalidateQueries({ queryKey: qk.bookings() });
+      void qc.invalidateQueries({ queryKey: qk.bookings() });
     },
     !!id,
   );
@@ -75,9 +74,9 @@ export function useCreateBooking() {
   return useMutation({
     mutationFn: (input: CreateBookingInput) => bookingsApi.create(input),
     onSuccess: (booking) => {
-      qc.invalidateQueries({ queryKey: qk.bookings() });
+      void qc.invalidateQueries({ queryKey: qk.bookings() });
       // Summary only — the detail screen refetches the full timeline.
-      qc.invalidateQueries({ queryKey: qk.bookingDetail(booking.id) });
+      void qc.invalidateQueries({ queryKey: qk.bookingDetail(booking.id) });
       track(Events.BookingSuccess, { bookingId: booking.id });
     },
     onError: (err: unknown) => {
@@ -93,8 +92,8 @@ export function useRescheduleBooking(id: string) {
       bookingsApi.reschedule(id, body),
     onSuccess: () => {
       track(Events.BookingReschedule, { bookingId: id });
-      qc.invalidateQueries({ queryKey: qk.bookings() });
-      qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
+      void qc.invalidateQueries({ queryKey: qk.bookings() });
+      void qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
     },
   });
 }
@@ -105,8 +104,8 @@ export function useCancelBooking(id: string) {
     mutationFn: (body: { reason: string }) => bookingsApi.cancel(id, body),
     onSuccess: () => {
       track(Events.BookingCancel, { bookingId: id });
-      qc.invalidateQueries({ queryKey: qk.bookings() });
-      qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
+      void qc.invalidateQueries({ queryKey: qk.bookings() });
+      void qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
     },
   });
 }
@@ -118,7 +117,7 @@ export function useRateBooking(id: string) {
       bookingsApi.rate(id, body),
     onSuccess: () => {
       track(Events.ReviewSubmit, { bookingId: id });
-      qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
+      void qc.invalidateQueries({ queryKey: qk.bookingDetail(id) });
     },
   });
 }

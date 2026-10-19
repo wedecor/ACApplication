@@ -3,6 +3,7 @@ import { CalendarPlus } from 'lucide-react-native';
 import { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 
+import type { BookingSummary } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -12,10 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useBookings } from '@/hooks/use-bookings';
 import { formatDateTime, formatRupees } from '@/lib/format';
-import { colors, spacing } from '@/theme/tokens';
-
-import type { BookingSummary } from '@/api/types';
 import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 const TABS = [
   { id: 'active', label: 'Active' },

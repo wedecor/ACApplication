@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Alert, View } from 'react-native';
 
+import { profileApi } from '@/api/endpoints';
+import { SubHeader } from '@/components/layout/sub-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
-import { profileApi } from '@/api/endpoints';
 import { useAuthStore } from '@/state/auth-store';
 import { spacing } from '@/theme/tokens';
 

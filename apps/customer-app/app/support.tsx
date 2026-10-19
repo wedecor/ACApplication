@@ -24,11 +24,11 @@ import {
   useFaqs,
   useSupportTickets,
 } from '@/hooks/use-support';
-import { track, Events } from '@/lib/analytics';
+import { Events,track } from '@/lib/analytics';
 import { dialPhone, openWhatsApp } from '@/lib/external';
 import { formatRelative } from '@/lib/format';
-import { colors, spacing } from '@/theme/tokens';
 import { humanizeStatus } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 export default function SupportScreen() {
   const router = useRouter();

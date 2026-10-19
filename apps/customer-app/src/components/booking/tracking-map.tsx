@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
-
-import { Text } from '@/components/ui/text';
-import { colors, radius, spacing } from '@/theme/tokens';
+import type * as ReactNativeMaps from 'react-native-maps';
 
 import type { BookingDetail, TechnicianLocation } from '@/api/types';
+import { Text } from '@/components/ui/text';
+import { colors, radius, spacing } from '@/theme/tokens';
 
 /**
  * Wrapper around `react-native-maps`.
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function TrackingMap({ booking, location }: Props) {
-  const [MapNative, setMapNative] = useState<typeof import('react-native-maps') | null>(null);
+  const [MapNative, setMapNative] = useState<typeof ReactNativeMaps | null>(null);
 
   useEffect(() => {
     let mounted = true;

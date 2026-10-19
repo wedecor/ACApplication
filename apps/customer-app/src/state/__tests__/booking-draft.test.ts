@@ -21,7 +21,7 @@ describe('booking draft store', () => {
 
   it('back() walks toward service and stops there', () => {
     useBookingDraft.getState().setStep('review');
-    for (let i = 0; i < STEP_ORDER.length; i += 1) {
+    for (const _step of STEP_ORDER) {
       useBookingDraft.getState().back();
     }
     expect(useBookingDraft.getState().step).toBe('service');

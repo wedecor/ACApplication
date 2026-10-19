@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, View } from 'react-native';
 
 import type { CustomerAppliance, CustomerApplianceInput } from '@/api/types';
+import { ApplianceIcon } from '@/components/appliance-icon';
 import { SubHeader } from '@/components/layout/sub-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,6 @@ import { formatDate } from '@/lib/format';
 import { pickAndUploadImage } from '@/lib/upload';
 import { computeWarrantyStatus, warrantyLabel, warrantyTone } from '@/lib/warranty';
 import { colors, radius, spacing } from '@/theme/tokens';
-import { ApplianceIcon } from '@/components/appliance-icon';
 
 interface FormState {
   category: string;

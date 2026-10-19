@@ -1,13 +1,13 @@
 import { CreditCard, Star, Trash2 } from 'lucide-react-native';
 import { Alert, Pressable, View } from 'react-native';
 
+import { SubHeader } from '@/components/layout/sub-header';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
 import {
   usePaymentMethods,
   useRefunds,
@@ -15,8 +15,8 @@ import {
   useSetDefaultPaymentMethod,
 } from '@/hooks/use-payments';
 import { formatRupees } from '@/lib/format';
-import { colors, spacing } from '@/theme/tokens';
 import { humanizeStatus } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 export default function PaymentMethodsScreen() {
   const methods = usePaymentMethods();

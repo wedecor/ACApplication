@@ -1,12 +1,12 @@
 import * as Application from 'expo-application';
 import { Linking, View } from 'react-native';
 
+import { SubHeader } from '@/components/layout/sub-header';
 import { Card } from '@/components/ui/card';
 import { Divider } from '@/components/ui/divider';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
 import { spacing } from '@/theme/tokens';
 
 export default function AboutScreen() {

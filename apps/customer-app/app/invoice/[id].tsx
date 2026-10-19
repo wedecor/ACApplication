@@ -11,11 +11,11 @@ import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { useConfirmInvoicePayment, useInvoiceDetail } from '@/hooks/use-invoices';
-import { track, Events } from '@/lib/analytics';
+import { Events,track } from '@/lib/analytics';
 import { formatDate, formatRupees } from '@/lib/format';
 import { payInvoice } from '@/lib/payments';
-import { colors, spacing } from '@/theme/tokens';
 import { humanizeStatus } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 export default function InvoiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

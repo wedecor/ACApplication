@@ -2,7 +2,7 @@ import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 /**
  * Device fingerprinting: stable, per-install identifier plus best-effort

@@ -2,11 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { bookingsApi } from '@/api/endpoints';
 import { qk } from '@/api/keys';
-import { Rooms, RealtimeEvents } from '@/lib/realtime';
+import type { TechnicianLocation } from '@/api/types';
+import { RealtimeEvents,Rooms } from '@/lib/realtime';
 
 import { useRealtimeEvent, useRealtimeRoom } from './use-realtime';
-
-import type { TechnicianLocation } from '@/api/types';
 
 interface LiveLocationState {
   lat: number;

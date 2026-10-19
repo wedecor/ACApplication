@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { QueryClient } from '@tanstack/react-query';
+import { type QueryClient } from '@tanstack/react-query';
 
 /**
  * Lightweight cache persistence so a customer who opens the app in
@@ -32,7 +32,7 @@ export async function hydrateQueryClient(qc: QueryClient): Promise<void> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return;
-    const parsed = JSON.parse(raw) as { entries: Array<{ key: unknown[]; data: unknown }> };
+    const parsed = JSON.parse(raw) as { entries: { key: unknown[]; data: unknown }[] };
     for (const entry of parsed.entries ?? []) {
       qc.setQueryData(entry.key, entry.data);
     }
@@ -48,10 +48,10 @@ export function attachQueryPersistence(qc: QueryClient): () => void {
     saveQueued = true;
     setTimeout(() => {
       saveQueued = false;
-      const entries: Array<{ key: unknown[]; data: unknown }> = [];
+      const entries: { key: unknown[]; data: unknown }[] = [];
       for (const q of qc.getQueryCache().getAll()) {
         if (q.state.status !== 'success') continue;
-        if (!isPersistable(q.queryKey as readonly unknown[])) continue;
+        if (!isPersistable(q.queryKey)) continue;
         entries.push({ key: q.queryKey as unknown[], data: q.state.data });
       }
       AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ entries })).catch(() => undefined);

@@ -12,6 +12,9 @@ import {
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
+import type { BookingDetail } from '@/api/types';
+import { Timeline } from '@/components/booking/timeline';
+import { TrackingMap } from '@/components/booking/tracking-map';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -21,8 +24,6 @@ import { Screen } from '@/components/ui/screen';
 import { Sheet } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
-import { Timeline } from '@/components/booking/timeline';
-import { TrackingMap } from '@/components/booking/tracking-map';
 import {
   useBookingDetail,
   useCancelBooking,
@@ -30,12 +31,10 @@ import {
   useRescheduleBooking,
 } from '@/hooks/use-bookings';
 import { useTechnicianLocation } from '@/hooks/use-technician-location';
-import { track, Events } from '@/lib/analytics';
+import { Events,track } from '@/lib/analytics';
 import { dialPhone, openWhatsApp } from '@/lib/external';
 import { formatDateTime, formatRupees } from '@/lib/format';
 import { colors, radius, spacing } from '@/theme/tokens';
-
-import type { BookingDetail } from '@/api/types';
 
 const STATUS_LABEL: Record<BookingDetail['status'], string> = {
   CREATED: 'Booked',
@@ -179,10 +178,7 @@ export default function BookingDetailScreen() {
   );
 }
 
-async function promptReschedule(
-  reschedule: ReturnType<typeof useRescheduleBooking>,
-  _id: string,
-): Promise<void> {
+function promptReschedule(reschedule: ReturnType<typeof useRescheduleBooking>, _id: string): void {
   // Native picker not bundled to keep payload small. Default to "in 24h" with
   // a confirmation prompt; richer pickers can be added later.
   const proposed = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -193,13 +189,15 @@ async function promptReschedule(
       { text: 'Not now', style: 'cancel' },
       {
         text: 'Reschedule',
-        onPress: async () => {
+        onPress: () => {
+          void (async () => {
           try {
             await reschedule.mutateAsync({ scheduledAt: proposed.toISOString() });
             Alert.alert('Updated', 'We’ll notify the pro about the new time.');
           } catch (err) {
             Alert.alert('Failed', err instanceof Error ? err.message : 'Try again.');
           }
+          })();
         },
       },
     ],
@@ -412,7 +410,7 @@ function Detail({
         >
           <AlertTriangle size={14} color={colors.danger} />
           <Text variant="caption" tone="danger">
-            This booking is closed. Tap "Need help?" to dispute or reorder.
+            This booking is closed. Tap “Need help?” to dispute or reorder.
           </Text>
         </View>
       ) : null}

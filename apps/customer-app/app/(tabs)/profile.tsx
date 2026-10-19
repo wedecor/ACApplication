@@ -22,16 +22,16 @@ import { Divider } from '@/components/ui/divider';
 import { ListRow } from '@/components/ui/list-row';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
+import { Events,track } from '@/lib/analytics';
 import {
   getBiometricEnabled,
   isBiometricAvailable,
   requireBiometric,
   setBiometricEnabled,
 } from '@/lib/biometric';
-import { track, Events } from '@/lib/analytics';
+import { initials } from '@/lib/format';
 import { useAuthStore } from '@/state/auth-store';
 import { colors, spacing } from '@/theme/tokens';
-import { initials } from '@/lib/format';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function ProfileScreen() {
   const [bioEnabled, setBio] = useState(false);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setBioAvailable(await isBiometricAvailable());
       setBio(await getBiometricEnabled());
     })();
@@ -192,9 +192,9 @@ export default function ProfileScreen() {
               {
                 text: 'Log out',
                 style: 'destructive',
-                onPress: async () => {
+                onPress: () => {
                   track(Events.Logout);
-                  await logout();
+                  void logout();
                 },
               },
             ]);
@@ -210,7 +210,7 @@ export default function ProfileScreen() {
               {
                 text: 'Sign out everywhere',
                 style: 'destructive',
-                onPress: () => logoutAll(),
+                onPress: () => void logoutAll(),
               },
             ])
           }

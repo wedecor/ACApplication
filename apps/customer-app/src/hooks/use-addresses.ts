@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { addressesApi } from '@/api/endpoints';
 import { qk } from '@/api/keys';
-
 import type { CustomerAddress } from '@/api/types';
 
 export function useAddresses() {

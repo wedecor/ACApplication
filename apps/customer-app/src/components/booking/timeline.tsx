@@ -1,10 +1,9 @@
 import { View } from 'react-native';
 
+import type { BookingDetail } from '@/api/types';
 import { Text } from '@/components/ui/text';
 import { formatDateTime } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
-
-import type { BookingDetail } from '@/api/types';
 
 const LABEL: Record<BookingDetail['timeline'][number]['status'], string> = {
   CREATED: 'Booking created',

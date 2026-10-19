@@ -3,6 +3,8 @@ import { ArrowLeft, ArrowRight, Bolt, Camera, ImagePlus, X } from 'lucide-react-
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Image, Pressable, View } from 'react-native';
 
+import { ApplianceIcon } from '@/components/appliance-icon';
+import { StepPills } from '@/components/booking/step-pills';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,25 +13,23 @@ import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { Sheet } from '@/components/ui/sheet';
 import { Text } from '@/components/ui/text';
-import { StepPills } from '@/components/booking/step-pills';
 import {
+  type ApplianceIssue,
   APPLIANCES,
   getAppliance,
   getApplianceByCategory,
-  type ApplianceIssue,
 } from '@/content/appliances';
 import { useAddresses, useCreateAddress } from '@/hooks/use-addresses';
 import { useAppliances } from '@/hooks/use-appliances';
 import { useBookingEstimate, useBookingSlots, useCreateBooking } from '@/hooks/use-bookings';
 import { useValidateCoupon } from '@/hooks/use-growth';
+import { Events,track } from '@/lib/analytics';
 import { ApiError } from '@/lib/api-client';
-import { track, Events } from '@/lib/analytics';
 import { formatRupees } from '@/lib/format';
 import { pickAndUploadImage } from '@/lib/upload';
-import { toCreateBookingInput, useBookingDraft } from '@/state/booking-draft';
 import { warrantyLabel, warrantyTone } from '@/lib/warranty';
+import { toCreateBookingInput, useBookingDraft } from '@/state/booking-draft';
 import { colors, radius, spacing } from '@/theme/tokens';
-import { ApplianceIcon } from '@/components/appliance-icon';
 
 const SLOTS = [
   { id: 'morning', label: 'Morning', hint: '8 AM — 11 AM' },

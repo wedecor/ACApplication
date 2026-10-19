@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
+import { Events,track } from '@/lib/analytics';
 import { ApiError } from '@/lib/api-client';
-import { track, Events } from '@/lib/analytics';
 import { useAuthStore } from '@/state/auth-store';
 import { colors, spacing } from '@/theme/tokens';
 

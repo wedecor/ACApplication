@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, Bell, BellRing } from 'lucide-react-native';
 import { FlatList, Pressable, RefreshControl, View } from 'react-native';
 
+import type { NotificationItem } from '@/api/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty';
@@ -12,11 +13,9 @@ import {
   useMarkNotificationRead,
   useNotifications,
 } from '@/hooks/use-notifications';
-import { track, Events } from '@/lib/analytics';
+import { Events,track } from '@/lib/analytics';
 import { formatRelative } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
-
-import type { NotificationItem } from '@/api/types';
 
 const ICON_TONE: Record<NotificationItem['type'], string> = {
   BOOKING: colors.brand,

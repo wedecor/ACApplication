@@ -19,14 +19,14 @@ import { api } from '@/lib/api-client';
  */
 const KEY = 'ac.customer.offline-queue.v1';
 
-export type QueuedRequest = {
+export interface QueuedRequest {
   id: string;
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   path: string;
   body?: unknown;
   enqueuedAt: number;
   retries: number;
-};
+}
 
 let memoryQueue: QueuedRequest[] = [];
 let hydrated = false;
@@ -100,7 +100,7 @@ export async function drain(): Promise<void> {
         next.retries += 1;
         if (next.retries > 5) {
           // Drop after 5 attempts. Surface via telemetry rather than crash.
-          // eslint-disable-next-line no-console
+           
           console.warn('[offline-queue] dropping after retries', next, err);
           memoryQueue.shift();
           await persist();

@@ -2,9 +2,9 @@ import { create } from 'zustand';
 
 import { api, ApiError, onAuthLost } from '@/lib/api-client';
 import { getDeviceFingerprint } from '@/lib/device';
-import { secureStore, SecureKeys } from '@/lib/secure-store';
 import { clearQueue } from '@/lib/offline-queue';
 import { clearPersistedQueries } from '@/lib/query-persistence';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 export interface CustomerProfile {
   id: string;

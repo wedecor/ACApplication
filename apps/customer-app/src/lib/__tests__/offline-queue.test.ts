@@ -1,3 +1,6 @@
+import { api } from '../api-client';
+import { drain, enqueue, inspectQueue } from '../offline-queue';
+
 jest.mock('../api-client', () => ({
   __esModule: true,
   api: {
@@ -11,9 +14,6 @@ jest.mock('../api-client', () => ({
   ApiError: class ApiError extends Error {},
   onAuthLost: () => () => undefined,
 }));
-
-import { api } from '../api-client';
-import { drain, enqueue, inspectQueue } from '../offline-queue';
 
 describe('offline queue', () => {
   beforeEach(() => {

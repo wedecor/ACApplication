@@ -3,11 +3,10 @@ import { useRouter } from 'expo-router';
 import { ChevronRight, ShieldCheck } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
+import type { AmcSubscription } from '@/api/types';
 import { Text } from '@/components/ui/text';
 import { formatDate } from '@/lib/format';
 import { radius, spacing } from '@/theme/tokens';
-
-import type { AmcSubscription } from '@/api/types';
 
 interface Props {
   subscription?: AmcSubscription | null;

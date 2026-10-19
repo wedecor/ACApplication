@@ -31,7 +31,7 @@ export function useCreateSupportTicket() {
 export function useSupportTicket(id: string | undefined) {
   return useQuery({
     queryKey: id ? qk.supportTicket(id) : ['support', 'tickets', 'noop'],
-    queryFn: () => supportApi.ticket(id as string),
+    queryFn: () => supportApi.ticket(id!),
     enabled: !!id,
     refetchInterval: 15_000,
   });
@@ -40,7 +40,7 @@ export function useSupportTicket(id: string | undefined) {
 export function useSupportMessages(id: string | undefined) {
   return useQuery({
     queryKey: id ? qk.supportMessages(id) : ['support', 'tickets', 'noop', 'messages'],
-    queryFn: () => supportApi.messages(id as string),
+    queryFn: () => supportApi.messages(id!),
     enabled: !!id,
     refetchInterval: 8_000,
   });
@@ -49,7 +49,7 @@ export function useSupportMessages(id: string | undefined) {
 export function useSendSupportMessage(id: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: string) => supportApi.sendMessage(id as string, body),
+    mutationFn: (body: string) => supportApi.sendMessage(id!, body),
     onSuccess: () => {
       if (id) {
         void qc.invalidateQueries({ queryKey: qk.supportMessages(id) });
@@ -63,7 +63,7 @@ export function useRateSupportTicket(id: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: { rating: number; comment?: string }) =>
-      supportApi.rate(id as string, body),
+      supportApi.rate(id!, body),
     onSuccess: () => {
       if (id) void qc.invalidateQueries({ queryKey: qk.supportTicket(id) });
       void qc.invalidateQueries({ queryKey: qk.supportTickets() });

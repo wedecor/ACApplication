@@ -52,10 +52,10 @@ export default function HomeScreen() {
         <RefreshControl
           refreshing={refreshing}
           onRefresh={() => {
-            bookings.refetch();
-            amc.refetch();
-            invoices.refetch();
-            notifications.refetch();
+            void bookings.refetch();
+            void amc.refetch();
+            void invoices.refetch();
+            void notifications.refetch();
           }}
         />
       }

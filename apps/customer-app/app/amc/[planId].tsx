@@ -3,20 +3,20 @@ import { ArrowLeft, CheckCircle2, ShieldCheck } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
+import { ApplianceIcon } from '@/components/appliance-icon';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Divider } from '@/components/ui/divider';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
+import { APPLIANCES } from '@/content/appliances';
 import { useAddresses } from '@/hooks/use-addresses';
 import { useAmcPlans, usePurchaseAmc } from '@/hooks/use-amc';
-import { APPLIANCES } from '@/content/appliances';
 import { useAppliances } from '@/hooks/use-appliances';
 import { ApiError } from '@/lib/api-client';
 import { formatRupees } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
-import { ApplianceIcon } from '@/components/appliance-icon';
 
 export default function PlanDetailScreen() {
   const { planId } = useLocalSearchParams<{ planId: string }>();

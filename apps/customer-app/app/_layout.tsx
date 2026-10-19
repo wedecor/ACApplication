@@ -1,27 +1,27 @@
+import '../global.css';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { type ErrorBoundaryProps, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
 import { useEffect, useMemo } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import '../global.css';
-
 import { BiometricGate } from '@/components/biometric-gate';
-import { onSessionReset, useAuthStore } from '@/state/auth-store';
-import { realtime } from '@/lib/realtime';
-import { identifyUser, track, Events } from '@/lib/analytics';
-import {
-  attachQueryPersistence,
-  hydrateQueryClient,
-} from '@/lib/query-persistence';
+import { Events,identifyUser, track } from '@/lib/analytics';
 import { startQueueDrainer } from '@/lib/offline-queue';
 import {
   addForegroundNotificationListener,
   addNotificationTapListener,
   registerForPushNotifications,
 } from '@/lib/push';
+import {
+  attachQueryPersistence,
+  hydrateQueryClient,
+} from '@/lib/query-persistence';
+import { realtime } from '@/lib/realtime';
+import { onSessionReset, useAuthStore } from '@/state/auth-store';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const status = useAuthStore((s) => s.status);
@@ -76,13 +76,13 @@ export default function RootLayout() {
     let stopDrainer: (() => void) | undefined;
     let detachForeground: (() => void) | undefined;
     let detachTap: (() => void) | undefined;
-    (async () => {
+    void (async () => {
       await hydrateQueryClient(queryClient);
       detach = attachQueryPersistence(queryClient);
       stopDrainer = startQueueDrainer();
       detachForeground = addForegroundNotificationListener(() => {
         // Refresh notifications list when a push arrives in foreground.
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        void queryClient.invalidateQueries({ queryKey: ['notifications'] });
       });
       detachTap = addNotificationTapListener((response) => {
         track(Events.NotificationTap, {

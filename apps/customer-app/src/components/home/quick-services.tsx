@@ -1,12 +1,12 @@
 import { useRouter } from 'expo-router';
 import { FlatList, Pressable, View } from 'react-native';
 
+import { ApplianceIcon } from '@/components/appliance-icon';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { APPLIANCES } from '@/content/appliances';
 import { formatRupeesShort } from '@/lib/format';
 import { colors, spacing } from '@/theme/tokens';
-import { ApplianceIcon } from '@/components/appliance-icon';
 
 export function QuickServices() {
   const router = useRouter();

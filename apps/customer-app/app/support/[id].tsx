@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import type { SupportMessage } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
 import {
@@ -21,9 +22,8 @@ import {
   useSupportTicket,
 } from '@/hooks/use-support';
 import { formatRelative } from '@/lib/format';
-import { colors, radius, spacing } from '@/theme/tokens';
-import type { SupportMessage } from '@/api/types';
 import { humanizeStatus } from '@/lib/status';
+import { colors, radius, spacing } from '@/theme/tokens';
 
 /**
  * In-app support chat screen.

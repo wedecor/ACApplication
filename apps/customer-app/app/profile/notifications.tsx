@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Switch, View } from 'react-native';
 
+import { SubHeader } from '@/components/layout/sub-header';
 import { Card } from '@/components/ui/card';
 import { Divider } from '@/components/ui/divider';
 import { Screen } from '@/components/ui/screen';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
 import {
   registerForPushNotifications,
   unregisterPushToken,
 } from '@/lib/push';
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 import { colors, spacing } from '@/theme/tokens';
 
 export default function NotificationsSettingsScreen() {
@@ -19,7 +19,7 @@ export default function NotificationsSettingsScreen() {
   const [whatsapp, setWhatsapp] = useState<boolean>(true);
 
   useEffect(() => {
-    (async () => {
+    void (async () => {
       const token = await secureStore.getItem(SecureKeys.PushToken);
       setPush(!!token);
     })();

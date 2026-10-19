@@ -1,6 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 /**
  * Thin wrapper around expo-local-authentication. Two responsibilities:

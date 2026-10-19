@@ -1,5 +1,5 @@
 import { apiBase } from '@/config/env';
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 /**
  * Mobile API client.
@@ -129,7 +129,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
 
   if (!opts.skipAuth) {
     const access = await secureStore.getItem(SecureKeys.AccessToken);
-    if (access) headers['Authorization'] = `Bearer ${access}`;
+    if (access) headers.Authorization = `Bearer ${access}`;
   }
 
   let response: Response;
@@ -142,7 +142,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
   if (response.status === 401 && !opts.skipAuth && !opts.skipRefresh) {
     const refreshed = await getOrStartRefresh();
     if (refreshed) {
-      headers['Authorization'] = `Bearer ${refreshed}`;
+      headers.Authorization = `Bearer ${refreshed}`;
       try {
         response = await fetch(url, { method, headers, body, signal: opts.signal });
       } catch (err) {

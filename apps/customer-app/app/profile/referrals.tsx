@@ -16,8 +16,8 @@ import { Text } from '@/components/ui/text';
 import { useApplyReferral, useReferrals } from '@/hooks/use-growth';
 import { ApiError } from '@/lib/api-client';
 import { formatDate, formatRupees } from '@/lib/format';
-import { colors, spacing } from '@/theme/tokens';
 import { humanizeStatus } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 const STATUS_TONE: Record<ReferralStatus, 'neutral' | 'brand' | 'success' | 'danger'> = {
   PENDING: 'neutral',

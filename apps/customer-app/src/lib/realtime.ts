@@ -1,7 +1,7 @@
-import { io, Socket } from 'socket.io-client';
+import { io, type Socket } from 'socket.io-client';
 
 import { config } from '@/config/env';
-import { secureStore, SecureKeys } from '@/lib/secure-store';
+import { SecureKeys,secureStore } from '@/lib/secure-store';
 
 /**
  * Shared websocket client for the customer app.
@@ -49,7 +49,7 @@ class RealtimeClient {
         this.socket?.emit('subscribe', { rooms: Array.from(this.joinedRooms) });
       }
     });
-    this.socket.onAny((event, payload) => {
+    this.socket.onAny((event: string, payload: unknown) => {
       const set = this.listeners.get(event);
       if (set) {
         for (const l of set) {

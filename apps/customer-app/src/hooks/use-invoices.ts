@@ -31,8 +31,8 @@ export function useConfirmInvoicePayment(id: string) {
   return useMutation({
     mutationFn: (body: Parameters<typeof invoicesApi.confirm>[1]) => invoicesApi.confirm(id, body),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: qk.invoices() });
-      qc.invalidateQueries({ queryKey: qk.invoiceDetail(id) });
+      void qc.invalidateQueries({ queryKey: qk.invoices() });
+      void qc.invalidateQueries({ queryKey: qk.invoiceDetail(id) });
     },
   });
 }

@@ -62,7 +62,7 @@ export function identifyUser(id: string | null, t?: string | null): void {
   tenantId = t ?? null;
 }
 
-export function track(event: AnalyticsEvent | string, props?: Props): void {
+export function track(event: AnalyticsEvent, props?: Props): void {
   const payload = {
     event,
     userId,

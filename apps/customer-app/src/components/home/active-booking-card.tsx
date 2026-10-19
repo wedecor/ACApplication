@@ -2,15 +2,14 @@ import { useRouter } from 'expo-router';
 import { ChevronRight, MapPin } from 'lucide-react-native';
 import { Pressable, View } from 'react-native';
 
+import type { BookingSummary } from '@/api/types';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { useRealtimeConnected } from '@/hooks/use-realtime';
 import { formatDateTime } from '@/lib/format';
-import { colors, spacing } from '@/theme/tokens';
-
-import type { BookingSummary } from '@/api/types';
 import { BOOKING_STATUS_LABEL, BOOKING_STATUS_TONE } from '@/lib/status';
+import { colors, spacing } from '@/theme/tokens';
 
 interface Props {
   booking: BookingSummary;

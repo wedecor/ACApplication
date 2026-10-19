@@ -3,9 +3,9 @@ import {
   ActivityIndicator,
   Pressable,
   type PressableProps,
+  type StyleProp,
   StyleSheet,
   View,
-  type StyleProp,
   type ViewStyle,
 } from 'react-native';
 

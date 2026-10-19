@@ -3,13 +3,13 @@ import { Smartphone } from 'lucide-react-native';
 import { Alert, Pressable, View } from 'react-native';
 
 import { profileApi } from '@/api/endpoints';
+import { SubHeader } from '@/components/layout/sub-header';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty';
 import { Screen } from '@/components/ui/screen';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
-import { SubHeader } from '@/components/layout/sub-header';
 import { requireBiometric } from '@/lib/biometric';
 import { formatRelative } from '@/lib/format';
 import { useAuthStore } from '@/state/auth-store';
@@ -53,7 +53,7 @@ export default function DevicesScreen() {
                     if (!(await requireBiometric('Confirm to sign out the device'))) return;
                     try {
                       await profileApi.revokeDevice(d.id);
-                      me.refetch();
+                      void me.refetch();
                     } catch (err) {
                       Alert.alert('Failed', err instanceof Error ? err.message : 'Try again.');
                     }
@@ -74,7 +74,7 @@ export default function DevicesScreen() {
         onPress={() =>
           Alert.alert('Sign out everywhere?', 'You’ll need to sign in again on every device.', [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign out everywhere', style: 'destructive', onPress: () => logoutAll() },
+            { text: 'Sign out everywhere', style: 'destructive', onPress: () => void logoutAll() },
           ])
         }
         style={{ alignItems: 'center', marginTop: spacing[6] }}

@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { appliancesApi } from '@/api/endpoints';
 import { qk } from '@/api/keys';
-
 import type { CustomerApplianceInput } from '@/api/types';
 
 export function useAppliances(enabled = true) {
