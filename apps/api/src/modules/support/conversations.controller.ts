@@ -38,12 +38,14 @@ export class ConversationsController {
 
   @Get('conversations/:id')
   @RequirePermissions(Permission.CONVERSATION_VIEW)
+  @ApiOperation({ summary: 'Get conversation details by ID.' })
   get(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.conversations.get(actor, id);
   }
 
   @Get('conversations/:id/messages')
   @RequirePermissions(Permission.CONVERSATION_VIEW)
+  @ApiOperation({ summary: 'List messages in a conversation.' })
   messages(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -54,6 +56,7 @@ export class ConversationsController {
 
   @Post('conversations/:id/assign')
   @RequirePermissions(Permission.CONVERSATION_ASSIGN)
+  @ApiOperation({ summary: 'Assign a conversation to an agent.' })
   assign(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -75,6 +78,7 @@ export class ConversationsController {
 
   @Post('conversations/:id/read')
   @RequirePermissions(Permission.CONVERSATION_VIEW)
+  @ApiOperation({ summary: 'Mark conversation messages as read.' })
   read(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -85,6 +89,7 @@ export class ConversationsController {
 
   @Post('conversations/:id/typing')
   @RequirePermissions(Permission.CONVERSATION_REPLY)
+  @ApiOperation({ summary: 'Broadcast typing indicator in a conversation.' })
   typing(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -95,6 +100,7 @@ export class ConversationsController {
 
   @Post('conversations/:id/close')
   @RequirePermissions(Permission.INBOX_MANAGE)
+  @ApiOperation({ summary: 'Close a conversation.' })
   async close(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     await this.conversations.changeStatus(actor, id, ConversationStatus.CLOSED);
     return { ok: true };
@@ -102,6 +108,7 @@ export class ConversationsController {
 
   @Post('conversations/:id/reopen')
   @RequirePermissions(Permission.INBOX_MANAGE)
+  @ApiOperation({ summary: 'Reopen a closed conversation.' })
   async reopen(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     await this.conversations.changeStatus(actor, id, ConversationStatus.OPEN);
     return { ok: true };
