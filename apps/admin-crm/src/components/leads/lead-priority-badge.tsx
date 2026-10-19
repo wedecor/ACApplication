@@ -1,4 +1,4 @@
-import { LeadPriority } from '@ac/types';
+import { type LeadPriority } from '@ac/types';
 import { Badge } from '@ac/ui';
 
 const VARIANTS: Record<LeadPriority, { label: string; variant: 'muted' | 'secondary' | 'warning' | 'destructive' }> = {

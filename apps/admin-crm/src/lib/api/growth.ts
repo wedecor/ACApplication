@@ -215,7 +215,7 @@ export const growthApi = {
   deleteCoupon: (id: string) => apiFetch<unknown>(`/coupons/${id}`, { method: 'DELETE' }),
   couponRedemptions: (id: string, query: { page?: number; pageSize?: number } = {}) =>
     apiFetch<PaginatedResponse<CouponRedemption>>(`/coupons/${id}/redemptions`, {
-      query: query as Record<string, unknown>,
+      query: query,
     }),
   validateCoupon: (input: {
     customerId: string;
@@ -235,7 +235,7 @@ export const growthApi = {
 
   // segments
   listSegments: (query: { page?: number; pageSize?: number; search?: string } = {}) =>
-    apiFetch<PaginatedResponse<Segment>>('/segments', { query: query as Record<string, unknown> }),
+    apiFetch<PaginatedResponse<Segment>>('/segments', { query: query }),
   getSegment: (id: string) => apiFetch<Segment>(`/segments/${id}`),
   createSegment: (input: SegmentInput) =>
     apiFetch<Segment>('/segments', { method: 'POST', body: input }),

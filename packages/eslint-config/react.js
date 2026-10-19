@@ -47,6 +47,12 @@ export const reactConfig = [
       'jsx-a11y/anchor-is-valid': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
+      // Our design-system inputs render real <input>/<select>/<textarea>; a
+      // <label> wrapping them is a valid association.
+      'jsx-a11y/label-has-associated-control': [
+        'error',
+        { controlComponents: ['Input', 'NativeSelect', 'Textarea', 'Select'], depth: 3 },
+      ],
     },
   },
 ];

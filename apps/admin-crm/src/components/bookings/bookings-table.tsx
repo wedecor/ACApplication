@@ -1,6 +1,5 @@
 'use client';
 
-import { BookingPaymentStatus, BookingStatus } from '@ac/types';
 import {
   Skeleton,
   Table,
@@ -86,7 +85,7 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
         header: 'Scheduled',
         cell: ({ row }) => (
           <div className="text-sm">
-            {formatWhen(row.original.scheduledAt as unknown as string)}
+            {formatWhen(row.original.scheduledAt)}
             {row.original.scheduledTimeSlot ? (
               <span className="block text-xs text-muted-foreground">{row.original.scheduledTimeSlot}</span>
             ) : null}
@@ -103,14 +102,14 @@ export function BookingsTable({ data, isLoading }: { data: BookingListItem[]; is
       {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => <BookingStatusBadge status={row.original.status as BookingStatus} />,
+        cell: ({ row }) => <BookingStatusBadge status={row.original.status} />,
       },
       {
         accessorKey: 'paymentStatus',
         header: 'Payment',
         cell: ({ row }) => (
           <div className="flex flex-col gap-1">
-            <BookingPaymentBadge status={row.original.paymentStatus as BookingPaymentStatus} />
+            <BookingPaymentBadge status={row.original.paymentStatus} />
             <span className="text-xs text-muted-foreground">
               {formatINR(
                 row.original.finalAmount?.amountMinor ??

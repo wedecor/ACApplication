@@ -52,7 +52,7 @@ export function CustomFieldInputs({
           case 'select':
             return (
               <Field key={def.id} label={label}>
-                <NativeSelect value={String(raw ?? '')} onChange={(e) => set(def.key, e.target.value)}>
+                <NativeSelect value={inputText(raw)} onChange={(e) => set(def.key, e.target.value)}>
                   <option value="">—</option>
                   {(def.options ?? []).map((o) => (
                     <option key={o} value={o}>
@@ -67,7 +67,7 @@ export function CustomFieldInputs({
               <Field key={def.id} label={label}>
                 <Input
                   type="number"
-                  value={raw === undefined || raw === null ? '' : String(raw)}
+                  value={inputText(raw)}
                   onChange={(e) =>
                     set(def.key, e.target.value === '' ? undefined : Number(e.target.value))
                   }
@@ -87,7 +87,7 @@ export function CustomFieldInputs({
           default:
             return (
               <Field key={def.id} label={label}>
-                <Input value={String(raw ?? '')} onChange={(e) => set(def.key, e.target.value)} />
+                <Input value={inputText(raw)} onChange={(e) => set(def.key, e.target.value)} />
               </Field>
             );
         }
@@ -102,5 +102,12 @@ export function formatCustomFieldValue(def: CustomFieldDefinition | undefined, v
   if (def?.fieldType === 'date' && typeof value === 'string') {
     return new Date(value).toLocaleDateString('en-IN');
   }
-  return String(value);
+  return inputText(value);
+}
+
+/** Display text for a stored custom-field value (objects as JSON, never "[object Object]"). */
+function inputText(value: unknown): string {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'object') return JSON.stringify(value);
+  return `${value as string | number | boolean | bigint}`;
 }

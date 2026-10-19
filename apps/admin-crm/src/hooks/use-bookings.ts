@@ -1,5 +1,6 @@
 'use client';
 
+import type { BookingStatus } from '@ac/types';
 import {
   keepPreviousData,
   useMutation,
@@ -14,7 +15,6 @@ import {
   type UpdateBookingInput,
 } from '@/lib/api/bookings';
 import { queryKeys } from '@/lib/api/query-keys';
-import type { BookingStatus } from '@ac/types';
 
 export function useBookings(query: BookingListQuery) {
   return useQuery({

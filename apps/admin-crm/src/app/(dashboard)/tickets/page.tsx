@@ -1,12 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { useDebounce } from 'use-debounce';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Input,
   Skeleton,
@@ -15,21 +11,23 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import Link from 'next/link';
+import * as React from 'react';
+import { useDebounce } from 'use-debounce';
 
 import { Pagination } from '@/components/common/pagination';
 import { useTickets } from '@/hooks/use-support';
 import type {
   TicketPriority,
   TicketStatus,
-  TicketSummary,
 } from '@/lib/api/support';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUSES: Array<{ id: 'ALL' | TicketStatus; label: string }> = [
+const STATUSES: { id: 'ALL' | TicketStatus; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'OPEN', label: 'Open' },
   { id: 'PENDING', label: 'Pending' },
@@ -68,10 +66,10 @@ export default function TicketsPage() {
     page: filters.page,
     pageSize: 20,
     search: debounced || undefined,
-    status: filters.status === 'ALL' ? undefined : [filters.status as TicketStatus],
+    status: filters.status === 'ALL' ? undefined : [filters.status],
     overdue: filters.overdue ? 'true' : undefined,
   });
-  const items = (data?.items ?? []) as TicketSummary[];
+  const items = (data?.items ?? []);
 
   return (
     <div className="space-y-4">

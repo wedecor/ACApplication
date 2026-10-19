@@ -1,8 +1,7 @@
 'use client';
 
-import { CheckCircle2, Clock, MapPin, Star } from 'lucide-react';
-
 import { Badge, Button, Card, Skeleton } from '@ac/ui';
+import { CheckCircle2, Clock, MapPin, Star } from 'lucide-react';
 
 import { useDispatchRecommendations, useManualAssign } from '@/hooks/use-dispatch';
 

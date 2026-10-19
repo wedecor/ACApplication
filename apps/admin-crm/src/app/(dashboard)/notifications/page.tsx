@@ -1,11 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { Activity, AlertTriangle, Bell, RotateCcw } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   Card,
   CardContent,
   CardHeader,
@@ -18,13 +15,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { Activity, AlertTriangle, Bell, RotateCcw } from 'lucide-react';
+import * as React from 'react';
 
 import {
   useDlqJobs,
   useNotificationDashboard,
-  useNotificationTimeline,
   useNotifications,
+  useNotificationTimeline,
   useRetryDlq,
   useRetryNotification,
 } from '@/hooks/use-notifications';
@@ -34,7 +33,7 @@ import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUS_FILTERS: Array<{ id: NotificationLogStatus | 'ALL'; label: string }> = [
+const STATUS_FILTERS: { id: NotificationLogStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'QUEUED', label: 'Queued' },
   { id: 'PROCESSING', label: 'Processing' },
@@ -150,7 +149,7 @@ export default function NotificationsPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load notifications. {(error as Error).message}
+          Failed to load notifications. {(error).message}
         </div>
       ) : null}
 

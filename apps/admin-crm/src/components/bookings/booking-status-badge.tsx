@@ -1,4 +1,4 @@
-import { BookingPaymentStatus, BookingStatus } from '@ac/types';
+import { type BookingPaymentStatus, type BookingStatus } from '@ac/types';
 import { Badge } from '@ac/ui';
 
 const STATUS: Record<BookingStatus, { label: string; variant: 'default' | 'secondary' | 'success' | 'warning' | 'destructive' | 'info' | 'muted' }> = {

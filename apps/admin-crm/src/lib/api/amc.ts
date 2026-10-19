@@ -71,7 +71,7 @@ export const amcApi = {
   updatePlan: (id: string, body: Partial<AmcPlan>) =>
     apiFetch<AmcPlan>(`/amc/plans/${id}`, { method: 'PATCH', body }),
   listSubscriptions: (params: { status?: AMCSubscriptionStatus; customerId?: string }) =>
-    apiFetch<AmcSubscription[]>('/amc/subscriptions', { query: params as Record<string, unknown> }),
+    apiFetch<AmcSubscription[]>('/amc/subscriptions', { query: params }),
   getSubscription: (id: string) =>
     apiFetch<AmcSubscription & { visits: AmcVisit[] }>(`/amc/subscriptions/${id}`),
   subscribe: (body: { customerId: string; planId: string; autoRenew?: boolean }) =>

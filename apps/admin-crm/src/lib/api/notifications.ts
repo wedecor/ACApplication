@@ -43,11 +43,11 @@ export interface NotificationDashboard {
     main: QueueStats;
     dlq: QueueStats;
   };
-  providers: Array<{
+  providers: {
     channel: NotificationLogChannel;
     provider: string;
     snapshot: { state: string; failures: number };
-  }>;
+  }[];
   killSwitch: boolean;
 }
 
@@ -87,6 +87,6 @@ export const notificationsApi = {
 
   listDlq: () =>
     apiFetch<
-      Array<{ id: string; notificationId: string; correlationId?: string; failedReason?: string }>
+      { id: string; notificationId: string; correlationId?: string; failedReason?: string }[]
     >('/notifications/admin/dlq'),
 };

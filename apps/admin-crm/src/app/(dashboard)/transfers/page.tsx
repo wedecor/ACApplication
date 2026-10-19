@@ -1,12 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { ArrowRight, Plus, Repeat } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Skeleton,
   Table,
@@ -14,17 +10,20 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { ArrowRight, Plus, Repeat } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
 import { useTransfers } from '@/hooks/use-inventory';
-import { formatDateTime } from '@/lib/format';
 import type { StockTransferStatus } from '@/lib/api/inventory';
+import { formatDateTime } from '@/lib/format';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUSES: Array<{ id: StockTransferStatus | 'ALL'; label: string }> = [
+const STATUSES: { id: StockTransferStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'REQUESTED', label: 'Requested' },
   { id: 'APPROVED', label: 'Approved' },
@@ -84,7 +83,7 @@ export default function TransfersPage() {
         ))}
       </div>
 
-      {error ? <LoadError label="transfers" message={(error as Error).message} /> : null}
+      {error ? <LoadError label="transfers" message={(error).message} /> : null}
 
       <div className="rounded-md border">
         <Table stackOnMobile>

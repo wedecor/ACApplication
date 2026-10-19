@@ -1,9 +1,8 @@
 'use client';
 
+import { Button, Input } from '@ac/ui';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import * as React from 'react';
-
-import { Button, Input } from '@ac/ui';
 
 /**
  * List-page filter bar: an always-visible search plus facet groups that sit

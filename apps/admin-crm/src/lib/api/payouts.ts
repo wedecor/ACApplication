@@ -48,7 +48,7 @@ export interface CommissionRow {
 
 export const payoutsApi = {
   list: (params: { status?: PayoutStatus; technicianId?: string }) =>
-    apiFetch<TechnicianPayout[]>('/payouts', { query: params as Record<string, unknown> }),
+    apiFetch<TechnicianPayout[]>('/payouts', { query: params }),
   detail: (id: string) =>
     apiFetch<TechnicianPayout & { commissions: CommissionRow[] }>(`/payouts/${id}`),
   pending: (technicianId: string) =>

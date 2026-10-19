@@ -5,7 +5,6 @@ import { Badge, cn } from '@ac/ui';
 import * as React from 'react';
 
 import { Field as SharedField } from '@/components/common/form-field';
-
 import { ApiClientError } from '@/lib/api/client';
 import {
   humanize,
@@ -154,7 +153,7 @@ export function WarrantyBadge({
   manufacturerUntil: string | null | undefined;
   extendedUntil?: string | null;
 }) {
-  const ends = [manufacturerUntil, extendedUntil].filter(Boolean).map((d) => new Date(d as string).getTime());
+  const ends = [manufacturerUntil, extendedUntil].filter(Boolean).map((d) => new Date(d!).getTime());
   if (ends.length === 0) return <Badge variant="muted">No warranty info</Badge>;
   const until = Math.max(...ends);
   const days = Math.ceil((until - Date.now()) / 86_400_000);

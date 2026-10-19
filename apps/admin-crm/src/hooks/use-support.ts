@@ -2,31 +2,28 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { queryKeys } from '@/lib/api/query-keys';
 import {
   callsApi,
-  cannedApi,
-  conversationsApi,
-  kbApi,
-  slaApi,
-  supportAnalyticsApi,
-  ticketsApi,
   type CallSummary,
+  cannedApi,
   type ConversationChannel,
   type ConversationMessage,
-  type ConversationSummary,
+  conversationsApi,
   type ConversationStatus,
+  type ConversationSummary,
+  kbApi,
   type ListCallsParams,
   type ListConversationsParams,
   type ListTicketsParams,
   type MessageDirection,
-  type TicketActivity,
-  type TicketMessage,
+  slaApi,
+  supportAnalyticsApi,
   type TicketPriority,
+  ticketsApi,
   type TicketStatus,
   type TicketSummary,
-  type CustomerContext,
 } from '@/lib/api/support';
-import { queryKeys } from '@/lib/api/query-keys';
 
 // ----------------------------------------------------------- tickets
 
@@ -41,7 +38,7 @@ export function useTickets(params: ListTicketsParams) {
 export function useTicket(id: string | undefined) {
   return useQuery({
     queryKey: id ? queryKeys.support.tickets.detail(id) : ['support', 'tickets', 'noop'],
-    queryFn: () => ticketsApi.detail(id as string) as Promise<TicketSummary>,
+    queryFn: () => ticketsApi.detail(id!),
     enabled: !!id,
   });
 }
@@ -49,7 +46,7 @@ export function useTicket(id: string | undefined) {
 export function useTicketActivities(id: string | undefined) {
   return useQuery({
     queryKey: id ? queryKeys.support.tickets.activities(id) : ['support', 'tickets', 'noop-act'],
-    queryFn: () => ticketsApi.activities(id as string) as Promise<TicketActivity[]>,
+    queryFn: () => ticketsApi.activities(id!),
     enabled: !!id,
   });
 }
@@ -57,7 +54,7 @@ export function useTicketActivities(id: string | undefined) {
 export function useTicketMessages(id: string | undefined) {
   return useQuery({
     queryKey: id ? queryKeys.support.tickets.messages(id) : ['support', 'tickets', 'noop-msg'],
-    queryFn: () => ticketsApi.messages(id as string) as Promise<TicketMessage[]>,
+    queryFn: () => ticketsApi.messages(id!),
     enabled: !!id,
   });
 }
@@ -68,7 +65,7 @@ export function useTicketCustomerContext(id: string | undefined) {
       ? queryKeys.support.tickets.customerContext(id)
       : ['support', 'tickets', 'noop-ctx'],
     queryFn: () =>
-      ticketsApi.customerContext(id as string) as Promise<CustomerContext>,
+      ticketsApi.customerContext(id!),
     enabled: !!id,
   });
 }
@@ -93,39 +90,39 @@ export function useTicketActions(id: string | undefined) {
     }),
     update: useMutation({
       mutationFn: (body: Parameters<typeof ticketsApi.update>[1]) =>
-        ticketsApi.update(id as string, body),
+        ticketsApi.update(id!, body),
       onSuccess: invalidate,
     }),
     assign: useMutation({
       mutationFn: (body: { assignedAgentId: string; team?: string }) =>
-        ticketsApi.assign(id as string, body),
+        ticketsApi.assign(id!, body),
       onSuccess: invalidate,
     }),
     escalate: useMutation({
       mutationFn: (body: { level?: number; reason?: string; assignToUserId?: string }) =>
-        ticketsApi.escalate(id as string, body),
+        ticketsApi.escalate(id!, body),
       onSuccess: invalidate,
     }),
     changeStatus: useMutation({
       mutationFn: (body: { status: TicketStatus; reason?: string }) =>
-        ticketsApi.changeStatus(id as string, body),
+        ticketsApi.changeStatus(id!, body),
       onSuccess: invalidate,
     }),
     resolve: useMutation({
-      mutationFn: (reason?: string) => ticketsApi.resolve(id as string, reason),
+      mutationFn: (reason?: string) => ticketsApi.resolve(id!, reason),
       onSuccess: invalidate,
     }),
     close: useMutation({
-      mutationFn: (reason?: string) => ticketsApi.close(id as string, reason),
+      mutationFn: (reason?: string) => ticketsApi.close(id!, reason),
       onSuccess: invalidate,
     }),
     reopen: useMutation({
-      mutationFn: (reason?: string) => ticketsApi.reopen(id as string, reason),
+      mutationFn: (reason?: string) => ticketsApi.reopen(id!, reason),
       onSuccess: invalidate,
     }),
     addNote: useMutation({
       mutationFn: (body: { body: string; isInternal?: boolean }) =>
-        ticketsApi.note(id as string, body),
+        ticketsApi.note(id!, body),
       onSuccess: invalidate,
     }),
     reply: useMutation({
@@ -134,17 +131,17 @@ export function useTicketActions(id: string | undefined) {
         channel: ConversationChannel;
         conversationId?: string;
         templateName?: string;
-      }) => ticketsApi.reply(id as string, body),
+      }) => ticketsApi.reply(id!, body),
       onSuccess: invalidate,
     }),
     merge: useMutation({
       mutationFn: (body: { targetTicketId: string }) =>
-        ticketsApi.merge(id as string, body),
+        ticketsApi.merge(id!, body),
       onSuccess: invalidate,
     }),
     csat: useMutation({
       mutationFn: (body: { rating: number; comment?: string }) =>
-        ticketsApi.csat(id as string, body),
+        ticketsApi.csat(id!, body),
       onSuccess: invalidate,
     }),
   };
@@ -163,7 +160,7 @@ export function useConversations(params: ListConversationsParams) {
 export function useConversation(id: string | undefined) {
   return useQuery({
     queryKey: id ? queryKeys.support.inbox.detail(id) : ['support', 'inbox', 'noop'],
-    queryFn: () => conversationsApi.detail(id as string) as Promise<ConversationSummary>,
+    queryFn: () => conversationsApi.detail(id!),
     enabled: !!id,
   });
 }
@@ -177,7 +174,7 @@ export function useConversationMessages(
       ? queryKeys.support.inbox.messages(id, params as Record<string, unknown>)
       : ['support', 'inbox', 'noop-msg'],
     queryFn: () =>
-      conversationsApi.messages(id as string, params) as Promise<{
+      conversationsApi.messages(id!, params) as Promise<{
         items: ConversationMessage[];
         nextCursor: string | null;
       }>,
@@ -198,21 +195,21 @@ export function useConversationActions(id: string | undefined) {
   return {
     assign: useMutation({
       mutationFn: (body: { assignedAgentId: string }) =>
-        conversationsApi.assign(id as string, body),
+        conversationsApi.assign(id!, body),
       onSuccess: invalidate,
     }),
     send: useMutation({
       mutationFn: (body: { body: string; channel: ConversationChannel; templateName?: string }) =>
-        conversationsApi.send(id as string, body),
+        conversationsApi.send(id!, body),
       onSuccess: invalidate,
     }),
     read: useMutation({
       mutationFn: (body: { lastMessageId?: string } = {}) =>
-        conversationsApi.read(id as string, body),
+        conversationsApi.read(id!, body),
       onSuccess: invalidate,
     }),
     close: useMutation({
-      mutationFn: () => conversationsApi.close(id as string),
+      mutationFn: () => conversationsApi.close(id!),
       onSuccess: invalidate,
     }),
   };
@@ -231,7 +228,7 @@ export function useCalls(params: ListCallsParams) {
 export function useMissedCallQueue() {
   return useQuery({
     queryKey: queryKeys.support.calls.missed,
-    queryFn: () => callsApi.missedQueue() as Promise<CallSummary[]>,
+    queryFn: () => callsApi.missedQueue(),
   });
 }
 
@@ -411,8 +408,8 @@ export function useCallCenterStats(range: { from?: string; to?: string }) {
 // Re-export types for convenience.
 export type {
   CallSummary,
-  ConversationSummary,
   ConversationStatus,
+  ConversationSummary,
   TicketPriority,
   TicketStatus,
   TicketSummary,

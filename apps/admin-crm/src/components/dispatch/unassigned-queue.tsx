@@ -1,11 +1,9 @@
 'use client';
 
+import { Badge, Button, Card, Skeleton } from '@ac/ui';
 import { Loader2, Sparkles, Zap } from 'lucide-react';
 
-import { Badge, Button, Card, Skeleton } from '@ac/ui';
-
 import { useAutoAssign } from '@/hooks/use-dispatch';
-
 import { type UnassignedBooking } from '@/lib/api/dispatch';
 import { formatWhen } from '@/lib/format';
 
@@ -13,7 +11,7 @@ interface UnassignedQueueProps {
   bookings: UnassignedBooking[];
   isLoading: boolean;
   selectedBookingId: string | null;
-  onSelect(id: string): void;
+  onSelect: (id: string) => void;
 }
 
 const PRIORITY_BADGE: Partial<Record<UnassignedBooking['priority'], { variant: 'destructive' | 'warning'; label: string }>> = {

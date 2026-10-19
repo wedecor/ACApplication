@@ -1,8 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import { Clock, Plus, RefreshCw } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -16,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { Clock, Plus, RefreshCw } from 'lucide-react';
+import * as React from 'react';
 
 import { useSlaActions, useSlaProfiles } from '@/hooks/use-support';
 

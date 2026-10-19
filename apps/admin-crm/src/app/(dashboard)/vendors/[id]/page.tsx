@@ -1,9 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ArrowLeft, Building2 } from 'lucide-react';
-
 import {
   Badge,
   Card,
@@ -12,6 +8,9 @@ import {
   CardTitle,
   Skeleton,
 } from '@ac/ui';
+import { ArrowLeft, Building2 } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { useVendor } from '@/hooks/use-inventory';
 import { formatMinor, formatPercent } from '@/lib/format';
@@ -40,7 +39,7 @@ export default function VendorDetailPage() {
         <ArrowLeft className="size-4" aria-hidden /> Vendors
       </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Vendor not found'}
+          {error ? (error).message : 'Vendor not found'}
         </p>
       </div>
     );

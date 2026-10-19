@@ -1,5 +1,6 @@
 'use client';
 
+import type { LeadStatus } from '@ac/types';
 import {
   keepPreviousData,
   useMutation,
@@ -14,7 +15,6 @@ import {
   type UpdateLeadInput,
 } from '@/lib/api/leads';
 import { queryKeys } from '@/lib/api/query-keys';
-import type { LeadStatus } from '@ac/types';
 
 export function useLeads(query: LeadListQuery) {
   return useQuery({

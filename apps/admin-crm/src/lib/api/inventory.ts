@@ -49,7 +49,7 @@ export interface InventoryItem {
   available?: number;
   lowStock?: boolean;
   valuationMinor?: number;
-  stocks?: Array<{
+  stocks?: {
     id: string;
     warehouseId: string;
     quantity: number;
@@ -58,7 +58,7 @@ export interface InventoryItem {
     reorderQty: number | null;
     avgCostMinor: number;
     warehouse?: { id: string; name: string; code: string };
-  }>;
+  }[];
 }
 
 export type WarehouseKind = 'CENTRAL' | 'BRANCH' | 'TRANSIT' | 'VENDOR_RETURNS' | 'SCRAP';
@@ -144,18 +144,18 @@ export interface PurchaseOrder {
   vendor?: Pick<Vendor, 'id' | 'companyName' | 'code'>;
   warehouse?: Pick<Warehouse, 'id' | 'name' | 'code'>;
   items?: PurchaseOrderItemPayload[];
-  receipts?: Array<{
+  receipts?: {
     id: string;
     number: string;
     receivedAt: string;
-    items: Array<{
+    items: {
       id: string;
       itemId: string;
       quantity: number;
       unitCostMinor: number;
       item?: { id: string; sku: string; name: string };
-    }>;
-  }>;
+    }[];
+  }[];
 }
 
 export type StockTransferStatus =
@@ -180,14 +180,14 @@ export interface StockTransfer {
   notes: string | null;
   sourceWarehouse?: Pick<Warehouse, 'id' | 'name' | 'code'>;
   destWarehouse?: Pick<Warehouse, 'id' | 'name' | 'code'>;
-  items?: Array<{
+  items?: {
     id: string;
     itemId: string;
     requestedQty: number;
     dispatchedQty: number;
     receivedQty: number;
     item?: { id: string; sku: string; name: string };
-  }>;
+  }[];
 }
 
 export interface InventoryAlert {
@@ -220,7 +220,7 @@ export interface PaginatedEnvelope<T> {
 
 const inventoryItemsApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<InventoryItem>>('/inventory/items', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<InventoryItem>>('/inventory/items', { query: params }),
   get: (id: string) => apiFetch<InventoryItem>(`/inventory/items/${id}`),
   lookup: (code: string) =>
     apiFetch<{ id: string; sku: string; name: string; barcode: string | null } | null>(
@@ -245,19 +245,19 @@ const inventoryItemsApi = {
     body,
   }),
   ledger: (id: string, params: { warehouseId?: string; limit?: number; cursor?: string }) =>
-    apiFetch<Array<{
+    apiFetch<{
       id: string;
       kind: string;
       quantityDelta: number;
       runningQuantity: number;
       occurredAt: string;
       description: string | null;
-    }>>(`/inventory/items/${id}/ledger`, { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    }[]>(`/inventory/items/${id}/ledger`, { query: params }),
 };
 
 const warehousesApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<Warehouse>>('/inventory/warehouses', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<Warehouse>>('/inventory/warehouses', { query: params }),
   get: (id: string) => apiFetch<Warehouse>(`/inventory/warehouses/${id}`),
   stats: (id: string) =>
     apiFetch<{
@@ -276,7 +276,7 @@ const warehousesApi = {
 
 const vendorsApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<Vendor>>('/inventory/vendors', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<Vendor>>('/inventory/vendors', { query: params }),
   get: (id: string) => apiFetch<Vendor>(`/inventory/vendors/${id}`),
   create: (body: Partial<Vendor>) =>
     apiFetch<Vendor>('/inventory/vendors', { method: 'POST', body }),
@@ -286,14 +286,14 @@ const vendorsApi = {
 
 const purchaseOrdersApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<PurchaseOrder>>('/inventory/purchase-orders', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<PurchaseOrder>>('/inventory/purchase-orders', { query: params }),
   get: (id: string) => apiFetch<PurchaseOrder>(`/inventory/purchase-orders/${id}`),
   create: (body: {
     vendorId: string;
     warehouseId: string;
     expectedAt?: string;
     notes?: string;
-    items: Array<{ itemId: string; quantity: number; unitCostMinor: number; gstRateBps?: number }>;
+    items: { itemId: string; quantity: number; unitCostMinor: number; gstRateBps?: number }[];
   }) => apiFetch<PurchaseOrder>('/inventory/purchase-orders', { method: 'POST', body }),
   submit: (id: string) =>
     apiFetch<PurchaseOrder>(`/inventory/purchase-orders/${id}/submit`, { method: 'POST' }),
@@ -309,14 +309,14 @@ const purchaseOrdersApi = {
   receive: (
     id: string,
     body: {
-      items: Array<{
+      items: {
         itemId: string;
         quantity: number;
         unitCostMinor?: number;
         batchNumber?: string;
         serialNumbers?: string[];
         expiryDate?: string;
-      }>;
+      }[];
       notes?: string;
     },
   ) => apiFetch<{ grn: { id: string; number: string }; poStatus: PurchaseOrderStatus }>(
@@ -327,13 +327,13 @@ const purchaseOrdersApi = {
 
 const transfersApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<StockTransfer>>('/inventory/transfers', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<StockTransfer>>('/inventory/transfers', { query: params }),
   get: (id: string) => apiFetch<StockTransfer>(`/inventory/transfers/${id}`),
   create: (body: {
     sourceWarehouseId: string;
     destWarehouseId: string;
     notes?: string;
-    items: Array<{ itemId: string; quantity: number }>;
+    items: { itemId: string; quantity: number }[];
   }) => apiFetch<StockTransfer>('/inventory/transfers', { method: 'POST', body }),
   approve: (id: string) =>
     apiFetch<StockTransfer>(`/inventory/transfers/${id}/approve`, { method: 'POST' }),
@@ -341,7 +341,7 @@ const transfersApi = {
     apiFetch<StockTransfer>(`/inventory/transfers/${id}/dispatch`, { method: 'POST' }),
   receive: (
     id: string,
-    body: { items: Array<{ transferItemId: string; receivedQty: number }>; notes?: string },
+    body: { items: { transferItemId: string; receivedQty: number }[]; notes?: string },
   ) => apiFetch<StockTransfer>(`/inventory/transfers/${id}/receive`, { method: 'POST', body }),
   reject: (id: string, reason?: string) =>
     apiFetch<StockTransfer>(`/inventory/transfers/${id}/reject`, {
@@ -357,7 +357,7 @@ const transfersApi = {
 
 const alertsApi = {
   list: (params: Record<string, unknown>) =>
-    apiFetch<PaginatedEnvelope<InventoryAlert>>('/inventory/alerts', { query: params as Record<string, string | number | boolean | string[] | undefined> }),
+    apiFetch<PaginatedEnvelope<InventoryAlert>>('/inventory/alerts', { query: params }),
   acknowledge: (id: string) =>
     apiFetch<InventoryAlert>(`/inventory/alerts/${id}/acknowledge`, { method: 'POST' }),
   resolve: (id: string) =>
@@ -371,56 +371,56 @@ const analyticsApi = {
     apiFetch<{
       totalQuantity: number;
       totalValuationMinor: number;
-      byWarehouse: Array<{
+      byWarehouse: {
         warehouseId: string;
         code: string;
         name: string;
         quantity: number;
         valuationMinor: number;
-      }>;
+      }[];
     }>('/inventory/analytics/valuation'),
   fastMoving: (params: { days?: number; limit?: number } = {}) =>
     apiFetch<
-      Array<{
+      {
         itemId: string;
         unitsMoved: number;
         item: { id: string; sku: string; name: string; unit: string } | null;
-      }>
-    >('/inventory/analytics/fast-moving', { query: params as Record<string, string | number | boolean | undefined> }),
+      }[]
+    >('/inventory/analytics/fast-moving', { query: params }),
   deadStock: (params: { days?: number } = {}) =>
     apiFetch<
-      Array<{
+      {
         item: { id: string; sku: string; name: string };
         warehouse: { id: string; code: string; name: string };
         quantity: number;
         valuationMinor: number;
         lastMovementAt: string | null;
-      }>
-    >('/inventory/analytics/dead-stock', { query: params as Record<string, string | number | boolean | undefined> }),
+      }[]
+    >('/inventory/analytics/dead-stock', { query: params }),
   turnover: (params: { days?: number } = {}) =>
-    apiFetch<Array<{
+    apiFetch<{
       itemId: string;
       item: { id: string; sku: string; name: string } | null;
       cogsMinor: number;
       avgInventoryMinor: number;
       turnoverRatio: number | null;
-    }>>('/inventory/analytics/turnover', { query: params as Record<string, string | number | boolean | undefined> }),
+    }[]>('/inventory/analytics/turnover', { query: params }),
   procurementSpend: (params: { days?: number } = {}) =>
     apiFetch<
-      Array<{
+      {
         vendor: { id: string; companyName: string; code: string };
         spendMinor: number;
         orders: number;
-      }>
-    >('/inventory/analytics/procurement-spend', { query: params as Record<string, string | number | boolean | undefined> }),
+      }[]
+    >('/inventory/analytics/procurement-spend', { query: params }),
   technicianWastage: (params: { days?: number } = {}) =>
     apiFetch<
-      Array<{
+      {
         technicianId: string;
         shortfallQty: number;
         shortfallValueMinor: number;
-      }>
-    >('/inventory/analytics/technician-wastage', { query: params as Record<string, string | number | boolean | undefined> }),
+      }[]
+    >('/inventory/analytics/technician-wastage', { query: params }),
 };
 
 export const inventoryApi = {

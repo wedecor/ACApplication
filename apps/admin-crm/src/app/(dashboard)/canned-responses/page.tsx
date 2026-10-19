@@ -1,8 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import { MessageSquare, Plus, Trash2 } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -16,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { MessageSquare, Plus, Trash2 } from 'lucide-react';
+import * as React from 'react';
 
 import { useCannedActions, useCannedResponses } from '@/hooks/use-support';
 import type { ConversationChannel } from '@/lib/api/support';

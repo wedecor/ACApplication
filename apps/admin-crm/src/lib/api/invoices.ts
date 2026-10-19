@@ -56,26 +56,26 @@ export interface Invoice {
   createdAt: string;
   lineItems: InvoiceLineItem[];
   customer?: { id: string; fullName: string; phone: string; email: string | null };
-  payments?: Array<{
+  payments?: {
     id: string;
     amountMinor: number;
     method: string;
     status: string;
     capturedAt: string | null;
-  }>;
+  }[];
 }
 
 export interface CreateInvoiceInput {
   customerId: string;
   bookingId?: string;
-  lineItems: Array<{
+  lineItems: {
     description: string;
     quantity: number;
     unitPriceMinor: number;
     discountMinor?: number;
     taxRateBps?: number;
     hsnSacCode?: string;
-  }>;
+  }[];
   discountMinor?: number;
   gstEnabled?: boolean;
   gstNumber?: string;
@@ -115,7 +115,7 @@ export const invoicesApi = {
     body: { amountMinor: number; method: string; gatewayRef?: string; notes?: string },
   ) => apiFetch<Invoice>(`/invoices/${id}/payments`, { method: 'POST', body }),
   refund: (id: string, body: { amountMinor: number; paymentId?: string; reason?: string }) =>
-    apiFetch<{ invoice: Invoice; refund: unknown; creditNote: unknown | null }>(
+    apiFetch<{ invoice: Invoice; refund: unknown; creditNote: unknown }>(
       `/invoices/${id}/refund`,
       { method: 'POST', body },
     ),

@@ -4,9 +4,9 @@ import { EmptyState } from '@ac/ui';
 import { CalendarCheck } from 'lucide-react';
 import * as React from 'react';
 
-import { Pagination } from '@/components/common/pagination';
 import { BookingFilters } from '@/components/bookings/booking-filters';
 import { BookingsTable } from '@/components/bookings/bookings-table';
+import { Pagination } from '@/components/common/pagination';
 import { useBookings } from '@/hooks/use-bookings';
 import { useRealtime } from '@/hooks/use-realtime';
 import type { BookingListQuery } from '@/lib/api/bookings';
@@ -35,7 +35,7 @@ export default function BookingsPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load bookings. {(error as Error).message}
+          Failed to load bookings. {(error).message}
         </div>
       ) : items.length === 0 && !isLoading ? (
         <EmptyState

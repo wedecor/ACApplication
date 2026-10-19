@@ -1,11 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { ShieldCheck } from 'lucide-react';
-
 import {
   Badge,
-  Card,
+type BadgeProps,  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -14,10 +11,12 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger, type BadgeProps } from '@ac/ui';
+  TabsTrigger } from '@ac/ui';
+import { ShieldCheck } from 'lucide-react';
+import * as React from 'react';
 
 import { useAmcPlans, useAmcSubscriptions } from '@/hooks/use-finance';
-import type { AMCSubscriptionStatus, AmcPlan, AmcSubscription } from '@/lib/api/amc';
+import type { AmcPlan, AmcSubscription,AMCSubscriptionStatus } from '@/lib/api/amc';
 import { formatDate, formatMinor } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
@@ -62,7 +61,7 @@ function SubscriptionsTab() {
   const [status, setStatus] = React.useState<AMCSubscriptionStatus | undefined>(undefined);
   const { data, isLoading } = useAmcSubscriptions({ status });
 
-  const buckets: Array<{ status?: AMCSubscriptionStatus; label: string }> = [
+  const buckets: { status?: AMCSubscriptionStatus; label: string }[] = [
     { status: undefined, label: 'All' },
     { status: 'ACTIVE', label: 'Active' },
     { status: 'PENDING_PAYMENT', label: 'Awaiting payment' },

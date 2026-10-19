@@ -1,6 +1,5 @@
 'use client';
 
-import { LeadStatus } from '@ac/types';
 import {
   Avatar,
   AvatarFallback,
@@ -91,7 +90,7 @@ export function LeadsTable({ data, isLoading }: Props) {
       {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => <LeadStatusBadge status={row.original.status as LeadStatus} />,
+        cell: ({ row }) => <LeadStatusBadge status={row.original.status} />,
       },
       {
         accessorKey: 'assignedUser',
@@ -117,7 +116,7 @@ export function LeadsTable({ data, isLoading }: Props) {
         header: 'Created',
         cell: ({ row }) => (
           <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(row.original.createdAt as unknown as string), { addSuffix: true })}
+            {formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true })}
           </span>
         ),
       },

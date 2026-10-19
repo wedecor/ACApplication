@@ -16,7 +16,7 @@ import {
   useOpportunityFromLead,
   usePipeline,
 } from '@/hooks/use-sales';
-import { type Opportunity, type OpportunityStage, OPPORTUNITY_STAGES } from '@/lib/api/sales';
+import { type Opportunity, OPPORTUNITY_STAGES,type OpportunityStage } from '@/lib/api/sales';
 import { errorMessage, formatDate, formatINR, rupeesToMinor } from '@/lib/crm-format';
 import { humanizeEnum } from '@/lib/labels';
 

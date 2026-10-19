@@ -1,11 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { GitBranch, Pause, Play, XCircle } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   Card,
   CardContent,
   CardHeader,
@@ -17,15 +14,17 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { GitBranch, Pause, Play, XCircle } from 'lucide-react';
+import * as React from 'react';
 
 import {
   useCancelWorkflow,
   usePauseWorkflow,
   useResumeWorkflow,
   useWorkflowAnalytics,
-  useWorkflowTimeline,
   useWorkflows,
+  useWorkflowTimeline,
 } from '@/hooks/use-orchestration';
 import type { WorkflowInstanceStatus } from '@/lib/api/orchestration';
 import { formatDate } from '@/lib/format';
@@ -33,7 +32,7 @@ import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUS_FILTERS: Array<{ id: WorkflowInstanceStatus | 'ALL'; label: string }> = [
+const STATUS_FILTERS: { id: WorkflowInstanceStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'RUNNING', label: 'Running' },
   { id: 'WAITING', label: 'Waiting' },

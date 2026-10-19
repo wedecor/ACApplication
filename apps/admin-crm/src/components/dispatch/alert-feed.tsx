@@ -1,9 +1,8 @@
 'use client';
 
-import { AlertTriangle, BellOff, CheckCheck } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-
 import { Badge, Button, Card } from '@ac/ui';
+import { formatDistanceToNow } from 'date-fns';
+import { AlertTriangle, BellOff, CheckCheck } from 'lucide-react';
 
 import { useAcknowledgeAlert, useDispatchAlerts } from '@/hooks/use-dispatch';
 import type { DispatchAlert } from '@/lib/api/dispatch';
@@ -61,7 +60,7 @@ export function AlertFeed({ cityId }: { cityId: string | null }) {
               aria-label={`Acknowledge: ${title}`}
               title="Acknowledge"
               onClick={() => ack.mutate({ id: alert.id })}
-              disabled={ack.isPending && ack.variables?.id === alert.id}
+              disabled={ack.isPending ? ack.variables?.id === alert.id : false}
             >
               <CheckCheck className="size-4" aria-hidden />
             </Button>

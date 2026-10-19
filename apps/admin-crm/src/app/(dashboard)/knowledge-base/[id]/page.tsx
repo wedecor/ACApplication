@@ -1,11 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import * as React from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-
 import {
   Badge,
   Button,
@@ -14,7 +8,12 @@ import {
   CardHeader,
   CardTitle,
   Input,
-  Skeleton, Label } from '@ac/ui';
+Label,  Skeleton } from '@ac/ui';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import * as React from 'react';
+import { toast } from 'sonner';
 
 import { useKbActions, useKbArticle } from '@/hooks/use-support';
 import { formatDateTime } from '@/lib/format';
@@ -53,7 +52,7 @@ export default function KbArticleDetailPage() {
           <ArrowLeft className="inline size-4" /> Back
         </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Article not found'}
+          {error ? (error).message : 'Article not found'}
         </p>
       </div>
     );
@@ -67,7 +66,7 @@ export default function KbArticleDetailPage() {
       },
       {
         onSuccess: () => toast.success('Article saved'),
-        onError: (e) => toast.error((e as Error).message),
+        onError: (e) => toast.error((e).message),
       },
     );
   }
@@ -80,7 +79,7 @@ export default function KbArticleDetailPage() {
           setStatus('PUBLISHED');
           toast.success('Published');
         },
-        onError: (e) => toast.error((e as Error).message),
+        onError: (e) => toast.error((e).message),
       },
     );
   }

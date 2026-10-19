@@ -1,9 +1,5 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
-
 import {
   Button,
   Card,
@@ -13,11 +9,14 @@ import {
   Input,
   Label,
 } from '@ac/ui';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { authApi } from '@/lib/api/auth';
 import { setAccessToken } from '@/lib/api/auth-token';
-import { safeNextPath } from '@/lib/safe-next';
 import { setStoredPermissionVersion } from '@/lib/rbac/permissions';
+import { safeNextPath } from '@/lib/safe-next';
 
 const IS_DEV = process.env.NEXT_PUBLIC_APP_ENV === 'development';
 const DEV_PHONE = '+919876543210';
@@ -73,7 +72,7 @@ export default function LoginPage() {
       setAccessToken(res.accessToken);
       setStoredPermissionVersion(res.permissionVersion);
       toast.success(`Welcome back${res.user.firstName ? `, ${res.user.firstName}` : ''}`);
-      router.replace(safeNextPath(next) as never);
+      router.replace(safeNextPath(next));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Invalid OTP');
     } finally {
@@ -146,6 +145,8 @@ export default function LoginPage() {
                   type="text"
                   inputMode="numeric"
                   autoComplete="one-time-code"
+                  // Focus moves to the code field the moment it appears, after "Send OTP".
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
                   autoFocus
                   pattern="\d{4,8}"
                   maxLength={8}

@@ -29,27 +29,27 @@ export interface Quotation {
   terms: string | null;
   viewToken: string;
   customer?: { id: string; fullName: string };
-  lineItems?: Array<{
+  lineItems?: {
     description: string;
     quantity: number;
     unitPriceMinor: number;
     taxRateBps: number;
     subtotalMinor: number;
     totalMinor: number;
-  }>;
+  }[];
 }
 
 export interface CreateQuotationInput {
   customerId: string;
   bookingId?: string;
-  lineItems: Array<{
+  lineItems: {
     description: string;
     quantity: number;
     unitPriceMinor: number;
     discountMinor?: number;
     taxRateBps?: number;
     hsnSacCode?: string;
-  }>;
+  }[];
   expiresAt?: string;
   gstEnabled?: boolean;
   notes?: string;

@@ -1,11 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Skeleton,
   Table,
@@ -13,7 +10,9 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
+import * as React from 'react';
 
 import { useAlertActions, useInventoryAlerts } from '@/hooks/use-inventory';
 import { formatDateTime } from '@/lib/format';

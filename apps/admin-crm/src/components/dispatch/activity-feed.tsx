@@ -1,9 +1,8 @@
 'use client';
 
+import { Card } from '@ac/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowRightLeft, Sparkles, UserCheck, UserPlus } from 'lucide-react';
-
-import { Card } from '@ac/ui';
 
 import { useRecentDecisions } from '@/hooks/use-dispatch';
 

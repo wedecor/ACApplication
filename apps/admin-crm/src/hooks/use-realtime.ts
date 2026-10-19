@@ -4,9 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
+import { env } from '@/env';
 import { getAccessToken } from '@/lib/api/auth-token';
 import { queryKeys } from '@/lib/api/query-keys';
-import { env } from '@/env';
 
 type EventHandler = (payload: unknown) => void;
 

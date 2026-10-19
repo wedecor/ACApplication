@@ -1,6 +1,5 @@
-import { MessageCircle, Phone } from 'lucide-react';
-
 import { Button } from '@ac/ui';
+import { MessageCircle, Phone } from 'lucide-react';
 
 /** Call / WhatsApp shortcuts for a phone number (tel: and wa.me links). */
 export function ContactButtons({ phone, whatsapp }: { phone: string; whatsapp?: string | null }) {

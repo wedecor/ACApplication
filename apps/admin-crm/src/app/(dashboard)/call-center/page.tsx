@@ -1,11 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed, Plus } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Input,
   Skeleton,
@@ -14,16 +11,18 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { Phone, PhoneIncoming, PhoneMissed, PhoneOutgoing, Plus } from 'lucide-react';
+import * as React from 'react';
 
 import { Pagination } from '@/components/common/pagination';
 import {
   useCallActions,
-  useCalls,
   useCallCenterStats,
+  useCalls,
   useMissedCallQueue,
 } from '@/hooks/use-support';
-import type { CallStatus, CallSummary } from '@/lib/api/support';
+import type { CallStatus } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
@@ -205,7 +204,7 @@ export default function CallCenterPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {((calls.data?.items ?? []) as CallSummary[]).map((c) => (
+                  {((calls.data?.items ?? [])).map((c) => (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.number}</TableCell>
                       <TableCell>

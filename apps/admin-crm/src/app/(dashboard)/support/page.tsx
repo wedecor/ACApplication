@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@ac/ui';
 import {
   AlertOctagon,
   CheckCircle2,
@@ -10,12 +10,11 @@ import {
   Star,
   Timer,
 } from 'lucide-react';
-
-import { Badge, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@ac/ui';
+import * as React from 'react';
 
 import {
-  useChannelBreakdown,
   useCallCenterStats,
+  useChannelBreakdown,
   useResponseTimes,
   useSupportOverview,
 } from '@/hooks/use-support';
@@ -135,8 +134,7 @@ export default function SupportOverviewPage() {
               <Skeleton className="h-32 w-full" />
             ) : (
               <div className="space-y-2 text-sm">
-                {channels.data &&
-                  Object.entries(channels.data).map(([channel, stats]) => (
+                {channels.data ? Object.entries(channels.data).map(([channel, stats]) => (
                     <div key={channel} className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
                       <span>{channel.replace('_', ' ')}</span>
                       <span className="text-xs tabular-nums text-muted-foreground">
@@ -144,7 +142,7 @@ export default function SupportOverviewPage() {
                         {stats.outbound} out
                       </span>
                     </div>
-                  ))}
+                  )) : null}
               </div>
             )}
           </CardContent>

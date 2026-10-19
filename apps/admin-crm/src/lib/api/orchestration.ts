@@ -43,7 +43,7 @@ export interface WorkflowAnalytics {
   escalations: number;
   stuckWorkflows: number;
   avgStepAttempts: number;
-  byStatus: Array<{ status: WorkflowInstanceStatus; count: number }>;
+  byStatus: { status: WorkflowInstanceStatus; count: number }[];
 }
 
 export const orchestrationApi = {

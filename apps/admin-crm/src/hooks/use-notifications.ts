@@ -2,9 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import {
-  notificationsApi,
   type NotificationLogChannel,
   type NotificationLogStatus,
+  notificationsApi,
 } from '@/lib/api/notifications';
 
 export const notificationKeys = {

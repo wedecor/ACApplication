@@ -10,9 +10,9 @@ import { useAccounts, useSaveOpportunity } from '@/hooks/use-sales';
 import {
   DEFAULT_STAGE_PROBABILITY,
   type Opportunity,
+  OPPORTUNITY_STAGES,
   type OpportunityInput,
   type OpportunityStage,
-  OPPORTUNITY_STAGES,
 } from '@/lib/api/sales';
 import { errorMessage, minorToRupees, rupeesToMinor } from '@/lib/crm-format';
 

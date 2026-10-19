@@ -1,9 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ArrowLeft, Warehouse as WarehouseIcon } from 'lucide-react';
-
 import {
   Badge,
   Card,
@@ -18,6 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { ArrowLeft, Warehouse as WarehouseIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { useWarehouse, useWarehouseStats } from '@/hooks/use-inventory';
 import { formatMinorCompact } from '@/lib/format';
@@ -55,7 +54,7 @@ export default function WarehouseDetailPage() {
         <ArrowLeft className="size-4" aria-hidden /> Warehouses
       </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Warehouse not found'}
+          {error ? (error).message : 'Warehouse not found'}
         </p>
       </div>
     );

@@ -9,6 +9,7 @@ import { useVerifyBookingOtp } from '@/hooks/use-bookings';
 export function OtpVerifyForm({ id }: { id: string }) {
   const { mutateAsync, isPending } = useVerifyBookingOtp(id);
   const [code, setCode] = React.useState('');
+  const otpInputId = React.useId();
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +26,11 @@ export function OtpVerifyForm({ id }: { id: string }) {
   return (
     <form onSubmit={submit} className="flex items-end gap-2">
       <div className="flex-1">
-        <label className="mb-1 block text-sm text-muted-foreground">
+        <label htmlFor={otpInputId} className="mb-1 block text-sm text-muted-foreground">
           Customer OTP
         </label>
-        <Input aria-label="123456"
+        <Input
+          id={otpInputId}
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={8}

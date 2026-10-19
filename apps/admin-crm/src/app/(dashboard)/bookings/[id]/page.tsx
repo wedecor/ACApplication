@@ -1,6 +1,6 @@
 'use client';
 
-import { BookingPaymentStatus, BookingStatus } from '@ac/types';
+import { BookingStatus } from '@ac/types';
 import {
   Card,
   CardContent,
@@ -16,15 +16,15 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
-import { ContactButtons } from '@/components/common/contact-buttons';
-import { Timeline } from '@/components/common/timeline';
+import { BookingStatusActions } from '@/components/bookings/booking-status-actions';
 import {
   BookingPaymentBadge,
   BookingStatusBadge,
 } from '@/components/bookings/booking-status-badge';
-import { BookingStatusActions } from '@/components/bookings/booking-status-actions';
 import { OtpVerifyForm } from '@/components/bookings/otp-verify-form';
 import { RescheduleForm } from '@/components/bookings/reschedule-form';
+import { ContactButtons } from '@/components/common/contact-buttons';
+import { Timeline } from '@/components/common/timeline';
 import { BookingRepairPanel } from '@/components/repair/booking-repair-panel';
 import { useBooking, useBookingActivities } from '@/hooks/use-bookings';
 import { useRealtime } from '@/hooks/use-realtime';
@@ -70,12 +70,12 @@ export default function BookingDetailsPage() {
             <h1 className="text-2xl font-bold tracking-tight">
               {booking.customer.fullName}
             </h1>
-            <BookingStatusBadge status={booking.status as BookingStatus} />
-            <BookingPaymentBadge status={booking.paymentStatus as BookingPaymentStatus} />
+            <BookingStatusBadge status={booking.status} />
+            <BookingPaymentBadge status={booking.paymentStatus} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{booking.code}</p>
         </div>
-        <BookingStatusActions id={booking.id} current={booking.status as BookingStatus} />
+        <BookingStatusActions id={booking.id} current={booking.status} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -86,7 +86,7 @@ export default function BookingDetailsPage() {
               <TabsTrigger value="actions">Actions</TabsTrigger>
             </TabsList>
             <TabsContent value="timeline" className="mt-4">
-              <Timeline entries={activities as never} />
+              <Timeline entries={activities} />
             </TabsContent>
             <TabsContent value="actions" className="mt-4 space-y-6">
               {booking.status === BookingStatus.TECHNICIAN_EN_ROUTE ? (
@@ -106,7 +106,7 @@ export default function BookingDetailsPage() {
                 <CardContent>
                   <RescheduleForm
                     id={booking.id}
-                    current={booking.scheduledAt as unknown as string}
+                    current={booking.scheduledAt}
                   />
                 </CardContent>
               </Card>
@@ -131,7 +131,7 @@ export default function BookingDetailsPage() {
                   </Row>
                 ) : null}
                 <Row label="When">
-                  {formatWhen(booking.scheduledAt as unknown as string)}
+                  {formatWhen(booking.scheduledAt)}
                   {booking.scheduledTimeSlot ? (
                     <span className="block text-xs text-muted-foreground">Slot {booking.scheduledTimeSlot}</span>
                   ) : null}

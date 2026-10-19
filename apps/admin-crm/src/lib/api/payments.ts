@@ -40,7 +40,7 @@ export const paymentsApi = {
     apiFetch<{
       items: PaymentTransactionRow[];
       meta: { page: number; pageSize: number; total: number; totalPages: number };
-    }>('/payments/history', { query: params as Record<string, unknown> }),
+    }>('/payments/history', { query: params }),
   createLink: (body: {
     invoiceId: string;
     amountMinor?: number;

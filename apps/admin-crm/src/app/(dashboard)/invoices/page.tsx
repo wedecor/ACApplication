@@ -1,15 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Copy, Download, FileText, Plus, Search, Send } from 'lucide-react';
-import { toast } from 'sonner';
-import { useDebounce } from 'use-debounce';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Input,
   Skeleton,
@@ -18,7 +11,13 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { Copy, Download, FileText, Plus, Search, Send } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import * as React from 'react';
+import { toast } from 'sonner';
+import { useDebounce } from 'use-debounce';
 
 import { Pagination } from '@/components/common/pagination';
 import { useInvoiceAction, useInvoices } from '@/hooks/use-finance';
@@ -29,7 +28,7 @@ import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUS_FILTERS: Array<{ id: InvoiceStatus | 'ALL'; label: string }> = [
+const STATUS_FILTERS: { id: InvoiceStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'DRAFT', label: 'Draft' },
   { id: 'SENT', label: 'Sent' },
@@ -94,7 +93,7 @@ export default function InvoicesPage() {
               onClick={() =>
                 setFilters((prev) => ({
                   ...prev,
-                  status: f.id === 'ALL' ? undefined : (f.id as InvoiceStatus),
+                  status: f.id === 'ALL' ? undefined : (f.id),
                   page: 1,
                 }))
               }
@@ -112,7 +111,7 @@ export default function InvoicesPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load invoices. {(error as Error).message}
+          Failed to load invoices. {(error).message}
         </div>
       ) : items.length === 0 && !isLoading ? (
         <EmptyState
@@ -226,7 +225,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
               onClick={() =>
                 actions.send.mutate(undefined, {
                   onSuccess: () => toast.success(`${invoice.number} sent`),
-                  onError: (err) => toast.error((err as Error).message),
+                  onError: (err) => toast.error((err).message),
                 })
               }
             >
@@ -245,7 +244,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
                   toast.success(`Created ${copy.number}`);
                   router.push(`/invoices/${copy.id}`);
                 },
-                onError: (err) => toast.error((err as Error).message),
+                onError: (err) => toast.error((err).message),
               })
             }
           >

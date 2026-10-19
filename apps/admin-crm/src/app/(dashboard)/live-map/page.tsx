@@ -1,10 +1,9 @@
 'use client';
 
+import { Badge, Button, Card } from '@ac/ui';
 import { Battery, Clock, Maximize2, Star, Users, X } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-
-import { Badge, Button, Card } from '@ac/ui';
 
 import { LiveMap } from '@/components/dispatch/live-map';
 import { STATUS_COLOR } from '@/components/dispatch/status-colors';
@@ -46,8 +45,8 @@ export default function LiveMapPage() {
         .map((b) => ({
           id: b.id,
           code: b.code,
-          latitude: b.geoLatitude as number,
-          longitude: b.geoLongitude as number,
+          latitude: b.geoLatitude!,
+          longitude: b.geoLongitude!,
           priority: b.priority,
         })),
     [unassigned],
@@ -107,14 +106,13 @@ export default function LiveMapPage() {
               <span className="block h-2 w-2 rounded-full" style={{ background: palette.fg }} />
               {palette.label}
               <span className="ml-1 text-muted-foreground tabular-nums">
-                {availability?.buckets &&
-                  ({
+                {availability?.buckets ? ({
                     AVAILABLE: availability.buckets.available,
                     ONLINE: availability.buckets.available,
                     ON_BREAK: availability.buckets.onBreak,
                     OFFLINE: availability.buckets.offline,
                     UNREACHABLE: availability.buckets.unreachable,
-                  } as Record<string, number>)[s]}
+                  } as Record<string, number>)[s] : null}
               </span>
             </button>
           );
@@ -169,7 +167,7 @@ function TechnicianDetailsPanel({
   onClose,
 }: {
   technician: LiveTechnicianSnapshot;
-  onClose(): void;
+  onClose: () => void;
 }) {
   const palette = STATUS_COLOR[technician.status];
   return (
@@ -216,7 +214,7 @@ function TechnicianDetailsPanel({
 function UnassignedListPanel({
   bookings,
 }: {
-  bookings: Array<{ id: string; code: string; priority: string; scheduledAt: string; customer: { fullName: string } }>;
+  bookings: { id: string; code: string; priority: string; scheduledAt: string; customer: { fullName: string } }[];
 }) {
   return (
     <Card className="flex w-full flex-col gap-2 p-4 lg:w-80">

@@ -1,6 +1,7 @@
-import type { ApiError, ApiResponse } from '@ac/types';
+import type { ApiResponse } from '@ac/types';
 
 import { env } from '@/env';
+
 import { clearAuthTokens, getAccessToken, setAccessToken } from './auth-token';
 
 /** Tells the API to keep the refresh token in its httpOnly cookie, never in JS. */
@@ -33,11 +34,11 @@ function buildQuery(query?: RequestOptions['query']): string {
     if (v === undefined || v === null || v === '') continue;
     if (Array.isArray(v)) {
       if (v.length === 0) continue;
-      params.set(k, (v as unknown[]).map((x) => String(x)).join(','));
+      params.set(k, (v as unknown[]).map((x) => (typeof x === 'object' ? JSON.stringify(x) : `${x as string | number | boolean}`)).join(','));
     } else if (typeof v === 'object') {
       params.set(k, JSON.stringify(v));
     } else {
-      params.set(k, String(v));
+      params.set(k, `${v as string | number | boolean | bigint}`);
     }
   }
   const s = params.toString();
@@ -122,7 +123,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
   }
 
   if (!json.success) {
-    const err = json as ApiError;
+    const err = json;
     const isAuthPath = path.startsWith('/auth/');
     if (
       err.error.statusCode === 401 &&

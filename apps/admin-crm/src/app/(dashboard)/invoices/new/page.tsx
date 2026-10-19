@@ -1,11 +1,10 @@
 'use client';
 
-import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label } from '@ac/ui';
+import { Plus, Trash2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import * as React from 'react';
+import { toast } from 'sonner';
 
 import { CustomerPicker } from '@/components/sales/customer-picker';
 import { useCustomer } from '@/hooks/use-customers';
@@ -288,8 +287,7 @@ export default function NewInvoicePage() {
             />
             <Label htmlFor="gst">GST enabled</Label>
           </div>
-          {gstEnabled && (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {gstEnabled ? <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label htmlFor="new-customer-gstin">Customer GSTIN</Label>
                 <Input id="new-customer-gstin" value={gstNumber} onChange={(e) => setGstNumber(e.target.value)} />
@@ -302,8 +300,7 @@ export default function NewInvoicePage() {
                   placeholder="e.g. KA, MH, DL"
                 />
               </div>
-            </div>
-          )}
+            </div> : null}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
               <Label htmlFor="new-notes">Notes</Label>

@@ -45,8 +45,8 @@ import { getAccessToken } from '@/lib/api/auth-token';
 import { apiErrorMessage } from '@/lib/api/error-message';
 import type { StaffUser, StaffUserListQuery } from '@/lib/api/staff-admin';
 import { formatDateTime } from '@/lib/format';
-import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 import { humanizeEnum } from '@/lib/labels';
+import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 
 export default function UsersPage() {
   const { permissions } = readSessionClaims();

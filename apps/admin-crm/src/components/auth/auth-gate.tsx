@@ -22,7 +22,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       if (!live) return;
       if (!token) {
         const next = encodeURIComponent(pathname || '/');
-        router.replace(`/login?next=${next}` as never);
+        router.replace(`/login?next=${next}`);
         return;
       }
       setReady(true);

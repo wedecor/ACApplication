@@ -1,5 +1,7 @@
 'use client';
 
+import { Avatar, AvatarFallback, Navbar, Sidebar, type SidebarNavItem } from '@ac/ui';
+import { useQuery } from '@tanstack/react-query';
 import {
   Activity,
   AlertTriangle,
@@ -12,8 +14,8 @@ import {
   CalendarCheck,
   ClipboardCheck,
   ClipboardList,
-  Download,
   CreditCard,
+  Download,
   Factory,
   Gift,
   GitBranch,
@@ -21,12 +23,12 @@ import {
   Inbox,
   LayoutDashboard,
   LifeBuoy,
-  Map,
   ListChecks,
+  Map,
+  Megaphone,
   Menu,
   MessageCircleHeart,
   MessagesSquare,
-  Megaphone,
   PhoneCall,
   Receipt,
   Refrigerator,
@@ -46,13 +48,10 @@ import {
   Wrench,
   X,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
-
-import { Avatar, AvatarFallback, Navbar, Sidebar, type SidebarNavItem } from '@ac/ui';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { PermissionGate } from '@/components/auth/permission-gate';
 import { apiFetch } from '@/lib/api/client';
@@ -61,7 +60,7 @@ import { permissionsForPath } from '@/lib/rbac/route-access';
 
 type NavItem = SidebarNavItem & { href: string };
 
-const ALL_SECTIONS: Array<{ title?: string; items: NavItem[] }> = [
+const ALL_SECTIONS: { title?: string; items: NavItem[] }[] = [
   {
     items: [
       { label: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -223,6 +222,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         />
 
         {/* Mobile / tablet navigation: native modal dialog gives focus trap, Esc and backdrop. */}
+        {/* Backdrop click closes the drawer; keyboard users close it with Esc (native dialog). */}
+        {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
         <dialog
           ref={drawerRef}
           aria-label="Main navigation"
@@ -241,7 +242,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 {Brand}
                 <button
                   type="button"
-                  autoFocus
                   onClick={closeDrawer}
                   aria-label="Close navigation"
                   className="-mr-2 grid size-10 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"

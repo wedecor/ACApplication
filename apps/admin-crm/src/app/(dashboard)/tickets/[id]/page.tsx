@@ -1,8 +1,14 @@
 'use client';
 
-import * as React from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
+import {
+  Badge,
+type BadgeProps,  Button,
+  EmptyState,
+  Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger } from '@ac/ui';
 import {
   AlertOctagon,
   ArrowLeft,
@@ -15,16 +21,9 @@ import {
   Tag,
   UserCircle,
 } from 'lucide-react';
-
-import {
-  Badge,
-  Button,
-  EmptyState,
-  Skeleton,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger, type BadgeProps } from '@ac/ui';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import * as React from 'react';
 
 import {
   useTicket,

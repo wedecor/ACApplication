@@ -1,9 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { AlertTriangle, ArrowLeft, Boxes } from 'lucide-react';
-
 import {
   Badge,
   Card,
@@ -18,6 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { AlertTriangle, ArrowLeft, Boxes } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 import { useInventoryItem } from '@/hooks/use-inventory';
 import { formatMinor, formatMinorCompact } from '@/lib/format';
@@ -46,7 +45,7 @@ export default function InventoryItemDetailPage() {
         <ArrowLeft className="size-4" aria-hidden /> Catalogue
       </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Item not found'}
+          {error ? (error).message : 'Item not found'}
         </p>
       </div>
     );

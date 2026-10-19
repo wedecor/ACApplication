@@ -1,13 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   Card,
   CardContent,
   CardHeader,
@@ -18,11 +13,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { useTransfer, useTransferActions } from '@/hooks/use-inventory';
-import { formatDate } from '@/lib/format';
 import type { StockTransferStatus } from '@/lib/api/inventory';
+import { formatDate } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
@@ -58,7 +57,7 @@ export default function TransferDetailPage() {
           <ArrowLeft className="inline size-4" /> Back
         </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Transfer not found'}
+          {error ? (error).message : 'Transfer not found'}
         </p>
       </div>
     );
@@ -92,7 +91,7 @@ export default function TransferDetailPage() {
               onClick={() =>
                 actions.approve.mutate(undefined, {
                   onSuccess: () => toast.success('Approved'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.approve.isPending}
@@ -106,7 +105,7 @@ export default function TransferDetailPage() {
               onClick={() =>
                 actions.dispatch.mutate(undefined, {
                   onSuccess: () => toast.success('Dispatched'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.dispatch.isPending}
@@ -121,7 +120,7 @@ export default function TransferDetailPage() {
               onClick={() =>
                 actions.cancel.mutate('Cancelled from CRM', {
                   onSuccess: () => toast.success('Cancelled'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.cancel.isPending}

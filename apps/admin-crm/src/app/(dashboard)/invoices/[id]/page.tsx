@@ -1,10 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ArrowLeft, Download, Send, X } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -25,6 +20,10 @@ import {
   TabsList,
   TabsTrigger,
 } from '@ac/ui';
+import { ArrowLeft, Download, Send, X } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import * as React from 'react';
 import { toast } from 'sonner';
 
 import { useInvoice, useInvoiceAction } from '@/hooks/use-finance';
@@ -90,7 +89,7 @@ export default function InvoiceDetailPage() {
               onClick={() =>
                 actions.send.mutate(undefined, {
                   onSuccess: () => toast.success('Invoice sent'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.send.isPending}

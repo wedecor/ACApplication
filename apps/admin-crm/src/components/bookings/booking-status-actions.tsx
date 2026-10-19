@@ -99,6 +99,8 @@ export function BookingStatusActions({
           <Label htmlFor={`cancel-reason-${id}`}>Why is this booking being cancelled?</Label>
           <Input
             id={`cancel-reason-${id}`}
+            // The reason field is the only control in this confirm step.
+            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
             required
             maxLength={500}

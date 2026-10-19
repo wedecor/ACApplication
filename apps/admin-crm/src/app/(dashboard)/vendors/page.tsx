@@ -1,10 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { Building2, Plus, Search, Star } from 'lucide-react';
-import { useDebounce } from 'use-debounce';
-
 import {
   Badge,
   Button,
@@ -18,13 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { Building2, Plus, Search, Star } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
+import { useDebounce } from 'use-debounce';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
 import { useVendors } from '@/hooks/use-inventory';
 import { formatMinor, formatPercent } from '@/lib/format';
 
-const STATUSES: Array<{ id: string | 'ALL'; label: string }> = [
+const STATUSES: { id: string; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'ACTIVE', label: 'Active' },
   { id: 'PROSPECT', label: 'Prospect' },
@@ -90,7 +89,7 @@ export default function VendorsPage() {
         </div>
       </div>
 
-      {error ? <LoadError label="vendors" message={(error as Error).message} /> : null}
+      {error ? <LoadError label="vendors" message={(error).message} /> : null}
 
       <div className="rounded-md border">
         <Table stackOnMobile>

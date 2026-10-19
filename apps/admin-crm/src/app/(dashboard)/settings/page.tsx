@@ -1,9 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { LogOut, Settings } from 'lucide-react';
-
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@ac/ui';
+import { LogOut, Settings } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { CustomFieldsManager } from '@/components/settings/custom-fields-manager';
 import { authApi } from '@/lib/api/auth';

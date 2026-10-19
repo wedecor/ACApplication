@@ -1,12 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { toast } from 'sonner';
-import { CheckCircle2, Wallet } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Skeleton,
   Table,
@@ -14,7 +10,10 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { CheckCircle2, Wallet } from 'lucide-react';
+import * as React from 'react';
+import { toast } from 'sonner';
 
 import { usePayoutAction, usePayouts } from '@/hooks/use-finance';
 import type { PayoutStatus, TechnicianPayout } from '@/lib/api/payouts';
@@ -23,7 +22,7 @@ import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const FILTERS: Array<{ id: PayoutStatus | 'ALL'; label: string }> = [
+const FILTERS: { id: PayoutStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'PENDING', label: 'Pending' },
   { id: 'APPROVED', label: 'Approved' },
@@ -59,7 +58,7 @@ export default function PayoutsPage() {
         {FILTERS.map((f) => (
           <button
             key={f.id}
-            onClick={() => setStatus(f.id === 'ALL' ? undefined : (f.id as PayoutStatus))}
+            onClick={() => setStatus(f.id === 'ALL' ? undefined : (f.id))}
             className={`rounded px-2.5 py-1 text-xs font-medium transition ${
               (status ?? 'ALL') === f.id
                 ? 'bg-background text-foreground shadow'
@@ -73,8 +72,8 @@ export default function PayoutsPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load payouts. {(error as Error).message}
-          {(error as Error).message.includes('UNAUTHORIZED') ? (
+          Failed to load payouts. {(error).message}
+          {(error).message.includes('UNAUTHORIZED') ? (
             <p className="mt-2 font-normal text-muted-foreground">
               Your session may have expired.{' '}
               <a href="/login?next=%2Fpayouts" className="font-medium text-primary underline">

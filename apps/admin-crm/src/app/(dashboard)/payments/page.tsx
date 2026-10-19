@@ -1,19 +1,18 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { CreditCard } from 'lucide-react';
-
 import {
   Badge,
-  EmptyState,
+type BadgeProps,  EmptyState,
   Skeleton,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { CreditCard } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
 import { Pagination } from '@/components/common/pagination';
 import { usePaymentHistory } from '@/hooks/use-finance';
@@ -23,7 +22,7 @@ import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUS_FILTERS: Array<{ id: PaymentTransactionStatus | 'ALL'; label: string }> = [
+const STATUS_FILTERS: { id: PaymentTransactionStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'CREATED', label: 'Created' },
   { id: 'PENDING', label: 'Pending' },
@@ -69,7 +68,7 @@ export default function PaymentsPage() {
             onClick={() =>
               setFilters((prev) => ({
                 ...prev,
-                status: f.id === 'ALL' ? undefined : (f.id as PaymentTransactionStatus),
+                status: f.id === 'ALL' ? undefined : (f.id),
                 page: 1,
               }))
             }
@@ -86,7 +85,7 @@ export default function PaymentsPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load payments. {(error as Error).message}
+          Failed to load payments. {(error).message}
         </div>
       ) : items.length === 0 && !isLoading ? (
         <EmptyState

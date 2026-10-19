@@ -1,6 +1,5 @@
 'use client';
 
-import { LeadStatus } from '@ac/types';
 import {
   Badge,
   Button,
@@ -58,12 +57,12 @@ export default function LeadDetailsPage() {
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-bold tracking-tight">{lead.customerName}</h1>
-            <LeadStatusBadge status={lead.status as LeadStatus} />
+            <LeadStatusBadge status={lead.status} />
             <LeadPriorityBadge priority={lead.priority} />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{lead.code}</p>
         </div>
-        <LeadQuickActions id={lead.id} current={lead.status as LeadStatus} />
+        <LeadQuickActions id={lead.id} current={lead.status} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -74,7 +73,7 @@ export default function LeadDetailsPage() {
               <TabsTrigger value="notes">Notes</TabsTrigger>
             </TabsList>
             <TabsContent value="timeline" className="mt-4">
-              <Timeline entries={activities as never} />
+              <Timeline entries={activities} />
             </TabsContent>
             <TabsContent value="notes" className="mt-4">
               <LeadNotes id={lead.id} />

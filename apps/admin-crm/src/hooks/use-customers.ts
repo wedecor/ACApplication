@@ -3,11 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
-  customersApi,
-  customersCrmApi,
   type CustomerFilterQuery,
   type CustomerInput,
   type CustomerListQuery,
+  customersApi,
+  customersCrmApi,
   type DuplicateQuery,
 } from '@/lib/api/customers';
 import { queryKeys } from '@/lib/api/query-keys';

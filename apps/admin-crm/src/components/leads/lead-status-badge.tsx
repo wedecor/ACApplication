@@ -1,4 +1,4 @@
-import { LeadStatus } from '@ac/types';
+import { type LeadStatus } from '@ac/types';
 import { Badge } from '@ac/ui';
 
 const VARIANTS: Record<LeadStatus, { label: string; variant: 'default' | 'secondary' | 'success' | 'warning' | 'destructive' | 'info' | 'muted' }> = {

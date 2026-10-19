@@ -1,5 +1,6 @@
 'use client';
 
+import { Permission } from '@ac/types';
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from '@ac/ui';
 import { GitMerge } from 'lucide-react';
 import Link from 'next/link';
@@ -8,7 +9,6 @@ import * as React from 'react';
 import { useCustomerDuplicates } from '@/hooks/use-customers';
 import type { CustomerDetail, DuplicateMatch } from '@/lib/api/customers';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
-import { Permission } from '@ac/types';
 
 import { CustomerMergeModal } from './customer-merge-modal';
 
@@ -23,8 +23,8 @@ const REASON_LABEL: Record<string, string> = {
 export function CustomerDuplicatesPanel({ customer }: { customer: CustomerDetail }) {
   const { data, isLoading } = useCustomerDuplicates(customer.id);
   const [pending, setPending] = React.useState<{
-    duplicate: DuplicateMatch['customer'] | CustomerDetail;
-    survivor: DuplicateMatch['customer'] | CustomerDetail;
+    duplicate: DuplicateMatch['customer']  ;
+    survivor: DuplicateMatch['customer']  ;
   } | null>(null);
   const canMerge = hasPermission(Permission.CUSTOMER_MERGE, readSessionClaims().permissions);
   const items = data?.items ?? [];

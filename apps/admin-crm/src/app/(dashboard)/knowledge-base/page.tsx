@@ -1,12 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { BookOpen, Plus, ExternalLink, Eye, ThumbsUp } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Input,
   Skeleton,
@@ -15,7 +11,10 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { BookOpen, ExternalLink, Eye, Plus, ThumbsUp } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
@@ -65,7 +64,7 @@ export default function KnowledgeBasePage() {
       {creating ? <NewArticleForm onDone={() => setCreating(false)} /> : null}
 
       {articles.error ? (
-        <LoadError label="articles" message={(articles.error as Error).message} />
+        <LoadError label="articles" message={(articles.error).message} />
       ) : null}
 
       <section className="space-y-3">

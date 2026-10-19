@@ -80,7 +80,7 @@ export interface LedgerStatement {
   customerId: string;
   openingBalanceMinor: number;
   closingBalanceMinor: number;
-  entries: Array<{
+  entries: {
     id: string;
     occurredAt: string;
     entryType: string;
@@ -88,7 +88,7 @@ export interface LedgerStatement {
     amountMinor: number;
     runningBalanceMinor: number;
     description: string | null;
-  }>;
+  }[];
 }
 
 export const ledgerApi = {

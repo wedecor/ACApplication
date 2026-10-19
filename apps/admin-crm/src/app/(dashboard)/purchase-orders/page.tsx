@@ -1,12 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { Plus, ShoppingCart } from 'lucide-react';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   EmptyState,
   Skeleton,
   Table,
@@ -14,17 +10,20 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { Plus, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
 import { LoadError } from '@/components/common/load-error';
 import { Pagination } from '@/components/common/pagination';
 import { usePurchaseOrders } from '@/hooks/use-inventory';
-import { formatDate, formatMinor } from '@/lib/format';
 import type { PurchaseOrderStatus } from '@/lib/api/inventory';
+import { formatDate, formatMinor } from '@/lib/format';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
 
-const STATUSES: Array<{ id: PurchaseOrderStatus | 'ALL'; label: string }> = [
+const STATUSES: { id: PurchaseOrderStatus | 'ALL'; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'DRAFT', label: 'Draft' },
   { id: 'AWAITING_APPROVAL', label: 'Awaiting approval' },
@@ -87,7 +86,7 @@ export default function PurchaseOrdersPage() {
         ))}
       </div>
 
-      {error ? <LoadError label="purchase orders" message={(error as Error).message} /> : null}
+      {error ? <LoadError label="purchase orders" message={(error).message} /> : null}
 
       <div className="rounded-md border">
         <Table stackOnMobile>

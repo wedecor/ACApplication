@@ -1,9 +1,8 @@
 'use client';
 
-import * as React from 'react';
-import { Star, ThumbsUp, ThumbsDown } from 'lucide-react';
-
 import { Skeleton } from '@ac/ui';
+import { Star, ThumbsDown,ThumbsUp } from 'lucide-react';
+import * as React from 'react';
 
 import { useAgentProductivity, useSupportOverview } from '@/hooks/use-support';
 

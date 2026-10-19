@@ -1,10 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { AlertTriangle, Boxes, Plus, Search } from 'lucide-react';
-import { useDebounce } from 'use-debounce';
-
 import {
   Badge,
   Button,
@@ -18,13 +13,17 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { AlertTriangle, Boxes, Plus, Search } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
+import { useDebounce } from 'use-debounce';
 
 import { Pagination } from '@/components/common/pagination';
 import { useInventoryItems, useInventoryValuation } from '@/hooks/use-inventory';
 import { formatMinor, formatMinorCompact } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
-const TYPE_FILTERS: Array<{ id: string | 'ALL'; label: string }> = [
+const TYPE_FILTERS: { id: string; label: string }[] = [
   { id: 'ALL', label: 'All' },
   { id: 'SPARE_PART', label: 'Spare parts' },
   { id: 'CONSUMABLE', label: 'Consumables' },
@@ -140,7 +139,7 @@ export default function InventoryPage() {
               <TableHead className="text-right">Available</TableHead>
               <TableHead className="text-right">Selling</TableHead>
               <TableHead className="text-right">Valuation</TableHead>
-              <TableHead className="w-10"></TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>

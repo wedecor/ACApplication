@@ -1,9 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import Link from 'next/link';
-import { Plus, Warehouse as WarehouseIcon } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -16,6 +12,9 @@ import {
   TableHeader,
   TableRow,
 } from '@ac/ui';
+import { Plus, Warehouse as WarehouseIcon } from 'lucide-react';
+import Link from 'next/link';
+import * as React from 'react';
 
 import { LoadError } from '@/components/common/load-error';
 import { useWarehouses } from '@/hooks/use-inventory';
@@ -42,7 +41,7 @@ export default function WarehousesPage() {
         </Button>
       </header>
 
-      {error ? <LoadError label="warehouses" message={(error as Error).message} /> : null}
+      {error ? <LoadError label="warehouses" message={(error).message} /> : null}
 
       <div className="rounded-md border">
         <Table stackOnMobile>

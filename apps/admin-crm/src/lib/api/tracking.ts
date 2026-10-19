@@ -36,7 +36,7 @@ export interface AvailabilityOverview {
     offline: number;
     unreachable: number;
   };
-  technicians: Array<{
+  technicians: {
     id: string;
     fullName: string;
     cityId: string;
@@ -49,7 +49,7 @@ export interface AvailabilityOverview {
     onlineSince: string | null;
     lastLocationAt: string | null;
     _count: { bookings: number };
-  }>;
+  }[];
 }
 
 export interface LocationHistoryPoint {

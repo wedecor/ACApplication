@@ -1,8 +1,7 @@
 'use client';
 
-import { CircleDot, PauseCircle, PowerOff, ShieldAlert, Users } from 'lucide-react';
-
 import { Card } from '@ac/ui';
+import { CircleDot, PauseCircle, PowerOff, ShieldAlert, Users } from 'lucide-react';
 
 import { useAvailability } from '@/hooks/use-tracking';
 

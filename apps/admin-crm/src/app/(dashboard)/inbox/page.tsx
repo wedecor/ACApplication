@@ -1,19 +1,5 @@
 'use client';
 
-import * as React from 'react';
-import {
-  Inbox as InboxIcon,
-  MessageCircle,
-  Phone,
-  Mail,
-  MessageSquare,
-  Globe,
-  Smartphone,
-  Send,
-  RefreshCcw,
-  Loader2,
-} from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -24,6 +10,19 @@ import {
   TabsList,
   TabsTrigger,
 } from '@ac/ui';
+import {
+  Globe,
+  Inbox as InboxIcon,
+  Loader2,
+  Mail,
+  MessageCircle,
+  MessageSquare,
+  Phone,
+  RefreshCcw,
+  Send,
+  Smartphone,
+} from 'lucide-react';
+import * as React from 'react';
 
 import {
   useConversation,
@@ -35,7 +34,6 @@ import type {
   ConversationChannel,
   ConversationMessage,
   ConversationStatus,
-  ConversationSummary,
   MessageStatus,
 } from '@/lib/api/support';
 import { formatDateTime } from '@/lib/format';
@@ -51,7 +49,7 @@ const CHANNEL_ICONS: Record<ConversationChannel, React.ReactNode> = {
   SOCIAL: <MessageCircle className="size-3.5" />,
 };
 
-const STATUS_TABS: Array<{ id: 'all' | ConversationStatus; label: string }> = [
+const STATUS_TABS: { id: 'all' | ConversationStatus; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'OPEN', label: 'Open' },
   { id: 'PENDING', label: 'Pending' },
@@ -80,7 +78,7 @@ export default function InboxPage() {
     status: status === 'all' ? undefined : [status],
     channel: channel === 'all' ? undefined : [channel],
   });
-  const items = (conversations.data?.items ?? []) as ConversationSummary[];
+  const items = (conversations.data?.items ?? []);
 
   React.useEffect(() => {
     if (!selected && items.length > 0 && items[0]) setSelected(items[0].id);
@@ -234,7 +232,7 @@ function ConversationDetail({ id }: { id: string }) {
         onSuccess: () => {
           setDraft('');
           setTemplate('');
-          messages.refetch();
+          void messages.refetch();
         },
       },
     );

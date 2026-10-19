@@ -294,7 +294,7 @@ export const conversationsApi = {
   messages: (id: string, params: { limit?: number; cursor?: string; direction?: MessageDirection }) =>
     apiFetch<{ items: ConversationMessage[]; nextCursor: string | null }>(
       `/support/inbox/conversations/${id}/messages`,
-      { query: params as Record<string, string | number | boolean | undefined> },
+      { query: params },
     ),
   assign: (id: string, body: { assignedAgentId: string }) =>
     apiFetch<void>(`/support/inbox/conversations/${id}/assign`, { method: 'POST', body }),
@@ -407,7 +407,7 @@ export const kbApi = {
     apiFetch<{ id: string }>('/support/kb/categories', { method: 'POST', body }),
   articles: (params: { page?: number; pageSize?: number; search?: string; categoryId?: string; status?: KbArticle['status'][]; visibility?: KbArticle['visibility'][]; tag?: string }) =>
     apiFetch<PaginatedEnvelope<KbArticle>>('/support/kb/articles', {
-      query: params as Record<string, string | number | boolean | string[] | undefined>,
+      query: params,
     }),
   article: (id: string) => apiFetch<KbArticle>(`/support/kb/articles/${id}`),
   createArticle: (body: Partial<KbArticle> & { title: string; slug: string; bodyMarkdown: string }) =>
@@ -436,7 +436,7 @@ export interface CannedResponse {
 export const cannedApi = {
   list: (params: { page?: number; pageSize?: number; search?: string; channel?: ConversationChannel; tag?: string }) =>
     apiFetch<PaginatedEnvelope<CannedResponse>>('/support/canned-responses', {
-      query: params as Record<string, string | number | boolean | undefined>,
+      query: params,
     }),
   create: (body: Partial<CannedResponse> & { code: string; title: string; body: string }) =>
     apiFetch<{ id: string }>('/support/canned-responses', { method: 'POST', body }),
@@ -478,9 +478,9 @@ export const slaApi = {
 export interface SupportOverview {
   range: { from: string; to: string };
   totals: { created: number; open: number; resolved: number; resolutionRate: number };
-  byPriority: Array<{ priority: TicketPriority; count: number }>;
-  byStatus: Array<{ status: TicketStatus; count: number }>;
-  bySource: Array<{ source: TicketSource; count: number }>;
+  byPriority: { priority: TicketPriority; count: number }[];
+  byStatus: { status: TicketStatus; count: number }[];
+  bySource: { source: TicketSource; count: number }[];
   sla: {
     firstResponse: { met: number; missed: number; rate: number };
     resolution: { met: number; missed: number; rate: number };
@@ -498,13 +498,13 @@ export const supportAnalyticsApi = {
     }>('/support/analytics/response-times', { query: range }),
   productivity: (range: { from?: string; to?: string }) =>
     apiFetch<
-      Array<{
+      {
         agentId: string;
         name: string;
         handled: number;
         resolved: number;
         avgResolutionSeconds: number;
-      }>
+      }[]
     >('/support/analytics/agent-productivity', { query: range }),
   channelBreakdown: (range: { from?: string; to?: string }) =>
     apiFetch<Record<ConversationChannel, { conversations: number; inbound: number; outbound: number }>>(
@@ -517,7 +517,7 @@ export const supportAnalyticsApi = {
       missed: number;
       missedRate: number;
       avgDurationSeconds: number;
-      byStatus: Array<{ status: CallStatus; count: number }>;
-      byDisposition: Array<{ disposition: CallDisposition; count: number }>;
+      byStatus: { status: CallStatus; count: number }[];
+      byDisposition: { disposition: CallDisposition; count: number }[];
     }>('/support/analytics/call-center', { query: range }),
 };

@@ -47,7 +47,7 @@ export function isPermissionVersionStale(serverVersion: number): boolean {
 }
 
 export function hasPermission(required: Permission, granted: Permission[]): boolean {
-  if (granted.includes('*' as Permission)) return true;
+  if (granted.includes('*')) return true;
   return granted.includes(required);
 }
 

@@ -1,13 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-
 import {
   Badge,
-  Button,
+type BadgeProps,  Button,
   Card,
   CardContent,
   CardHeader,
@@ -18,11 +13,15 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow, type BadgeProps } from '@ac/ui';
+  TableRow } from '@ac/ui';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 import { usePurchaseOrder, usePurchaseOrderActions } from '@/hooks/use-inventory';
-import { formatDate, formatMinor } from '@/lib/format';
 import type { PurchaseOrderStatus } from '@/lib/api/inventory';
+import { formatDate, formatMinor } from '@/lib/format';
 import { humanizeEnum } from '@/lib/labels';
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>;
@@ -59,7 +58,7 @@ export default function PurchaseOrderDetailPage() {
           <ArrowLeft className="inline size-4" /> Back
         </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Purchase order not found'}
+          {error ? (error).message : 'Purchase order not found'}
         </p>
       </div>
     );
@@ -93,7 +92,7 @@ export default function PurchaseOrderDetailPage() {
               onClick={() =>
                 actions.submit.mutate(undefined, {
                   onSuccess: () => toast.success('Submitted for approval'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.submit.isPending}
@@ -107,7 +106,7 @@ export default function PurchaseOrderDetailPage() {
               onClick={() =>
                 actions.approve.mutate(undefined, {
                   onSuccess: () => toast.success('Approved'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.approve.isPending}
@@ -121,7 +120,7 @@ export default function PurchaseOrderDetailPage() {
               onClick={() =>
                 actions.order.mutate(undefined, {
                   onSuccess: () => toast.success('Marked as ordered'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.order.isPending}
@@ -136,7 +135,7 @@ export default function PurchaseOrderDetailPage() {
               onClick={() =>
                 actions.cancel.mutate('Cancelled from CRM', {
                   onSuccess: () => toast.success('Cancelled'),
-                  onError: (e) => toast.error((e as Error).message),
+                  onError: (e) => toast.error((e).message),
                 })
               }
               disabled={actions.cancel.isPending}

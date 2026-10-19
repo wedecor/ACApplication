@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, Skeleton } from '@ac/ui';
-import type { BookingStatus } from '@ac/types';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -12,7 +11,6 @@ import { CustomerCrmPanel, CustomerEditButton } from '@/components/customers/cus
 import { CustomerAppliancesSection } from '@/components/repair/customer-appliances-section';
 import { useBookings } from '@/hooks/use-bookings';
 import { useCustomer } from '@/hooks/use-customers';
-import type { CustomerDetail } from '@/lib/api/customers';
 import { formatWhen } from '@/lib/format';
 import { categoryLabel } from '@/lib/labels';
 
@@ -47,7 +45,7 @@ export default function CustomerDetailPage() {
         <ArrowLeft className="size-4" aria-hidden /> Customers
       </Link>
         <p className="text-sm text-destructive">
-          {error ? (error as Error).message : 'Customer not found'}
+          {error ? (error).message : 'Customer not found'}
         </p>
       </div>
     );
@@ -72,7 +70,7 @@ export default function CustomerDetailPage() {
           </p>
           <ContactButtons phone={customer.phone} />
         </div>
-        <CustomerEditButton customer={customer as CustomerDetail} />
+        <CustomerEditButton customer={customer} />
       </header>
 
       <dl className="grid grid-cols-3 divide-x rounded-lg border bg-card">
@@ -85,7 +83,7 @@ export default function CustomerDetailPage() {
 
       <CustomerAppliancesSection customerId={customer.id} />
 
-      <CustomerCrmPanel customer={customer as CustomerDetail} />
+      <CustomerCrmPanel customer={customer} />
     </div>
   );
 }
@@ -128,10 +126,10 @@ function RecentBookings({ customerId }: { customerId: string }) {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{b.serviceType || categoryLabel(b.category)}</p>
                     <p className="truncate text-sm text-muted-foreground">
-                      {formatWhen(b.scheduledAt as unknown as string)} · {b.code}
+                      {formatWhen(b.scheduledAt)} · {b.code}
                     </p>
                   </div>
-                  <BookingStatusBadge status={b.status as BookingStatus} />
+                  <BookingStatusBadge status={b.status} />
                 </Link>
               </li>
             ))}

@@ -10,8 +10,8 @@ import { LoadError } from '@/components/common/load-error';
 import { usePermissionCatalog, useResetRole, useRoles, useSetRolePermissions } from '@/hooks/use-staff-admin';
 import { apiErrorMessage } from '@/lib/api/error-message';
 import type { RoleView } from '@/lib/api/staff-admin';
-import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 import { humanizeEnum } from '@/lib/labels';
+import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 
 /**
  * Role ↔ permission matrix. Pick a role, tick permissions grouped by

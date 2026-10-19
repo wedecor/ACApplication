@@ -40,7 +40,7 @@ export default function LeadsPage() {
 
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-          Failed to load leads. {(error as Error).message}
+          Failed to load leads. {(error).message}
         </div>
       ) : items.length === 0 && !isLoading ? (
         <EmptyState

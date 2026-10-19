@@ -4,6 +4,7 @@ import { Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { type LiveTechnicianSnapshot, type TechnicianStatus } from '@/lib/api/tracking';
+
 import { STATUS_COLOR } from './status-colors';
 
 /**
@@ -34,7 +35,7 @@ interface LiveMapProps {
   technicians: LiveTechnicianSnapshot[];
   bookings?: BookingMarker[];
   selectedTechnicianId?: string | null;
-  onSelectTechnician?(id: string): void;
+  onSelectTechnician?: (id: string) => void;
   className?: string;
 }
 
@@ -78,7 +79,7 @@ export function LiveMap({
 
   // Bookings in the same area overlap at this zoom; merge markers within ~18px into one cluster.
   const clusters = useMemo(() => {
-    const out: Array<{ x: number; y: number; items: typeof bookings }> = [];
+    const out: { x: number; y: number; items: typeof bookings }[] = [];
     for (const b of bookings) {
       const p = projector({ lat: b.latitude, lng: b.longitude });
       const hit = out.find((c) => Math.hypot(c.x - p.x, c.y - p.y) < 18);
@@ -131,7 +132,7 @@ export function LiveMap({
           {technicians.map((t) => {
             if (t.latitude == null || t.longitude == null) return null;
             const p = projector({ lat: t.latitude, lng: t.longitude });
-            const palette = STATUS_COLOR[t.status as TechnicianStatus] ?? STATUS_COLOR.OFFLINE;
+            const palette = STATUS_COLOR[t.status] ?? STATUS_COLOR.OFFLINE;
             const isSelected = t.technicianId === selectedTechnicianId;
             return (
               <g
@@ -201,7 +202,7 @@ function Legend({ stats }: { stats: Record<TechnicianStatus, number> }) {
       <div className="mb-1 flex items-center gap-1 font-semibold">
         <Wifi className="h-3.5 w-3.5" /> Live status
       </div>
-      {(Object.entries(STATUS_COLOR) as Array<[TechnicianStatus, { fg: string; label: string }]>).map(
+      {(Object.entries(STATUS_COLOR) as [TechnicianStatus, { fg: string; label: string }][]).map(
         ([key, p]) => (
           <div key={key} className="flex items-center justify-between gap-3">
             <span className="flex items-center gap-2">
@@ -233,7 +234,7 @@ function GridBackdrop({ width, height }: { width: number; height: number }) {
 }
 
 function makeProjector(
-  points: Array<{ lat: number; lng: number }>,
+  points: { lat: number; lng: number }[],
   size: { w: number; h: number },
 ) {
   if (points.length === 0) {
@@ -276,7 +277,7 @@ function projectorFor(
 function groupByStatus(technicians: LiveTechnicianSnapshot[]): Record<TechnicianStatus, number> {
   const out: Record<string, number> = {};
   for (const t of technicians) out[t.status] = (out[t.status] ?? 0) + 1;
-  return out as Record<TechnicianStatus, number>;
+  return out;
 }
 
 export function ConnectionPill({ connected }: { connected: boolean }) {
