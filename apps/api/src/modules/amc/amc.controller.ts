@@ -37,24 +37,28 @@ export class AmcController {
   // ----- Plans -----
   @Post('plans')
   @RequirePermissions(Permission.AMC_MANAGE)
+  @ApiOperation({ summary: 'Create a new AMC plan template.' })
   createPlan(@CurrentUser() actor: AuthPrincipal, @Body() dto: CreateAmcPlanDto) {
     return this.plans.create(actor, dto);
   }
 
   @Get('plans')
   @RequirePermissions(Permission.AMC_VIEW)
+  @ApiOperation({ summary: 'List all AMC plan templates.' })
   listPlans(@CurrentUser() actor: AuthPrincipal) {
     return this.plans.list(actor);
   }
 
   @Get('plans/:id')
   @RequirePermissions(Permission.AMC_VIEW)
+  @ApiOperation({ summary: 'Get AMC plan template by ID.' })
   getPlan(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.plans.get(actor, id);
   }
 
   @Patch('plans/:id')
   @RequirePermissions(Permission.AMC_MANAGE)
+  @ApiOperation({ summary: 'Update an AMC plan template.' })
   updatePlan(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -73,6 +77,7 @@ export class AmcController {
 
   @Get('subscriptions')
   @RequirePermissions(Permission.AMC_VIEW)
+  @ApiOperation({ summary: 'List customer AMC subscriptions with filters.' })
   listSubs(
     @CurrentUser() actor: AuthPrincipal,
     @Query('status') status?: AMCSubscriptionStatus,
@@ -83,6 +88,7 @@ export class AmcController {
 
   @Get('subscriptions/:id')
   @RequirePermissions(Permission.AMC_VIEW)
+  @ApiOperation({ summary: 'Get AMC subscription details by ID.' })
   getSub(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.subs.get(actor, id);
   }
@@ -90,6 +96,7 @@ export class AmcController {
   @Post('subscriptions/:id/cancel')
   @RequirePermissions(Permission.AMC_MANAGE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Cancel an AMC subscription.' })
   cancel(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -101,6 +108,7 @@ export class AmcController {
   @Post('subscriptions/:id/generate-visits')
   @RequirePermissions(Permission.AMC_MANAGE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Generate scheduled maintenance visits for an AMC subscription.' })
   generate(@Param('id') id: string) {
     return this.subs.generateVisitsForSubscription(id);
   }
@@ -108,6 +116,7 @@ export class AmcController {
   @Post('subscriptions/:id/download-contract')
   @RequirePermissions(Permission.AMC_VIEW)
   @Header('Content-Type', 'application/pdf')
+  @ApiOperation({ summary: 'Download AMC subscription contract PDF.' })
   async downloadContract(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
