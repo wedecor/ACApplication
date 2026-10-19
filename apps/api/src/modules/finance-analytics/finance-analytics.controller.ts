@@ -33,6 +33,7 @@ export class FinanceAnalyticsController {
 
   @Get('revenue-series')
   @RequirePermissions(Permission.FINANCE_VIEW)
+  @ApiOperation({ summary: 'Get daily revenue time series within a date range.' })
   async revenue(
     @CurrentUser() actor: AuthPrincipal,
     @Query('from') from?: string,
@@ -49,6 +50,7 @@ export class FinanceAnalyticsController {
 
   @Get('top-customers')
   @RequirePermissions(Permission.FINANCE_VIEW)
+  @ApiOperation({ summary: 'Get top customers ranked by invoiced amount.' })
   async topCustomers(
     @CurrentUser() actor: AuthPrincipal,
     @Query('from') from?: string,
@@ -72,6 +74,7 @@ export class FinanceAnalyticsController {
 
   @Get('revenue-by-city')
   @RequirePermissions(Permission.FINANCE_VIEW)
+  @ApiOperation({ summary: 'Get revenue breakdown grouped by service city.' })
   async byCity(
     @CurrentUser() actor: AuthPrincipal,
     @Query('from') from?: string,
@@ -88,12 +91,14 @@ export class FinanceAnalyticsController {
 
   @Get('aging')
   @RequirePermissions(Permission.FINANCE_VIEW)
+  @ApiOperation({ summary: 'Get accounts receivable aging buckets.' })
   aging(@CurrentUser() actor: AuthPrincipal) {
     return this.svc.outstandingAging(actor.tenantId);
   }
 
   @Get('payout-pipeline')
   @RequirePermissions(Permission.PAYOUT_VIEW)
+  @ApiOperation({ summary: 'Get technician payout pipeline and pending balances.' })
   payouts(@CurrentUser() actor: AuthPrincipal) {
     return this.svc.payoutPipeline(actor.tenantId);
   }
