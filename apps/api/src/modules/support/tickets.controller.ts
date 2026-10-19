@@ -192,12 +192,14 @@ export class TicketsController {
 
   @Get(':id/activities')
   @RequirePermissions(Permission.TICKET_VIEW)
+  @ApiOperation({ summary: 'List audit activity history for a support ticket.' })
   activities(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.tickets.getActivities(actor, id);
   }
 
   @Get(':id/messages')
   @RequirePermissions(Permission.TICKET_VIEW)
+  @ApiOperation({ summary: 'List all internal and external messages for a support ticket.' })
   messages(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.tickets.getMessages(actor, id);
   }
