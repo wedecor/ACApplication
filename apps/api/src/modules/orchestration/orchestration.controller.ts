@@ -56,24 +56,28 @@ export class OrchestrationController {
 
   @Post('workflows/:id/pause')
   @RequirePermissions(Permission.WORKFLOW_MANAGE)
+  @ApiOperation({ summary: 'Pause an active workflow instance.' })
   pause(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.engine.pause(id, actor.tenantId);
   }
 
   @Post('workflows/:id/resume')
   @RequirePermissions(Permission.WORKFLOW_MANAGE)
+  @ApiOperation({ summary: 'Resume a paused workflow instance.' })
   resume(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.engine.resume(id, actor.tenantId);
   }
 
   @Post('workflows/:id/cancel')
   @RequirePermissions(Permission.WORKFLOW_MANAGE)
+  @ApiOperation({ summary: 'Cancel a running workflow instance.' })
   cancel(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.engine.cancel(id, actor.tenantId);
   }
 
   @Get('analytics')
   @RequirePermissions(Permission.WORKFLOW_VIEW)
+  @ApiOperation({ summary: 'Get workflow orchestration analytics dashboard.' })
   getAnalytics(@CurrentUser() actor: AuthPrincipal) {
     return this.analyticsService.dashboard(actor.tenantId);
   }
