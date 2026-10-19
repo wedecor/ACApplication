@@ -6,6 +6,8 @@ import type {
   SendResult,
 } from '@ac/notifications';
 
+const PROVIDER_TIMEOUT_MS = 10_000;
+
 export interface ResendEmailConfig {
   apiKey: string;
   from: string;
@@ -24,6 +26,8 @@ export class ResendEmailTransport implements NotificationTransport {
       return { channel: this.channel, status: 'failed', error: 'Missing email address' };
     }
     const res = await fetch('https://api.resend.com/emails', {
+      // Never hang a worker on a slow provider.
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.config.apiKey}`,

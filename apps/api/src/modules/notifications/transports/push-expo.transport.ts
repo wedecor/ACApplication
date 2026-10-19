@@ -6,6 +6,8 @@ import type {
   SendResult,
 } from '@ac/notifications';
 
+const PROVIDER_TIMEOUT_MS = 10_000;
+
 export interface ExpoPushConfig {
   accessToken?: string;
 }
@@ -31,6 +33,8 @@ export class ExpoPushTransport implements NotificationTransport {
       headers.Authorization = `Bearer ${this.config.accessToken}`;
     }
     const res = await fetch('https://exp.host/--/api/v2/push/send', {
+      // Never hang a worker on a slow provider.
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
       method: 'POST',
       headers,
       body: JSON.stringify(

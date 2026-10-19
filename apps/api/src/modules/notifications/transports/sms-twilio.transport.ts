@@ -42,6 +42,7 @@ export class TwilioSmsTransport implements NotificationTransport {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: params.toString(),
+        signal: AbortSignal.timeout(10_000), // never hang a worker on a slow provider
       },
     );
     if (!res.ok) {

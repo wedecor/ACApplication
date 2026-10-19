@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { type ErrorBoundaryProps, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Pressable, Text, View } from 'react-native';
 import { useEffect, useMemo } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -62,5 +63,28 @@ export default function RootLayout() {
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+/**
+ * Root crash screen (Expo Router picks up this export). Queued job updates
+ * stay on the device, so retrying is safe.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  if (__DEV__) console.error(error);
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12, backgroundColor: '#F5F7FA' }}>
+      <Text style={{ fontSize: 20, fontWeight: '700', color: '#0F172A' }}>Something went wrong</Text>
+      <Text style={{ color: '#64748B', textAlign: 'center' }}>
+        The app hit an unexpected error. Job updates you saved offline are kept on this phone.
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void retry()}
+        style={{ marginTop: 8, minHeight: 48, paddingHorizontal: 24, borderRadius: 12, justifyContent: 'center', backgroundColor: '#0E7A4A' }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700' }}>Try again</Text>
+      </Pressable>
+    </View>
   );
 }

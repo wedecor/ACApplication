@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nestjs';
 import {
   type ArgumentsHost,
   Catch,
@@ -27,6 +28,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const requestId = (request.id as string | undefined) ?? 'unknown';
 
     if (statusCode >= 500) {
+      // Unexpected failures go to error tracking (no-op without SENTRY_DSN).
+      Sentry.captureException(exception, { tags: { requestId: String(requestId ?? '') } });
       this.logger.error(
         { err: exception, requestId, path: request.url, statusCode },
         `Unhandled error: ${message}`,

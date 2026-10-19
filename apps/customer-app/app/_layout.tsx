@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { type ErrorBoundaryProps, Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Pressable, Text, View } from 'react-native';
 import { useEffect, useMemo } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -120,5 +121,28 @@ export default function RootLayout() {
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+  );
+}
+
+/**
+ * Root crash screen (Expo Router picks up this export). Shown instead of a
+ * blank/red screen when a render throws; "Try again" re-mounts the tree.
+ */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  if (__DEV__) console.error(error);
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12, backgroundColor: '#f7f8fb' }}>
+      <Text style={{ fontSize: 20, fontWeight: '700', color: '#0b1220' }}>Something went wrong</Text>
+      <Text style={{ color: '#5b6474', textAlign: 'center' }}>
+        The app hit an unexpected error. Your bookings and payments are safe.
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void retry()}
+        style={{ marginTop: 8, minHeight: 48, paddingHorizontal: 24, borderRadius: 12, justifyContent: 'center', backgroundColor: '#0f59db' }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '700' }}>Try again</Text>
+      </Pressable>
+    </View>
   );
 }

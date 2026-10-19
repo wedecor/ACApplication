@@ -1,3 +1,4 @@
+import './instrument';
 import 'reflect-metadata';
 
 import { ValidationPipe, VersioningType } from '@nestjs/common';

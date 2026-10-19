@@ -33,7 +33,9 @@ export class Msg91SmsTransport implements NotificationTransport {
       sender: this.config.senderId,
       route: this.config.route ?? '4',
     });
-    const res = await fetch(`https://api.msg91.com/api/sendhttp.php?${params.toString()}`);
+    const res = await fetch(`https://api.msg91.com/api/sendhttp.php?${params.toString()}`, {
+      signal: AbortSignal.timeout(10_000), // never hang a worker on a slow provider
+    });
     const text = await res.text();
     if (!res.ok || text.toLowerCase().includes('error')) {
       return { channel: this.channel, status: 'failed', error: text };

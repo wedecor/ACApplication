@@ -9,6 +9,8 @@ import type {
 } from '@ac/notifications';
 import { z } from 'zod';
 
+const PROVIDER_TIMEOUT_MS = 10_000;
+
 export interface WhatsAppConfig {
   phoneNumberId: string;
   accessToken: string;
@@ -61,6 +63,8 @@ export class WhatsAppClient implements NotificationTransport {
     WhatsAppMessageSchema.parse(body);
 
     const res = await fetch(`${this.baseUrl}/${this.config.phoneNumberId}/messages`, {
+      // Never hang a worker on a slow provider.
+      signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.config.accessToken}`,
