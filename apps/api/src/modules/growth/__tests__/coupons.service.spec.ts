@@ -77,7 +77,9 @@ describe('CouponsService.redeem', () => {
   it('claims a usage slot atomically and writes the redemption', async () => {
     const { service, tx } = build();
     const row = await service.redeem('t1', 'c1', 'WELCOME', { bookingId: 'b1', amountMinor: 10_000 });
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
+    // Per-customer lock, then the conditional usage-slot claim.
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(2);
+    expect((tx.$executeRaw.mock.calls[0] as unknown[])[0]).toEqual(expect.arrayContaining([expect.stringContaining('pg_advisory_xact_lock')]));
     expect(row).toMatchObject({ couponId: 'cp_1', customerId: 'c1', bookingId: 'b1', discountMinor: 5_000 });
   });
 
@@ -142,6 +144,6 @@ describe('CouponsService.applyBookingCouponToInvoice', () => {
     expect(tx.couponRedemption.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 'red_1' }, data: { deletedAt: expect.any(Date) } }),
     );
-    expect(tx.$executeRaw).toHaveBeenCalledTimes(2); // claim + release
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(3); // lock + claim + release
   });
 });

@@ -23,6 +23,7 @@ import type {
   StartCallDto,
   UpdateCallStatusDto,
 } from './dto/call.dto';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 @Injectable()
 export class CallCenterService {
@@ -108,6 +109,7 @@ export class CallCenterService {
     dto: UpdateCallStatusDto,
   ): Promise<void> {
     const call = await this.requireCall(tenantId, callLogId);
+    await assertIdsInTenant(this.prisma.client, tenantId, [['user', dto.agentUserId, 'Agent']]);
     const now = new Date();
     const data: Prisma.CallLogUpdateInput = {
       status: dto.status,

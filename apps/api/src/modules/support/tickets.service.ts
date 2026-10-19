@@ -47,6 +47,7 @@ import type {
   UpdateTicketDto,
 } from './dto/ticket.dto';
 import { ConversationsService } from './conversations.service';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 /**
  * Centralised owner of the SupportTicket lifecycle. Other services (SLA
@@ -178,6 +179,7 @@ export class TicketsService {
 
     let slaProfileChanged = false;
     if (dto.slaProfileId !== undefined && dto.slaProfileId !== ticket.slaProfileId) {
+      await assertIdsInTenant(this.prisma.client, actor.tenantId, [['sLAProfile', dto.slaProfileId, 'SLA profile']]);
       slaProfileChanged = true;
       data.slaProfile = dto.slaProfileId
         ? { connect: { id: dto.slaProfileId } }

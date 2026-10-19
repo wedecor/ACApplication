@@ -50,7 +50,15 @@ export class JwtAuthGuard implements CanActivate {
         throw new PermissionsStaleException();
       }
 
-      const fresh = await this.permissions.loadForUser(payload.sub);
+      const [fresh, sessionActive] = await Promise.all([
+        this.permissions.loadForUser(payload.sub),
+        this.permissions.isSessionActive(payload.sid),
+      ]);
+      // A revoked session or a suspended/deleted user (no roles loaded) is rejected
+      // immediately, not when the access token happens to expire.
+      if (!sessionActive || fresh.roles.length === 0) {
+        throw new UnauthorizedException('Session is no longer active');
+      }
       const principal: AuthPrincipal = {
         userId: payload.sub,
         tenantId: payload.tid,

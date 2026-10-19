@@ -13,6 +13,7 @@ import type {
   UpdateKbArticleDto,
   UpdateKbCategoryDto,
 } from './dto/kb.dto';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 @Injectable()
 export class KnowledgeBaseService {
@@ -73,7 +74,7 @@ export class KnowledgeBaseService {
     return this.prisma.client.knowledgeBaseArticle.create({
       data: {
         tenantId: actor.tenantId,
-        categoryId: dto.categoryId,
+        categoryId: dto.categoryId ? await this.categoryInTenant(actor.tenantId, dto.categoryId) : dto.categoryId,
         slug: dto.slug,
         title: dto.title,
         bodyMarkdown: dto.bodyMarkdown,
@@ -101,7 +102,7 @@ export class KnowledgeBaseService {
       excerpt: dto.excerpt,
       ...(dto.categoryId !== undefined
         ? dto.categoryId
-          ? { category: { connect: { id: dto.categoryId } } }
+          ? { category: { connect: { id: await this.categoryInTenant(actor.tenantId, dto.categoryId) } } }
           : { category: { disconnect: true } }
         : {}),
       visibility: dto.visibility,
@@ -114,6 +115,12 @@ export class KnowledgeBaseService {
       }
     }
     await this.prisma.client.knowledgeBaseArticle.update({ where: { id }, data });
+  }
+
+  /** The category id, after checking it belongs to the tenant (404 otherwise). */
+  private async categoryInTenant(tenantId: string, categoryId: string): Promise<string> {
+    await assertIdsInTenant(this.prisma.client, tenantId, [['knowledgeBaseCategory', categoryId, 'Category']]);
+    return categoryId;
   }
 
   async deleteArticle(actor: AuthPrincipal, id: string): Promise<void> {
@@ -198,8 +205,9 @@ export class KnowledgeBaseService {
     id: string,
     dto: KbFeedbackDto,
   ): Promise<void> {
+    // Anonymous feedback only counts on articles the public can actually see.
     const article = await this.prisma.client.knowledgeBaseArticle.findFirst({
-      where: { id, tenantId, deletedAt: null },
+      where: { id, tenantId, deletedAt: null, status: KbArticleStatus.PUBLISHED, visibility: KbVisibility.PUBLIC },
       select: { id: true },
     });
     if (!article) throw new NotFoundException('Article not found');

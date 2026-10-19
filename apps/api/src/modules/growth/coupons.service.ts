@@ -240,6 +240,9 @@ export class CouponsService {
         });
         if (prior) return prior;
       }
+      // Serialise redemptions per customer + code so the per-customer limit can't
+      // be beaten by parallel requests (the count below runs under this lock).
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`coupon:${tenantId}:${normaliseCouponCode(code)}:${customerId}`}))`;
       const check = await this.validate(tenantId, customerId, code, input, tx);
       if (!check.valid || !check.couponId) {
         throw new UnprocessableEntityException(check.message ?? 'Coupon is not valid');

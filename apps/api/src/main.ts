@@ -68,8 +68,8 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter(app.get(Logger)));
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // Swagger / OpenAPI.
-  if (process.env['NODE_ENV'] !== 'production') {
+  // Swagger / OpenAPI: local development, or wherever SWAGGER_ENABLED=true (never by default on staging).
+  if (process.env['NODE_ENV'] === 'development' || process.env['SWAGGER_ENABLED'] === 'true') {
     const config = new DocumentBuilder()
       .setTitle('AC Platform API')
       .setDescription('Service Operations Platform')

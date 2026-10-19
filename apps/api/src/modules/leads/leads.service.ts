@@ -26,6 +26,7 @@ import { CreateLeadDto } from './dto/create-lead.dto';
 import { ListLeadsDto } from './dto/list-leads.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { LeadsRepository } from './leads.repository';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 /**
  * Lead orchestrator — owns the state machine, audit/timeline writes and
@@ -60,6 +61,7 @@ export class LeadsService {
       });
     }
 
+    await assertIdsInTenant(this.prisma.client, actor.tenantId, [['city', dto.cityId, 'City']]);
     const code = await this.repo.nextCode(actor.tenantId);
 
     const lead = await this.prisma.client.$transaction(async (tx) => {
@@ -143,6 +145,7 @@ export class LeadsService {
       return dupe;
     }
 
+    await assertIdsInTenant(this.prisma.client, tenantId, [['city', dto.cityId, 'City']]);
     const code = await this.repo.nextCode(tenantId);
     const tags = Array.from(new Set([...(dto.tags ?? []), 'public:web']));
 
@@ -219,6 +222,7 @@ export class LeadsService {
     const changed = diff(lead as Record<string, unknown>, dto as Record<string, unknown>);
     if (Object.keys(changed).length === 0) return lead;
 
+    await assertIdsInTenant(this.prisma.client, actor.tenantId, [['city', dto.cityId, 'City']]);
     const updated = await this.prisma.client.$transaction(async (tx) => {
       const row = await this.repo.update(
         id,

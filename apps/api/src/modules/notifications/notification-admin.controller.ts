@@ -16,7 +16,7 @@ import type { LoadedServerEnv } from '@ac/config';
 
 import { APP_CONFIG } from '../../common/config/config.module';
 import { CurrentUser, Public, RequirePermissions } from '../../common/decorators';
-import { verifyBearerSecret } from '../../common/security/webhook-auth';
+import { verifyBearerSecret, isLocalDevelopment } from '../../common/security/webhook-auth';
 import { NotificationAdminService } from './notification-admin.service';
 
 @ApiTags('notifications-admin')
@@ -32,14 +32,10 @@ export class NotificationAdminController {
   @Header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8')
   @ApiOperation({ summary: 'Prometheus metrics scrape endpoint (bearer secret required)' })
   metrics(@Headers('authorization') authorization?: string) {
-    if (
-      !verifyBearerSecret(authorization, this.env.METRICS_SCRAPE_SECRET) &&
-      process.env['NODE_ENV'] === 'production'
-    ) {
+    // Open only in local development without a secret; staging/production need it.
+    const devOpen = isLocalDevelopment() && !this.env.METRICS_SCRAPE_SECRET;
+    if (!devOpen && !verifyBearerSecret(authorization, this.env.METRICS_SCRAPE_SECRET)) {
       throw new UnauthorizedException('Invalid metrics scrape credentials');
-    }
-    if (process.env['NODE_ENV'] === 'production' && !this.env.METRICS_SCRAPE_SECRET) {
-      throw new UnauthorizedException('Metrics scrape secret not configured');
     }
     return this.admin.getMetrics();
   }

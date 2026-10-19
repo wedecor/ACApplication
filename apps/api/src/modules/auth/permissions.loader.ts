@@ -17,6 +17,15 @@ export interface LoadedUserAuth {
 export class PermissionsLoader {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** False once the session is revoked (logout, sign-out-everywhere) or expired. */
+  async isSessionActive(sessionId: string): Promise<boolean> {
+    const session = await this.prisma.client.session.findUnique({
+      where: { id: sessionId },
+      select: { revokedAt: true, expiresAt: true },
+    });
+    return Boolean(session && !session.revokedAt && session.expiresAt > new Date());
+  }
+
   async loadForUser(userId: string): Promise<LoadedUserAuth> {
     const user = await this.prisma.client.user.findFirst({
       where: { id: userId, deletedAt: null, status: UserStatus.ACTIVE },

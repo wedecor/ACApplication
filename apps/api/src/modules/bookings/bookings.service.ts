@@ -40,6 +40,7 @@ import { ListBookingsDto } from './dto/list-bookings.dto';
 import { RescheduleBookingDto } from './dto/reschedule-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
 import { VerifyBookingOtpDto } from './dto/verify-otp.dto';
+import { assertIdsInTenant } from '../../common/tenant/tenant-scope';
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
@@ -74,6 +75,10 @@ export class BookingsService {
       select: { id: true },
     });
     if (!customer) throw new NotFoundException('Customer not found');
+    await assertIdsInTenant(this.prisma.client, actor.tenantId, [
+      ['city', dto.cityId, 'City'],
+      ['lead', dto.leadId, 'Lead'],
+    ]);
 
     const { appliance, catalogItem } = await this.resolveRepairLinks(actor.tenantId, {
       customerId: dto.customerId,
