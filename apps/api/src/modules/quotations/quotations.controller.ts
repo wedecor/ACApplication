@@ -37,6 +37,7 @@ export class QuotationsController {
 
   @Get()
   @RequirePermissions(Permission.QUOTATION_VIEW)
+  @ApiOperation({ summary: 'List quotations with pagination.' })
   async list(@CurrentUser() actor: AuthPrincipal, @Query() dto: ListQuotationsDto) {
     const result = await this.quotations.list(actor, dto);
     return {
@@ -47,6 +48,7 @@ export class QuotationsController {
 
   @Get(':id')
   @RequirePermissions(Permission.QUOTATION_VIEW)
+  @ApiOperation({ summary: 'Get quotation details by ID.' })
   get(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.quotations.get(actor, id);
   }
@@ -54,6 +56,7 @@ export class QuotationsController {
   @Post(':id/send')
   @RequirePermissions(Permission.QUOTATION_SEND)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send quotation to customer via email or SMS.' })
   send(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.quotations.send(actor, id);
   }
@@ -69,6 +72,7 @@ export class QuotationsController {
   @Post(':id/download-pdf')
   @RequirePermissions(Permission.QUOTATION_VIEW)
   @Header('Content-Type', 'application/pdf')
+  @ApiOperation({ summary: 'Download quotation document as PDF.' })
   async downloadPdf(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
