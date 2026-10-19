@@ -150,6 +150,12 @@ export const serverEnvSchema = z.object({
   // Rate limiting
   RATE_LIMIT_GLOBAL_RPS: z.coerce.number().int().min(1).default(100),
   /**
+   * Shared secret the website's server-side proxy sends as x-internal-token on
+   * public endpoints (leads, web chat). When set, direct calls to lead intake
+   * are refused and proxied calls are rate-limited by the proxy per visitor.
+   */
+  PUBLIC_LEAD_API_TOKEN: z.string().min(32).optional(),
+  /**
    * Which proxies to trust for the client IP (rate limits, audit). "false" =
    * use the socket address; a number = trusted hop count; otherwise a
    * comma-separated list of proxy IPs/CIDRs. Never "true" — that lets clients

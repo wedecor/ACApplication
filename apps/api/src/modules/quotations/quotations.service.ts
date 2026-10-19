@@ -11,6 +11,8 @@
  * Expiry is handled by a cron in the SLA-like financial sweep.
  */
 
+import { randomBytes } from 'node:crypto';
+
 import {
   BadRequestException,
   ConflictException,
@@ -93,6 +95,9 @@ export class QuotationsService {
       data: {
         tenantId: actor.tenantId,
         number,
+        // The view token is the customer's credential for view/approve/decline:
+        // 256 random bits, not the default (time-ordered, partly predictable) cuid.
+        viewToken: randomBytes(32).toString('base64url'),
         customerId: dto.customerId,
         bookingId: dto.bookingId ?? null,
         leadId: dto.leadId ?? null,

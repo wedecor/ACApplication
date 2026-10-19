@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { env } from '@/env';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
+import { upstreamHeaders } from '@/lib/upstream-headers';
 
 /**
  * `/api/lead` — public lead-intake proxy.
@@ -91,12 +92,9 @@ export async function POST(req: Request) {
       headers: {
         'content-type': 'application/json',
         'x-ac-tenant': process.env['NEXT_PUBLIC_TENANT_SLUG'] ?? 'default',
-        ...(process.env['PUBLIC_LEAD_API_TOKEN']
-          ? { 'x-internal-token': process.env['PUBLIC_LEAD_API_TOKEN']! }
-          : {}),
         ...(req.headers.get('user-agent') ? { 'user-agent': req.headers.get('user-agent')! } : {}),
         ...(req.headers.get('referer') ? { referer: req.headers.get('referer')! } : {}),
-        'x-forwarded-for': ip,
+        ...upstreamHeaders(ip),
       },
       body: JSON.stringify(parsed.data),
     });

@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Post, Req, UnauthorizedException } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 
 import { Public } from '../../common/decorators';
+import { clientIpOf, isTrustedProxyRequest } from '../../common/security/internal-proxy';
 import { PublicLeadIntakeDto } from './dto/public-lead.dto';
 import { PublicIntakeService } from './public-intake.service';
 
@@ -39,8 +40,11 @@ export class PublicIntakeController {
     @Headers('user-agent') userAgent?: string,
     @Headers('x-ac-tenant') tenantSlug?: string,
   ) {
-    const ip =
-      (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ?? req.ip ?? null;
+    // With the proxy token configured, only the website's proxy may submit leads.
+    if (process.env['PUBLIC_LEAD_API_TOKEN'] && !isTrustedProxyRequest(req)) {
+      throw new UnauthorizedException('Lead intake is only available through the website');
+    }
+    const ip = clientIpOf(req);
     return this.intake.createLead(dto, {
       ip,
       userAgent: userAgent ?? null,

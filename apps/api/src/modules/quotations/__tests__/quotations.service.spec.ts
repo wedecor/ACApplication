@@ -177,6 +177,12 @@ describe('QuotationsService.create', () => {
     expect(data.placeOfSupply).toBe(HOME_STATE);
   });
 
+  it('issues a high-entropy view token', async () => {
+    const { svc, client } = buildService();
+    await svc.create(actor, dto());
+    expect(client.quotation.create.mock.calls[0][0].data.viewToken).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
   it('stores a null place of supply when none is given', async () => {
     const { svc, client } = buildService();
     await svc.create(actor, dto());

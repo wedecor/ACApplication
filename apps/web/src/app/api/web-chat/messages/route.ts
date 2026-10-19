@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { env, siteConfig } from '@/env';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
+import { upstreamHeaders } from '@/lib/upstream-headers';
 
 /**
  * `/api/web-chat/messages` — proxy for web-chat send + poll.
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
       headers: {
         'content-type': 'application/json',
         'x-ac-tenant': siteConfig.defaultTenantSlug,
-        'x-forwarded-for': ip,
+        ...upstreamHeaders(ip),
       },
       body: JSON.stringify({ body: parsed.data.body }),
     });
@@ -99,7 +100,7 @@ export async function GET(req: Request) {
   if (after) url.searchParams.set('after', after);
   try {
     const upstream = await fetch(url.toString(), {
-      headers: { 'x-ac-tenant': siteConfig.defaultTenantSlug },
+      headers: { 'x-ac-tenant': siteConfig.defaultTenantSlug, ...upstreamHeaders(ip) },
       cache: 'no-store',
     });
     const json = await upstream.json().catch(() => null);

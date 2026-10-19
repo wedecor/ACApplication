@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ClsModule } from 'nestjs-cls';
 
 import { RedisService } from './common/redis/redis.service';
+import { AppThrottlerGuard } from './common/throttle/app-throttler.guard';
 import { RedisThrottlerStorage } from './common/throttle/redis-throttler.storage';
 
 import { ActivityModule } from './modules/activity/activity.module';
@@ -132,7 +133,7 @@ import { TracingInterceptor } from './common/interceptors/tracing.interceptor';
     PublicIntakeModule,
   ],
   providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: AppThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: TracingInterceptor },
   ],
 })

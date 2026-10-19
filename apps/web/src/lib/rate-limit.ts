@@ -66,14 +66,16 @@ if (typeof globalThis !== 'undefined') {
 }
 
 /**
- * Convenience helper: resolve the client IP from common forwarding
- * headers. Falls back to `unknown` for in-memory bucketing.
+ * Client IP for rate limiting. The left end of X-Forwarded-For is whatever the
+ * client sent, so we read from the right: each trusted proxy in front of this
+ * app (TRUSTED_PROXY_HOPS, default 1) appends the address it received from.
  */
-export function getClientIp(req: Request): string {
-  const headers = req.headers;
-  const fwd = headers.get('x-forwarded-for');
-  if (fwd) return fwd.split(',')[0]!.trim();
-  return (
-    headers.get('x-real-ip') ?? headers.get('cf-connecting-ip') ?? 'unknown'
-  );
+export function getClientIp(req: Request, hops = Number(process.env['TRUSTED_PROXY_HOPS'] ?? 1)): string {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd && hops > 0) {
+    const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean);
+    const ip = parts[parts.length - hops] ?? parts[0];
+    if (ip) return ip;
+  }
+  return req.headers.get('x-real-ip') ?? 'unknown';
 }

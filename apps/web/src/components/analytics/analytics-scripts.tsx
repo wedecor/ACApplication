@@ -1,8 +1,10 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 
 import { siteConfig } from '@/env';
+import { isTaskPage } from '@/lib/routes';
 
 /**
  * Loads GA4, GTM, and Meta Pixel scripts using Next's `<Script>`
@@ -16,6 +18,9 @@ import { siteConfig } from '@/env';
  */
 export function AnalyticsScripts() {
   const { gaId, gtmId, metaPixelId } = siteConfig.analytics;
+  // Quotation and rating URLs carry the link's credential; page-view tags would
+  // send the full URL (token included) to Google and Meta. Load nothing there.
+  if (isTaskPage(usePathname())) return null;
 
   return (
     <>
