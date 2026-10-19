@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.11.0
+          node-version: 22.x
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -81,13 +81,16 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.11.0
+          node-version: 22.x
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm db:generate
       - run: pnpm --filter @ac/database migrate:deploy
+      - run: pnpm --filter @ac/database seed
       - run: pnpm test
+      # API end-to-end tests against the real Postgres + Redis services above.
+      - run: pnpm --filter @ac/database build && pnpm --filter @ac/api test:e2e
 
   build:
     name: Build
@@ -102,7 +105,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.11.0
+          node-version: 22.x
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile

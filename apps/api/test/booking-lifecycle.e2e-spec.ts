@@ -160,6 +160,15 @@ describe('Booking lifecycle (e2e)', () => {
       if (userId !== actorUser.id) throw new Error('unexpected user in e2e');
       return { roles: [UserRole.SUPER_ADMIN], permissions: Object.values(Permission) };
     });
+    // The guard requires a live session row for the token's sid (revocation check).
+    await prisma.session.create({
+      data: {
+        id: `e2e-${RUN}`,
+        userId: actorUser.id,
+        refreshTokenHash: `e2e-refresh-${RUN}`,
+        expiresAt: new Date(Date.now() + 3_600_000),
+      },
+    });
     const pair = await app.get(TokenService).issueTokens(
       {
         sub: actorUser.id,
