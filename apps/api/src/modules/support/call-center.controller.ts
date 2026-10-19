@@ -34,6 +34,7 @@ export class CallCenterController {
 
   @Get()
   @RequirePermissions(Permission.CALL_VIEW)
+  @ApiOperation({ summary: 'List call center logs with pagination.' })
   async list(@CurrentUser() actor: AuthPrincipal, @Query() dto: ListCallsDto) {
     const r = await this.calls.list(actor, dto);
     return { items: r.items, meta: buildPaginationMeta(r.page, r.pageSize, r.total) };
@@ -48,6 +49,7 @@ export class CallCenterController {
 
   @Get(':id')
   @RequirePermissions(Permission.CALL_VIEW)
+  @ApiOperation({ summary: 'Get call log details by ID.' })
   get(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.calls.get(actor, id);
   }
@@ -72,6 +74,7 @@ export class CallCenterController {
 
   @Post(':id/disposition')
   @RequirePermissions(Permission.CALL_DISPOSITION)
+  @ApiOperation({ summary: 'Set call outcome disposition and notes.' })
   setDisposition(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -82,6 +85,7 @@ export class CallCenterController {
 
   @Post(':id/recordings')
   @RequirePermissions(Permission.CALL_MANAGE)
+  @ApiOperation({ summary: 'Attach a call audio recording to a call log.' })
   addRecording(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -115,6 +119,7 @@ export class CallWebhookController {
 
   @Public()
   @Post(':tenantId/start')
+  @ApiOperation({ summary: 'Provider webhook to initiate an incoming or outgoing call session.' })
   start(
     @Headers('authorization') authorization: string | undefined,
     @Param('tenantId') tenantId: string,
@@ -126,6 +131,7 @@ export class CallWebhookController {
 
   @Public()
   @Post(':tenantId/status/:callLogId')
+  @ApiOperation({ summary: 'Provider webhook to update call session status.' })
   status(
     @Headers('authorization') authorization: string | undefined,
     @Param('tenantId') tenantId: string,
@@ -138,6 +144,7 @@ export class CallWebhookController {
 
   @Public()
   @Post(':tenantId/recording/:callLogId')
+  @ApiOperation({ summary: 'Provider webhook to receive completed call recording URL.' })
   recording(
     @Headers('authorization') authorization: string | undefined,
     @Param('tenantId') tenantId: string,
