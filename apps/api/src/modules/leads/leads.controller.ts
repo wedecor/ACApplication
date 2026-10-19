@@ -101,6 +101,7 @@ export class LeadsController {
 
   @Get(':id/notes')
   @RequirePermissions(Permission.LEAD_VIEW)
+  @ApiOperation({ summary: 'List notes for a lead.' })
   listNotes(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.leads.listNotes(actor, id);
   }
@@ -115,6 +116,7 @@ export class LeadsController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @RequirePermissions(Permission.LEAD_DELETE)
+  @ApiOperation({ summary: 'Soft-delete a lead by ID.' })
   remove(@CurrentUser() _actor: AuthPrincipal, @Param('id') _id: string): void {
     // Soft-delete handled by Prisma extension; service-level retention checks
     // (e.g. cannot delete leads with bookings) wired in the next iteration.
