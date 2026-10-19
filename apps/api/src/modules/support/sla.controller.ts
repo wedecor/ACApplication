@@ -23,18 +23,21 @@ export class SlaController {
 
   @Get('profiles')
   @RequirePermissions(Permission.SLA_VIEW)
+  @ApiOperation({ summary: 'List SLA policy profiles.' })
   list(@CurrentUser() actor: AuthPrincipal) {
     return this.sla.listProfiles(actor);
   }
 
   @Post('profiles')
   @RequirePermissions(Permission.SLA_MANAGE)
+  @ApiOperation({ summary: 'Create a new SLA policy profile.' })
   create(@CurrentUser() actor: AuthPrincipal, @Body() dto: SlaProfileDto) {
     return this.sla.createProfile(actor, dto);
   }
 
   @Put('profiles/:id')
   @RequirePermissions(Permission.SLA_MANAGE)
+  @ApiOperation({ summary: 'Update an existing SLA policy profile.' })
   update(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -45,6 +48,7 @@ export class SlaController {
 
   @Delete('profiles/:id')
   @RequirePermissions(Permission.SLA_MANAGE)
+  @ApiOperation({ summary: 'Delete an SLA policy profile.' })
   remove(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.sla.deleteProfile(actor, id);
   }
