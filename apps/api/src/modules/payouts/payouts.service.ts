@@ -226,8 +226,8 @@ export class PayoutsService {
     );
 
     const code = `PAY-${periodStart.toISOString().slice(0, 7)}-${randomUUID().slice(0, 6)}`.toUpperCase();
-    return this.prisma.client.$transaction(async (tx) => {
-      const payout = await tx.technicianPayout.create({
+    const payout = await this.prisma.client.$transaction(async (tx) => {
+      const created = await tx.technicianPayout.create({
         data: {
           tenantId: actor.tenantId,
           technicianId: dto.technicianId,
@@ -244,17 +244,24 @@ export class PayoutsService {
           notes: dto.notes ?? null,
         },
       });
-      await tx.technicianCommission.updateMany({
-        where: { id: { in: accruals.map((a) => a.id) } },
-        data: { payoutId: payout.id },
+      // Claim only commissions that are still unsettled. If a concurrent run (two
+      // admins, or the weekly cron on two instances) took any, roll back.
+      const claimed = await tx.technicianCommission.updateMany({
+        where: { id: { in: accruals.map((a) => a.id) }, payoutId: null },
+        data: { payoutId: created.id },
       });
-      this.events.publish(DomainEventName.PayoutCreated, {
-        payoutId: payout.id,
-        technicianId: payout.technicianId,
-        netMinor: payout.netMinor,
-      } as never);
-      return payout;
+      if (claimed.count !== accruals.length) {
+        throw new ConflictException('These commissions are already part of another payout');
+      }
+      return created;
     });
+    // Published after commit so listeners never see a rolled-back payout.
+    this.events.publish(DomainEventName.PayoutCreated, {
+      payoutId: payout.id,
+      technicianId: payout.technicianId,
+      netMinor: payout.netMinor,
+    } as never);
+    return payout;
   }
 
   async approve(actor: AuthPrincipal, id: string, dto: ApprovePayoutDto) {
@@ -265,8 +272,8 @@ export class PayoutsService {
     if (payout.status !== PayoutStatus.PENDING) {
       throw new ConflictException(`Payout is ${payout.status}; only PENDING can be approved`);
     }
-    const updated = await this.prisma.client.technicianPayout.update({
-      where: { id },
+    const claimed = await this.prisma.client.technicianPayout.updateMany({
+      where: { id, tenantId: actor.tenantId, status: PayoutStatus.PENDING },
       data: {
         status: PayoutStatus.APPROVED,
         approvedBy: actor.userId,
@@ -278,6 +285,8 @@ export class PayoutsService {
           : payout.notes,
       },
     });
+    if (claimed.count !== 1) throw new ConflictException('Payout was changed by someone else; reload and retry');
+    const updated = await this.prisma.client.technicianPayout.findUniqueOrThrow({ where: { id } });
     this.events.publish(DomainEventName.PayoutApproved, {
       payoutId: id,
       approvedBy: actor.userId,
@@ -295,14 +304,16 @@ export class PayoutsService {
       throw new ConflictException('Only APPROVED / PROCESSING payouts can be paid');
     }
     return this.prisma.client.$transaction(async (tx) => {
-      const updated = await tx.technicianPayout.update({
-        where: { id },
+      const claimed = await tx.technicianPayout.updateMany({
+        where: { id, tenantId: actor.tenantId, status: { in: [...allowedStatuses] } },
         data: {
           status: PayoutStatus.PAID,
           paymentRef: dto.paymentRef ?? null,
           paidAt: new Date(),
         },
       });
+      if (claimed.count !== 1) throw new ConflictException('Payout was already paid or changed');
+      const updated = await tx.technicianPayout.findUniqueOrThrow({ where: { id } });
       await tx.technicianCommission.updateMany({
         where: { payoutId: id },
         data: { status: CommissionStatus.PAID },
@@ -315,11 +326,18 @@ export class PayoutsService {
     });
   }
 
-  async fail(_actor: AuthPrincipal, id: string, reason: string) {
-    const updated = await this.prisma.client.technicianPayout.update({
-      where: { id },
+  async fail(actor: AuthPrincipal, id: string, reason: string) {
+    // Tenant-scoped and only from a not-yet-paid state (was update-by-id across tenants).
+    const claimed = await this.prisma.client.technicianPayout.updateMany({
+      where: {
+        id,
+        tenantId: actor.tenantId,
+        status: { in: [PayoutStatus.PENDING, PayoutStatus.APPROVED, PayoutStatus.PROCESSING] },
+      },
       data: { status: PayoutStatus.FAILED, failureReason: reason },
     });
+    if (claimed.count !== 1) throw new NotFoundException('Payout not found or already settled');
+    const updated = await this.prisma.client.technicianPayout.findUniqueOrThrow({ where: { id } });
     this.events.publish(DomainEventName.PayoutFailed, {
       payoutId: id,
       reason,

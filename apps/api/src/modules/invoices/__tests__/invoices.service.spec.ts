@@ -929,6 +929,30 @@ describe('InvoicesService.refund', () => {
 });
 
 // ---------------------------------------------------------------------------
+describe('InvoicesService.reverseFailedRefund', () => {
+  it('voids the credit note, restores the balance and offsets the ledger', async () => {
+    const { svc, tx, ledger } = buildService();
+    tx.refund.findFirst.mockResolvedValue({ id: 'ref_1', status: RefundStatus.PROCESSING, amountMinor: 4_000, invoiceId: 'inv_1', customerId: 'cust_1', creditNoteId: 'cn_1' });
+    tx.invoice.findFirstOrThrow = jest.fn().mockResolvedValue({
+      id: 'inv_1', number: 'INV-X', totalMinor: 10_000, amountPaidMinor: 4_000, amountRefundedMinor: 4_000, status: InvoiceStatus.SENT,
+    });
+    tx.creditNote.aggregate.mockResolvedValue({ _sum: { amountMinor: 0 } });
+    await svc.reverseFailedRefund(actor, 'ref_1', 'gateway said no');
+    expect(tx.refund.update.mock.calls[0][0].data).toMatchObject({ status: RefundStatus.FAILED });
+    expect(tx.creditNote.update).toHaveBeenCalledWith({ where: { id: 'cn_1' }, data: { status: CreditNoteStatus.VOID } });
+    expect(tx.invoice.update.mock.calls[0][0].data).toEqual({ amountRefundedMinor: 0, status: InvoiceStatus.PARTIALLY_PAID, dueAmountMinor: 6_000 });
+    expect(ledger.post.mock.calls[0][0]).toMatchObject({ entryType: LedgerEntryType.ADJUSTMENT, externalRef: 'refund:ref_1:reversed' });
+  });
+
+  it('is a no-op for refunds already marked failed', async () => {
+    const { svc, tx } = buildService();
+    tx.refund.findFirst.mockResolvedValue({ id: 'ref_1', status: RefundStatus.FAILED, invoiceId: 'inv_1' });
+    await svc.reverseFailedRefund(actor, 'ref_1', 'x');
+    expect(tx.refund.update).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
 describe('refundedBalance', () => {
   const base = { totalMinor: 10_000, amountPaidMinor: 10_000, amountRefundedMinor: 0, creditedMinor: 0, status: InvoiceStatus.PAID };
 

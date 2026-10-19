@@ -19,6 +19,7 @@ import {
   AdjustCommissionDto,
   ApprovePayoutDto,
   CreatePayoutDto,
+  FailPayoutDto,
   MarkPayoutPaidDto,
   UpsertCommissionRuleDto,
 } from './dto/payouts.dto';
@@ -114,7 +115,7 @@ export class PayoutsController {
   fail(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
-    @Body() body: { reason: string },
+    @Body() body: FailPayoutDto,
   ) {
     return this.payouts.fail(actor, id, body.reason);
   }

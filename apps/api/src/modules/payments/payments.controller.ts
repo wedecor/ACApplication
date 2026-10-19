@@ -20,6 +20,7 @@ import { CurrentUser, Public, RequirePermissions } from '../../common/decorators
 import { buildPaginationMeta } from '../../common/dto/pagination.dto';
 import { CreatePaymentLinkDto } from './dto/create-payment-link.dto';
 import { ListPaymentsDto } from './dto/list-payments.dto';
+import { RefundPaymentDto } from './dto/refund-payment.dto';
 import { PaymentsService } from './payments.service';
 
 @ApiTags('payments')
@@ -50,9 +51,9 @@ export class PaymentsController {
   refundPayment(
     @CurrentUser() actor: AuthPrincipal,
     @Param('paymentId') paymentId: string,
-    @Body() body: { amountMinor: number; reason?: string },
+    @Body() body: RefundPaymentDto,
   ) {
-    return this.payments.refundPayment(actor, paymentId, body.amountMinor, body.reason);
+    return this.payments.refundPayment(actor, paymentId, body);
   }
 
   // -------- Webhooks (no auth — verified by signature) --------

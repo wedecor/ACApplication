@@ -590,6 +590,9 @@ export class InvoicesService {
         : invoice.payments[0];
       if (!payment) throw new BadRequestException('No settled payment available to refund');
 
+      // Serialise refunds on this payment so concurrent requests can't both pass the cap.
+      await tx.$queryRaw`SELECT id FROM "payments" WHERE id = ${payment.id} FOR UPDATE`;
+
       const alreadyRefunded = await tx.refund.aggregate({
         where: {
           paymentId: payment.id,
@@ -698,6 +701,61 @@ export class InvoicesService {
       } as never);
 
       return { invoice: updated, refund, creditNote };
+    });
+  }
+
+  /**
+   * Undo the bookkeeping of a refund the gateway rejected: mark it FAILED, void
+   * its credit note, restore the invoice balance and post an offsetting ledger
+   * entry. Idempotent per refund (ledger external ref + status guard).
+   */
+  async reverseFailedRefund(actor: AuthPrincipal, refundId: string, failureReason: string) {
+    return this.prisma.client.$transaction(async (tx) => {
+      const refund = await tx.refund.findFirst({
+        where: { id: refundId, tenantId: actor.tenantId },
+        select: { id: true, status: true, amountMinor: true, invoiceId: true, customerId: true, creditNoteId: true },
+      });
+      if (!refund || refund.status === RefundStatus.FAILED || !refund.invoiceId) return;
+
+      await tx.refund.update({
+        where: { id: refund.id },
+        data: { status: RefundStatus.FAILED, failureReason: failureReason.slice(0, 500) },
+      });
+      if (refund.creditNoteId) {
+        await tx.creditNote.update({ where: { id: refund.creditNoteId }, data: { status: CreditNoteStatus.VOID } });
+      }
+
+      const invoice = await tx.invoice.findFirstOrThrow({ where: { id: refund.invoiceId } });
+      const newRefunded = Math.max(0, invoice.amountRefundedMinor - refund.amountMinor);
+      const credited = await tx.creditNote.aggregate({
+        where: { invoiceId: invoice.id, status: { in: [CreditNoteStatus.ISSUED, CreditNoteStatus.APPLIED] } },
+        _sum: { amountMinor: true },
+      });
+      const balance = refundedBalance({
+        totalMinor: invoice.totalMinor,
+        amountPaidMinor: invoice.amountPaidMinor,
+        amountRefundedMinor: newRefunded,
+        creditedMinor: credited._sum.amountMinor ?? 0,
+        status: invoice.status as InvoiceStatus,
+      });
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: { amountRefundedMinor: newRefunded, status: balance.status, dueAmountMinor: balance.dueAmountMinor },
+      });
+      await this.ledger.post(
+        {
+          tenantId: actor.tenantId,
+          customerId: refund.customerId,
+          entryType: LedgerEntryType.ADJUSTMENT,
+          direction: LedgerEntryDirection.CREDIT,
+          amountMinor: refund.amountMinor,
+          description: `Refund reversed (gateway rejected) for invoice ${invoice.number}`,
+          invoiceId: invoice.id,
+          refundId: refund.id,
+          externalRef: `refund:${refund.id}:reversed`,
+        },
+        tx,
+      );
     });
   }
 

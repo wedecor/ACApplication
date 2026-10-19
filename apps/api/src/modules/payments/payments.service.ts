@@ -66,6 +66,7 @@ import type {
 } from './providers/payment-provider.interface';
 import { RazorpayProvider } from './providers/razorpay.provider';
 import { StripeProvider } from './providers/stripe.provider';
+import type { RefundPaymentDto } from './dto/refund-payment.dto';
 
 const PREFERRED_PROVIDER = (process.env.PAYMENTS_PROVIDER ?? 'razorpay').toLowerCase() as
   | 'razorpay'
@@ -553,15 +554,16 @@ export class PaymentsService {
    * the gateway. UI typically calls `invoice.refund` and that internally
    * fires this for gateway-backed payments.
    */
-  async refundPayment(
-    actor: AuthPrincipal,
-    paymentId: string,
-    amountMinor: number,
-    reason?: string,
-  ) {
+  /**
+   * Gateway refund for a captured payment. The refund is first reserved through
+   * the invoice (amount capped by what's left on the payment, under a row lock;
+   * credit note, ledger and invoice balance updated), then sent to the gateway
+   * with the refund id as the idempotency key. A gateway failure marks it FAILED.
+   */
+  async refundPayment(actor: AuthPrincipal, paymentId: string, dto: RefundPaymentDto) {
     const payment = await this.prisma.client.payment.findFirst({
       where: { id: paymentId, tenantId: actor.tenantId },
-      include: { transaction: true, invoice: true },
+      include: { transaction: true },
     });
     if (!payment) throw new NotFoundException('Payment not found');
     if (payment.status !== PaymentStatus.CAPTURED) {
@@ -571,31 +573,34 @@ export class PaymentsService {
       throw new BadRequestException('Cash / manual payments must use invoice.refund only');
     }
 
-    const provider = this.provider(payment.transaction.provider as 'razorpay' | 'stripe');
-    const idem = `refund_${paymentId}_${Date.now()}`;
-    const result = await provider.issueRefund({
-      paymentRef: payment.transaction.paymentRef ?? payment.gatewayRef ?? '',
-      amountMinor,
-      notes: reason,
-      idempotencyKey: idem,
+    const reserved = await this.invoices.refund(actor, payment.invoiceId, {
+      paymentId,
+      amountMinor: dto.amountMinor,
+      reason: dto.reason,
+      issueCreditNote: dto.issueCreditNote,
     });
 
-    const refund = await this.prisma.client.refund.create({
+    const provider = this.provider(payment.transaction.provider as 'razorpay' | 'stripe');
+    let result: Awaited<ReturnType<PaymentProvider['issueRefund']>>;
+    try {
+      result = await provider.issueRefund({
+        paymentRef: payment.transaction.paymentRef ?? payment.gatewayRef ?? '',
+        amountMinor: dto.amountMinor,
+        notes: dto.reason,
+        idempotencyKey: `refund_${reserved.refund.id}`,
+      });
+    } catch (err) {
+      await this.invoices.reverseFailedRefund(actor, reserved.refund.id, (err as Error).message);
+      throw new BadRequestException('The payment gateway rejected the refund');
+    }
+
+    const refund = await this.prisma.client.refund.update({
+      where: { id: reserved.refund.id },
       data: {
-        tenantId: actor.tenantId,
-        paymentId,
-        invoiceId: payment.invoiceId,
         transactionId: payment.transactionId,
-        customerId: payment.invoice.customerId,
-        amountMinor,
-        status:
-          result.status === 'completed'
-            ? RefundStatus.COMPLETED
-            : RefundStatus.PROCESSING,
+        status: result.status === 'completed' ? RefundStatus.COMPLETED : RefundStatus.PROCESSING,
         gatewayRef: result.refundRef,
         gatewayPayload: result.rawPayload as Prisma.InputJsonValue,
-        reason: reason ?? null,
-        requestedBy: actor.userId,
         approvedBy: actor.userId,
         processedAt: result.status === 'completed' ? new Date() : null,
       },
@@ -605,7 +610,7 @@ export class PaymentsService {
       refundId: refund.id,
       invoiceId: refund.invoiceId,
       customerId: refund.customerId,
-      amountMinor,
+      amountMinor: dto.amountMinor,
       status: refund.status,
     } as never);
     return refund;

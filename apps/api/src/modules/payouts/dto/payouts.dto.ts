@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 import { CommissionType, PayoutCycle } from '@ac/types';
 
@@ -31,7 +31,10 @@ export class UpsertCommissionRuleDto {
 }
 
 export class AdjustCommissionDto {
+  /** Signed paise; one adjustment is capped at ±₹1,00,000 to catch typos. */
   @IsInt()
+  @Min(-10_000_000)
+  @Max(10_000_000)
   adjustmentMinor!: number;
 
   @IsOptional()
@@ -75,4 +78,10 @@ export class MarkPayoutPaidDto {
   @IsString()
   @MaxLength(500)
   notes?: string;
+}
+
+export class FailPayoutDto {
+  @IsString()
+  @MaxLength(500)
+  reason!: string;
 }
