@@ -1,7 +1,7 @@
 /**
  * Small utilities shared across pages.
  */
-export function cn(...inputs: Array<string | undefined | null | false>): string {
+export function cn(...inputs: (string | undefined | null | false)[]): string {
   return inputs.filter(Boolean).join(' ');
 }
 

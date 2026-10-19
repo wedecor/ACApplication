@@ -21,8 +21,8 @@ if (dsn) {
       return event;
     },
     beforeBreadcrumb(crumb) {
-      if (typeof crumb.data?.['url'] === 'string') crumb.data['url'] = scrubUrl(crumb.data['url']);
-      if (typeof crumb.data?.['to'] === 'string') crumb.data['to'] = scrubUrl(crumb.data['to']);
+      if (typeof crumb.data?.url === 'string') crumb.data.url = scrubUrl(crumb.data.url);
+      if (typeof crumb.data?.to === 'string') crumb.data.to = scrubUrl(crumb.data.to);
       return crumb;
     },
   });

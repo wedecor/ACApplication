@@ -45,7 +45,9 @@ export function ExitIntentSheet() {
       setOpen(true);
       try {
         sessionStorage.setItem(STORAGE_KEY, '1');
-      } catch {}
+      } catch {
+        // Storage blocked — the sheet may show again next visit.
+      }
       track(Events.ExitIntentShown);
       document.removeEventListener('mouseout', onMouseOut);
     };
@@ -89,7 +91,7 @@ export function ExitIntentSheet() {
           Wait — get 10% off your first repair
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Book in the next 10 minutes and we'll send a verified technician with a transparent
+          Book in the next 10 minutes and we&apos;ll send a verified technician with a transparent
           quote on WhatsApp before any work starts.
         </p>
         <div className="mt-5 flex flex-col gap-2">

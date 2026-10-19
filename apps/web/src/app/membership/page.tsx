@@ -1,8 +1,7 @@
+import { Badge, Button } from '@ac/ui';
+import { Check, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Check, ShieldCheck, Sparkles, Zap } from 'lucide-react';
-
-import { Badge, Button } from '@ac/ui';
 
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';

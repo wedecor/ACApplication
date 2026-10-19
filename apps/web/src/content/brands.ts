@@ -20,7 +20,7 @@ export interface Brand {
   /** Headline marketing line. */
   tagline: string;
   /** Common error codes — fuels long-tail "lg ac error code e1" queries. */
-  commonErrorCodes?: Array<{ code: string; meaning: string }>;
+  commonErrorCodes?: { code: string; meaning: string }[];
   /** Models we explicitly support — surfaces in SEO copy. */
   popularModels?: string[];
   /** Trust line — total repairs done for this brand. */

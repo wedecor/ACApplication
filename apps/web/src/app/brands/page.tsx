@@ -33,7 +33,7 @@ export default function BrandsIndex() {
           {BRANDS.map((brand) => (
             <Link
               key={brand.slug}
-              href={`/brands/${brand.slug}` as never}
+              href={`/brands/${brand.slug}`}
               className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
             >
               <h2 className="text-base font-semibold">{brand.name}</h2>

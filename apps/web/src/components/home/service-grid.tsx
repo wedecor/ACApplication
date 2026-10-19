@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { SERVICES, type Service } from '@/content/services';
+import { type Service,SERVICES } from '@/content/services';
 import { Events, track } from '@/lib/analytics';
 
 const ICONS: Record<Service['icon'], React.ComponentType<{ className?: string }>> = {

@@ -1,6 +1,5 @@
-import { Star } from 'lucide-react';
-
 import { Badge } from '@ac/ui';
+import { Star } from 'lucide-react';
 
 import { FEATURED_TECHNICIANS } from '@/content/technicians';
 import { formatNumber } from '@/lib/utils';

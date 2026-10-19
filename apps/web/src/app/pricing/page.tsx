@@ -1,7 +1,6 @@
+import { Badge, Button } from '@ac/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-
-import { Badge, Button } from '@ac/ui';
 
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';

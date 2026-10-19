@@ -22,7 +22,7 @@ const SendSchema = z.object({
 
 function upstreamBase(): string {
   return (
-    process.env['WEB_INTERNAL_API_URL'] ??
+    process.env.WEB_INTERNAL_API_URL ??
     env.NEXT_PUBLIC_API_URL ??
     'http://localhost:4000'
   );
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({ body: parsed.data.body }),
     });
-    const json = await upstream.json().catch(() => null);
+    const json: unknown = await upstream.json().catch(() => null);
     const data =
       json && typeof json === 'object' && 'data' in (json as Record<string, unknown>)
         ? (json as { data: unknown }).data
@@ -103,7 +103,7 @@ export async function GET(req: Request) {
       headers: { 'x-ac-tenant': siteConfig.defaultTenantSlug, ...upstreamHeaders(ip) },
       cache: 'no-store',
     });
-    const json = await upstream.json().catch(() => null);
+    const json: unknown = await upstream.json().catch(() => null);
     const data =
       json && typeof json === 'object' && 'data' in (json as Record<string, unknown>)
         ? (json as { data: unknown }).data

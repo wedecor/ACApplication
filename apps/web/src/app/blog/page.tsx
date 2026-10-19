@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { getAllPosts } from '@/content/blog';
-import { buildMetadata } from '@/lib/seo/metadata';
 import { formatDate } from '@/lib/blog-format';
+import { buildMetadata } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Appliance Care Blog — Maintenance Tips, Repair Guides & Comparisons',
@@ -53,7 +53,7 @@ export default async function BlogIndex() {
                   {post.category}
                 </span>
                 <h2 className="text-lg font-semibold">
-                  <Link href={`/blog/${post.slug}` as never} className="hover:text-primary">
+                  <Link href={`/blog/${post.slug}`} className="hover:text-primary">
                     {post.title}
                   </Link>
                 </h2>

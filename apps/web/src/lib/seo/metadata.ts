@@ -115,7 +115,7 @@ function resolveImage(image: string): string {
 }
 
 /** Helper to deduplicate keyword arrays while preserving order. */
-export function uniqKeywords(...lists: Array<string[] | undefined>): string[] {
+export function uniqKeywords(...lists: (string[] | undefined)[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
   for (const list of lists) {

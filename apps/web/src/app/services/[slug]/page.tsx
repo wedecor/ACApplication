@@ -11,7 +11,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
   return getAllServiceSlugs().map((slug) => ({ slug }));
 }
 

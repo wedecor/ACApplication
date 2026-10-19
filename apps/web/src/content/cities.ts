@@ -175,7 +175,7 @@ export function findAreaAnywhere(slug: string): { city: City; area: CityArea } |
 }
 
 /** Used by /sitemap.xml + generateStaticParams. */
-export function getAllCityAreaSlugs(): Array<{ citySlug: string; areaSlug: string }> {
+export function getAllCityAreaSlugs(): { citySlug: string; areaSlug: string }[] {
   return CITIES.flatMap((city) =>
     city.areas.map((area) => ({ citySlug: city.slug, areaSlug: area.slug })),
   );

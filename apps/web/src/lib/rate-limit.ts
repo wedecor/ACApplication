@@ -70,7 +70,7 @@ if (typeof globalThis !== 'undefined') {
  * client sent, so we read from the right: each trusted proxy in front of this
  * app (TRUSTED_PROXY_HOPS, default 1) appends the address it received from.
  */
-export function getClientIp(req: Request, hops = Number(process.env['TRUSTED_PROXY_HOPS'] ?? 1)): string {
+export function getClientIp(req: Request, hops = Number(process.env.TRUSTED_PROXY_HOPS ?? 1)): string {
   const fwd = req.headers.get('x-forwarded-for');
   if (fwd && hops > 0) {
     const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean);

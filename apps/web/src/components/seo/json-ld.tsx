@@ -13,7 +13,7 @@ export function JsonLd({ data }: { data: object | object[] }) {
           key={i}
           type="application/ld+json"
           // We're rendering JSON, not HTML — this is safe by construction.
-          // eslint-disable-next-line react/no-danger
+           
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(d).replace(/</g, '\\u003c'),
           }}

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { CITIES } from '@/content/cities';
+import { REVIEWS } from '@/content/reviews';
+import { SERVICES } from '@/content/services';
 import {
   articleJsonLd,
   breadcrumbsJsonLd,
@@ -10,9 +13,6 @@ import {
   serviceJsonLd,
   websiteJsonLd,
 } from '@/lib/seo/json-ld';
-import { CITIES } from '@/content/cities';
-import { REVIEWS } from '@/content/reviews';
-import { SERVICES } from '@/content/services';
 
 type Any = Record<string, unknown>;
 

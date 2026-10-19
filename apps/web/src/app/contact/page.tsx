@@ -1,5 +1,5 @@
-import type { Metadata } from 'next';
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import type { Metadata } from 'next';
 
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';

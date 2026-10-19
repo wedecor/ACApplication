@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { SERVICES, getAllServiceSlugs, getServiceBySlug, getServiceByCategory } from '@/content/services';
-import { CITIES, getCityBySlug, getLiveCities, getAllCityAreaSlugs, findAreaAnywhere } from '@/content/cities';
-import { BRANDS, getBrandBySlug, getAllBrandSlugs } from '@/content/brands';
-import { aggregateRating, getReviewsFor, REVIEWS } from '@/content/reviews';
+import { BRANDS, getAllBrandSlugs,getBrandBySlug } from '@/content/brands';
+import { CITIES, findAreaAnywhere,getAllCityAreaSlugs, getCityBySlug, getLiveCities } from '@/content/cities';
 import { getAllLandingSlugs, getLandingBySlug } from '@/content/landing-pages';
+import { aggregateRating, getReviewsFor, REVIEWS } from '@/content/reviews';
+import { getAllServiceSlugs, getServiceByCategory,getServiceBySlug, SERVICES } from '@/content/services';
 
 describe('content/services', () => {
   it('exposes the expected canonical services', () => {

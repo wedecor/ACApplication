@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   }
 
   const apiBase =
-    process.env['WEB_INTERNAL_API_URL'] ?? env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+    process.env.WEB_INTERNAL_API_URL ?? env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
   const url = `${apiBase}/api/v1/public/web-chat/start`;
 
   try {
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
         tenantSlug: siteConfig.defaultTenantSlug,
       }),
     });
-    const json = await upstream.json().catch(() => null);
+    const json: unknown = await upstream.json().catch(() => null);
     const data =
       json && typeof json === 'object' && 'data' in (json as Record<string, unknown>)
         ? (json as { data: unknown }).data

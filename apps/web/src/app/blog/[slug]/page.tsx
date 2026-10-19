@@ -1,3 +1,4 @@
+import { Badge } from '@ac/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -6,19 +7,17 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 
-import { Badge } from '@ac/ui';
-
+import { ReadingProgressBar } from '@/components/blog/reading-progress';
+import { extractToc } from '@/components/blog/toc';
 import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
-import { ReadingProgressBar } from '@/components/blog/reading-progress';
-import { extractToc } from '@/components/blog/toc';
 import { JsonLd } from '@/components/seo/json-ld';
 import { getAllPostSlugs, getPostBySlug, getRelatedPosts } from '@/content/blog';
 import { siteConfig } from '@/env';
+import { formatDate } from '@/lib/blog-format';
 import { articleJsonLd, faqJsonLd } from '@/lib/seo/json-ld';
 import { buildMetadata } from '@/lib/seo/metadata';
-import { formatDate } from '@/lib/blog-format';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -134,7 +133,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               {related.map((r) => (
                 <Link
                   key={r.slug}
-                  href={`/blog/${r.slug}` as never}
+                  href={`/blog/${r.slug}`}
                   className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
                 >
                   <p className="text-sm font-semibold">{r.title}</p>

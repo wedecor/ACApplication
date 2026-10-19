@@ -4,8 +4,8 @@ import { MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import { Events, track } from '@/lib/analytics';
-import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
+import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 /**
  * Always-visible WhatsApp CTA. The message defaults to a generic

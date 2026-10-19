@@ -1,12 +1,11 @@
-import type { Metadata } from 'next';
+import { Badge, Button } from '@ac/ui';
 import { CheckCircle2, MessageCircle, Phone } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
-import { Badge, Button } from '@ac/ui';
-
 import { siteConfig } from '@/env';
-import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 import { buildMetadata } from '@/lib/seo/metadata';
+import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
 export const metadata: Metadata = buildMetadata({
   title: 'Booking confirmed — we will call you in 5 minutes',

@@ -13,7 +13,7 @@ type TrackProps = Parameters<typeof track>[1];
  */
 export const TrackedLink = React.forwardRef<
   HTMLAnchorElement,
-  React.ComponentProps<typeof Link> & { event: EventName | string; eventProps?: TrackProps }
+  React.ComponentProps<typeof Link> & { event: EventName; eventProps?: TrackProps }
 >(function TrackedLink({ event, eventProps, onClick, ...props }, ref) {
   return (
     <Link

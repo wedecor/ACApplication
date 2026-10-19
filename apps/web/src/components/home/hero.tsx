@@ -87,7 +87,7 @@ export function Hero({ stats, defaultCitySlug, defaultServiceSlug, headingAs = '
         animate={{ opacity: [0.15, 0.25, 0.15] }}
         transition={{ duration: 6, repeat: Infinity }}
       >
-        {[...Array(6)].map((_, i) => (
+        {Array.from({ length: 6 }, (_, i) => (
           <motion.span
             key={i}
             className="absolute size-1 rounded-full bg-violet-400/60"

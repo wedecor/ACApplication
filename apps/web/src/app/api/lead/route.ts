@@ -87,7 +87,7 @@ export async function POST(req: Request) {
   }
 
   const apiBase =
-    process.env['WEB_INTERNAL_API_URL'] ?? env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+    process.env.WEB_INTERNAL_API_URL ?? env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
   const url = `${apiBase}/api/v1/public/leads`;
 
   try {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-ac-tenant': process.env['NEXT_PUBLIC_TENANT_SLUG'] ?? 'default',
+        'x-ac-tenant': process.env.NEXT_PUBLIC_TENANT_SLUG ?? 'default',
         ...(req.headers.get('user-agent') ? { 'user-agent': req.headers.get('user-agent')! } : {}),
         ...(req.headers.get('referer') ? { referer: req.headers.get('referer')! } : {}),
         ...upstreamHeaders(ip),
@@ -115,7 +115,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const json = await upstream.json().catch(() => null);
+    const json: unknown = await upstream.json().catch(() => null);
     // The Nest API wraps responses in `{ success: true, data: {…} }`.
     const data =
       json && typeof json === 'object' && 'data' in (json as Record<string, unknown>)

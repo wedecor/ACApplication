@@ -1,6 +1,5 @@
-import Link from 'next/link';
-
 import { Button } from '@ac/ui';
+import Link from 'next/link';
 
 import { buildWhatsAppLink, WhatsAppTemplates } from '@/lib/whatsapp';
 
@@ -30,7 +29,7 @@ export function CtaBand({
         <p className="max-w-2xl text-balance text-base opacity-90 sm:text-lg">{description}</p>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="xl" variant="secondary">
-            <Link href={primaryHref as never}>{primaryLabel}</Link>
+            <Link href={primaryHref}>{primaryLabel}</Link>
           </Button>
           <Button asChild size="xl" variant="outline" className="border-white/30 bg-transparent text-primary-foreground hover:bg-white/10">
             <Link

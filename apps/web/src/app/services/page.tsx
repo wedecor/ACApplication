@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
-import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { ServiceGrid } from '@/components/home/service-grid';
+import { Breadcrumbs } from '@/components/layout/breadcrumbs';
 import { CtaBand } from '@/components/sections/cta-band';
 import { Faq } from '@/components/sections/faq';
 import { SITE_FAQS } from '@/content/faqs';

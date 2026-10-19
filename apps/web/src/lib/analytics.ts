@@ -48,7 +48,7 @@ export const Events = {
 } as const;
 export type EventName = (typeof Events)[keyof typeof Events];
 
-export function track(event: EventName | string, props: TrackProps = {}): void {
+export function track(event: EventName, props: TrackProps = {}): void {
   if (typeof window === 'undefined') return;
   const sanitized = sanitize(props);
 
@@ -64,7 +64,7 @@ export function track(event: EventName | string, props: TrackProps = {}): void {
   }
   try {
     // Meta Pixel — map our canonical names to FB standard events when possible.
-    const fbEvent = META_EVENT_MAP[event as EventName] ?? null;
+    const fbEvent = META_EVENT_MAP[event] ?? null;
     if (fbEvent) window.fbq?.('track', fbEvent, sanitized);
     else window.fbq?.('trackCustom', event, sanitized);
   } catch (err) {
@@ -133,12 +133,16 @@ export function captureAttribution(searchParams: URLSearchParams): Attribution {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw) as Attribution;
-    } catch {}
+    } catch {
+      // Storage blocked (private mode) — attribution is best-effort.
+    }
     return {};
   }
   try {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(incoming));
-  } catch {}
+  } catch {
+    // Storage blocked — keep the in-memory value only.
+  }
   return incoming;
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
+import { Loader2,MessageSquare, Minus, Send, X } from 'lucide-react';
 import * as React from 'react';
-import { MessageSquare, Minus, Send, X, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -18,12 +18,12 @@ import { cn } from '@/lib/utils';
  * `ac.web-chat.sid` so reloads keep the conversation glued.
  */
 
-type Message = {
+interface Message {
   id: string;
   direction: 'INBOUND' | 'OUTBOUND';
   body: string;
   createdAt: string;
-};
+}
 
 const STORAGE_KEY = 'ac.web-chat.sid';
 
@@ -81,7 +81,7 @@ export function LiveChatWidget() {
       }
     };
     void tick();
-    const id = window.setInterval(tick, 5_000);
+    const id = window.setInterval(() => void tick(), 5_000);
     return () => {
       cancelled = true;
       window.clearInterval(id);
@@ -272,7 +272,7 @@ export function LiveChatWidget() {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        send();
+                        void send();
                       }
                     }}
                     rows={2}

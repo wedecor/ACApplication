@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 import { JsonLd } from '@/components/seo/json-ld';
 import { breadcrumbsJsonLd } from '@/lib/seo/json-ld';
@@ -32,7 +32,7 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
                     {item.name}
                   </span>
                 ) : (
-                  <Link href={item.href as never} className="hover:text-foreground">
+                  <Link href={item.href} className="hover:text-foreground">
                     {item.name}
                   </Link>
                 )}

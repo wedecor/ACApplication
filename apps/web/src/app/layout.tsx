@@ -11,8 +11,8 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { StickyMobileCta } from '@/components/layout/sticky-mobile-cta';
 import { WhatsAppFab } from '@/components/layout/whatsapp-fab';
 import { Providers } from '@/components/providers';
-import { LiveChatWidget } from '@/components/support/live-chat-widget';
 import { JsonLd } from '@/components/seo/json-ld';
+import { LiveChatWidget } from '@/components/support/live-chat-widget';
 import { siteConfig } from '@/env';
 import { organizationJsonLd, websiteJsonLd } from '@/lib/seo/json-ld';
 

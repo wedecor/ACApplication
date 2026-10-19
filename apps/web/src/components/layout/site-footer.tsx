@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { Facebook, Instagram, Mail, Phone, Youtube } from 'lucide-react';
+import Link from 'next/link';
 
 import { CITIES } from '@/content/cities';
 import { SERVICES } from '@/content/services';
@@ -118,7 +118,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <li>
       <Link
-        href={href as never}
+        href={href}
         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         {children}

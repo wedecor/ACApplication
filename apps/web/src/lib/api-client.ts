@@ -1,4 +1,4 @@
-import type { ApiError, ApiResponse } from '@ac/types';
+import type { ApiResponse } from '@ac/types';
 
 import { env } from '@/env';
 
@@ -44,7 +44,7 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
     throw new ApiClientError(res.status, 'INTERNAL', undefined);
   }
   if (!json.success) {
-    const err = json as ApiError;
+    const err = json;
     throw new ApiClientError(
       err.error.statusCode,
       err.error.code,
