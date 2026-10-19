@@ -1,4 +1,4 @@
-import { Permission, UserRole } from '@ac/types';
+import { Permission, type RoleKey, UserRole } from '@ac/types';
 
 export * from './registry';
 export type { RbacConsistencyReport, RbacHealthReport, RbacSyncStats } from './types';
@@ -111,7 +111,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
  */
 export function hasPermission(
   required: Permission,
-  granted: { roles?: UserRole[]; permissions?: Permission[] },
+  granted: { roles?: readonly RoleKey[]; permissions?: Permission[] },
 ): boolean {
   void granted.roles;
   const permSet = new Set<string>(granted.permissions ?? []);
@@ -124,7 +124,7 @@ export function hasPermission(
  */
 export function hasAllPermissions(
   required: Permission[],
-  granted: { roles?: UserRole[]; permissions?: Permission[] },
+  granted: { roles?: readonly RoleKey[]; permissions?: Permission[] },
 ): boolean {
   return required.every((p) => hasPermission(p, granted));
 }
@@ -134,7 +134,7 @@ export function hasAllPermissions(
  */
 export function hasAnyPermission(
   required: Permission[],
-  granted: { roles?: UserRole[]; permissions?: Permission[] },
+  granted: { roles?: readonly RoleKey[]; permissions?: Permission[] },
 ): boolean {
   return required.some((p) => hasPermission(p, granted));
 }
@@ -152,9 +152,14 @@ const ROLE_RANK: Record<UserRole, number> = {
   [UserRole.CUSTOMER]: 10,
 };
 
-export function outranks(granted: UserRole[], required: UserRole): boolean {
-  const max = Math.max(...granted.map((r) => ROLE_RANK[r] ?? 0));
-  return max >= (ROLE_RANK[required] ?? 0);
+export function outranks(granted: readonly RoleKey[], required: UserRole): boolean {
+  const max = Math.max(...granted.map(rankOf));
+  return max >= rankOf(required);
+}
+
+/** Custom roles carry no rank: they authorize through permissions only. */
+function rankOf(role: RoleKey): number {
+  return (ROLE_RANK as Partial<Record<string, number>>)[role] ?? 0;
 }
 
 export const RBAC = {

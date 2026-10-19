@@ -1,4 +1,4 @@
-import type { Permission, UserRole } from '@ac/types';
+import type { Permission, RoleKey } from '@ac/types';
 
 /**
  * Authenticated principal attached to every request after auth middleware.
@@ -9,7 +9,7 @@ export interface AuthPrincipal {
   tenantId: string;
   email: string | null;
   phone: string | null;
-  roles: UserRole[];
+  roles: RoleKey[];
   permissions: Permission[];
   sessionId: string;
   /** Tenant RBAC revision — must match JWT `pv` and DB `tenants.rbacVersion`. */
@@ -24,7 +24,7 @@ export interface AccessTokenPayload {
   sub: string; // userId
   tid: string; // tenantId
   sid: string; // sessionId
-  roles: UserRole[];
+  roles: RoleKey[];
   permissions: Permission[];
   /** Permission revision (tenant.rbacVersion at issue time). */
   pv: number;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Permission, type UserRole } from '@ac/types';
+import { Permission } from '@ac/types';
 import {
   Badge,
   Button,
@@ -145,7 +145,7 @@ function UsersTab() {
             className={selectCls}
             aria-label="Role"
             value={query.roleKey ?? ''}
-            onChange={(e) => patch({ roleKey: (e.target.value || undefined) as UserRole | undefined })}
+            onChange={(e) => patch({ roleKey: (e.target.value || undefined) })}
           >
             <option value="">All roles</option>
             {roles?.map((r) => (

@@ -30,15 +30,6 @@ datasource db {
 // ENUMS
 // ============================================================================
 
-enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  DISPATCHER
-  TECHNICIAN
-  CALL_CENTER_AGENT
-  CUSTOMER
-}
-
 enum UserStatus {
   PENDING
   ACTIVE
@@ -592,15 +583,21 @@ model User {
 }
 
 model Role {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   tenantId    String
-  key         UserRole
+  /// A `UserRole` value for system roles; `CUSTOM_<NAME>` for tenant-created roles.
+  key         String
   name        String
   description String?
-  isSystem    Boolean  @default(true)
+  /// true = permission set follows the code registry; false = tenant-owned.
+  isSystem    Boolean @default(true)
+  /// Created by a tenant admin (not part of the registry). Always isSystem=false.
+  isCustom    Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  createdBy String?
+  updatedBy String?
 
   tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   permissions RolePermission[]

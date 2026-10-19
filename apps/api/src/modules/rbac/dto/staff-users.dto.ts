@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from '@ac/types';
+import { type RoleKey, UserStatus } from '@ac/types';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
@@ -8,7 +8,6 @@ import {
   IsArray,
   IsBoolean,
   IsEmail,
-  IsEnum,
   IsIn,
   IsOptional,
   IsString,
@@ -18,6 +17,7 @@ import {
 } from 'class-validator';
 
 import { PaginationDto } from '../../../common/dto/pagination.dto';
+import { ROLE_KEY_PATTERN } from '../rbac-policy';
 
 const PHONE_REGEX = /^\+\d{8,15}$/;
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
@@ -28,10 +28,10 @@ const emptyToUndefined = ({ value }: { value: unknown }) => {
 };
 
 export class ListStaffUsersDto extends PaginationDto {
-  @ApiPropertyOptional({ enum: UserRole })
+  @ApiPropertyOptional({ example: 'DISPATCHER', description: 'System or custom role key.' })
   @IsOptional()
-  @IsEnum(UserRole)
-  roleKey?: UserRole;
+  @Matches(ROLE_KEY_PATTERN)
+  roleKey?: RoleKey;
 
   @ApiPropertyOptional({ enum: [UserStatus.ACTIVE, UserStatus.SUSPENDED, UserStatus.PENDING] })
   @IsOptional()
@@ -74,13 +74,17 @@ export class CreateStaffUserDto {
   @IsEmail()
   email?: string;
 
-  @ApiProperty({ enum: UserRole, isArray: true, description: 'Staff roles (not TECHNICIAN/CUSTOMER).' })
+  @ApiProperty({
+    type: [String],
+    example: ['DISPATCHER'],
+    description: 'Staff role keys, system or custom (not TECHNICIAN/CUSTOMER).',
+  })
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(10)
   @ArrayUnique()
-  @IsEnum(UserRole, { each: true })
-  roleKeys!: UserRole[];
+  @Matches(ROLE_KEY_PATTERN, { each: true })
+  roleKeys!: RoleKey[];
 }
 
 export class UpdateStaffUserDto {
@@ -112,19 +116,29 @@ export class UpdateStaffUserDto {
 }
 
 export class SetUserRolesDto {
-  @ApiProperty({ enum: UserRole, isArray: true })
+  @ApiProperty({ type: [String], example: ['DISPATCHER', 'CUSTOM_REGIONAL_MANAGER'] })
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(10)
   @ArrayUnique()
-  @IsEnum(UserRole, { each: true })
-  roleKeys!: UserRole[];
+  @Matches(ROLE_KEY_PATTERN, { each: true })
+  roleKeys!: RoleKey[];
 }
 
 export class AssignUserRoleDto {
-  @ApiProperty({ enum: UserRole })
-  @IsEnum(UserRole)
-  roleKey!: UserRole;
+  @ApiProperty({ example: 'CUSTOM_REGIONAL_MANAGER' })
+  @Matches(ROLE_KEY_PATTERN)
+  roleKey!: RoleKey;
+}
+
+export class RevokeUserRoleParamsDto {
+  @ApiProperty()
+  @IsString()
+  id!: string;
+
+  @ApiProperty({ example: 'CUSTOM_REGIONAL_MANAGER' })
+  @Matches(ROLE_KEY_PATTERN)
+  roleKey!: RoleKey;
 }
 
 export class DeactivateStaffUserDto {

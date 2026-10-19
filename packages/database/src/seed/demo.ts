@@ -22,6 +22,7 @@
  * Dates are anchored to "now" at insert time: ~45 days of history through the
  * next 7 days. Use `--fresh` to re-anchor an old demo dataset.
  */
+import type { UserRole } from '@ac/types';
 import {
   type ActivityType,
   type BookingPriority,
@@ -38,7 +39,6 @@ import {
   type TicketPriority,
   type TicketSource,
   type TicketStatus,
-  type UserRole,
   type WorkshopJobStatus,
 } from '@prisma/client';
 
@@ -611,9 +611,9 @@ async function loadContext(): Promise<Ctx> {
   const cities = await prisma.city.findMany({ where: { tenantId: tenant.id } });
   const cityIds = {} as Record<CitySpec['name'], string>;
   for (const c of CITY_SPECS) cityIds[c.name] = must(cities.find((x) => x.name === c.name), `city ${c.name}`).id;
-  const roles = await prisma.role.findMany({ where: { tenantId: tenant.id } });
+  const roles = await prisma.role.findMany({ where: { tenantId: tenant.id, isCustom: false } });
   const roleIds: Partial<Record<UserRole, string>> = {};
-  for (const r of roles) roleIds[r.key] = r.id;
+  for (const r of roles) roleIds[r.key as UserRole] = r.id;
   const admin = must(await prisma.user.findUnique({ where: { phone: '+919999999999' } }), 'admin user');
   const dispatcher = must(await prisma.user.findUnique({ where: { phone: '+919876543210' } }), 'dispatcher user');
   const tech = must(await prisma.technician.findUnique({ where: { employeeCode: 'SEED-TECH-01' } }), 'base technician');

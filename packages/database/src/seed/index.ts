@@ -5,7 +5,8 @@
  *   pnpm --filter @ac/database seed
  */
 import { assertRegistryValid } from '@ac/auth';
-import { PrismaClient, type UserRole } from '@prisma/client';
+import type { UserRole } from '@ac/types';
+import { PrismaClient } from '@prisma/client';
 
 import { syncPermissionsFromSeed } from '../rbac/sync';
 import { seedRepair } from './repair';

@@ -1,4 +1,4 @@
-import { Permission, UserRole } from '@ac/types';
+import { CUSTOM_ROLE_PREFIX, Permission, type RoleKey, UserRole } from '@ac/types';
 
 /**
  * Pure RBAC policy helpers used by the staff-user and role admin services.
@@ -14,13 +14,16 @@ export const SELF_PROTECTED_PERMISSIONS: readonly string[] = [
 ];
 
 /** Roles whose permission set can never be edited through the API. */
-export const IMMUTABLE_ROLE_KEYS: readonly UserRole[] = [UserRole.SUPER_ADMIN];
+export const IMMUTABLE_ROLE_KEYS: readonly RoleKey[] = [UserRole.SUPER_ADMIN];
 
 /**
  * Roles that are tied to a domain profile and therefore managed by their own
  * modules (technicians onboarding, customer sign-up) — not via staff admin.
  */
-export const PROFILE_MANAGED_ROLE_KEYS: readonly UserRole[] = [UserRole.TECHNICIAN, UserRole.CUSTOMER];
+export const PROFILE_MANAGED_ROLE_KEYS: readonly RoleKey[] = [UserRole.TECHNICIAN, UserRole.CUSTOMER];
+
+/** Shape of every role key, system (`ADMIN`) or custom (`CUSTOM_REGIONAL_MANAGER`). */
+export const ROLE_KEY_PATTERN = /^[A-Z][A-Z0-9_]{1,59}$/;
 
 export interface RolePermissionsLike {
   key: string;
@@ -109,4 +112,24 @@ export function samePermissionSet(a: readonly string[], b: readonly string[]): b
   if (sa.size !== sb.size) return false;
   for (const k of sa) if (!sb.has(k)) return false;
   return true;
+}
+
+/**
+ * Role key for a new custom role: `CUSTOM_` + the name in SCREAMING_SNAKE
+ * case, suffixed `_2`, `_3`, … until it is not in `taken`.
+ */
+export function customRoleKey(name: string, taken: ReadonlySet<string>): string {
+  const slug =
+    name
+      .normalize('NFKD')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40) || 'ROLE';
+  const base = `${CUSTOM_ROLE_PREFIX}${slug}`;
+  if (!taken.has(base)) return base;
+  for (let n = 2; ; n++) {
+    const candidate = `${base}_${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
 }

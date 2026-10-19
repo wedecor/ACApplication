@@ -1,5 +1,5 @@
 import type { AuthPrincipal } from '@ac/auth';
-import { UserRole, UserStatus } from '@ac/types';
+import { type RoleKey, UserRole, UserStatus } from '@ac/types';
 import {
   BadRequestException,
   ConflictException,
@@ -27,7 +27,7 @@ import { bumpTenantRbacVersion } from './rbac-version';
 
 interface TenantRole extends RolePermissionsLike {
   id: string;
-  key: UserRole;
+  key: RoleKey;
   name: string;
   description: string | null;
   isSystem: boolean;
@@ -202,7 +202,7 @@ export class StaffUsersService {
   }
 
   /** Replaces the user's staff roles (profile-managed roles are preserved). */
-  async setRoles(actor: AuthPrincipal, id: string, roleKeys: UserRole[]) {
+  async setRoles(actor: AuthPrincipal, id: string, roleKeys: readonly RoleKey[]) {
     const user = await this.loadTarget(actor, id);
     this.assertMayManage(actor, user);
     const roles = await this.loadTenantRoles(actor.tenantId);
@@ -246,14 +246,14 @@ export class StaffUsersService {
     return this.get(actor, id);
   }
 
-  async assignRole(actor: AuthPrincipal, id: string, roleKey: UserRole) {
+  async assignRole(actor: AuthPrincipal, id: string, roleKey: RoleKey) {
     const user = await this.loadTarget(actor, id);
     const current = staffRoleKeys(user);
     if (current.includes(roleKey)) throw new ConflictException(`User already has role ${roleKey}`);
     return this.setRoles(actor, id, [...current, roleKey]);
   }
 
-  async revokeRole(actor: AuthPrincipal, id: string, roleKey: UserRole) {
+  async revokeRole(actor: AuthPrincipal, id: string, roleKey: RoleKey) {
     const user = await this.loadTarget(actor, id);
     const current = staffRoleKeys(user);
     if (!current.includes(roleKey)) throw new NotFoundException(`User does not have role ${roleKey}`);
@@ -345,7 +345,7 @@ export class StaffUsersService {
     }
   }
 
-  private resolveStaffRoles(roles: readonly TenantRole[], keys: readonly UserRole[]): TenantRole[] {
+  private resolveStaffRoles(roles: readonly TenantRole[], keys: readonly RoleKey[]): TenantRole[] {
     const managed = keys.filter((k) => PROFILE_MANAGED_ROLE_KEYS.includes(k));
     if (managed.length) {
       throw new BadRequestException(
@@ -370,7 +370,7 @@ export class StaffUsersService {
         isSystem: true,
         permissions: { select: { permission: { select: { key: true } } } },
       },
-      orderBy: { key: 'asc' },
+      orderBy: [{ isCustom: 'asc' }, { key: 'asc' }],
     });
     return rows.map((r) => ({
       id: r.id,
@@ -392,7 +392,7 @@ export class StaffUsersService {
   }
 }
 
-function staffRoleKeys(user: StaffUserRow): UserRole[] {
+function staffRoleKeys(user: StaffUserRow): RoleKey[] {
   return user.roles
     .map((a) => a.role.key)
     .filter((k) => !PROFILE_MANAGED_ROLE_KEYS.includes(k));

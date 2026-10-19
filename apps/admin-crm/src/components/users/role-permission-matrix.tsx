@@ -1,22 +1,46 @@
 'use client';
 
 import type { Permission } from '@ac/types';
-import { Badge, Button, Card, CardContent, Input, Skeleton } from '@ac/ui';
-import { Lock, RotateCcw, Shield } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Label,
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+  Skeleton,
+} from '@ac/ui';
+import { Lock, Pencil, Plus, RotateCcw, Shield, Trash2 } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 
 import { LoadError } from '@/components/common/load-error';
-import { usePermissionCatalog, useResetRole, useRoles, useSetRolePermissions } from '@/hooks/use-staff-admin';
+import {
+  useDeleteRole,
+  usePermissionCatalog,
+  useResetRole,
+  useRoles,
+  useSetRolePermissions,
+  useUpdateRole,
+} from '@/hooks/use-staff-admin';
 import { apiErrorMessage } from '@/lib/api/error-message';
 import type { RoleView } from '@/lib/api/staff-admin';
 import { humanizeEnum } from '@/lib/labels';
 import { hasPermission, readSessionClaims } from '@/lib/rbac/permissions';
 
+import { CreateRoleModal } from './create-role-modal';
+
 /**
  * Role ↔ permission matrix. Pick a role, tick permissions grouped by
  * resource, save. Permissions the current admin doesn't hold are disabled
- * (the API enforces the same anti-escalation rule).
+ * (the API enforces the same anti-escalation rule). Custom roles are created
+ * here and can be deleted once no user holds them.
  */
 export function RolePermissionMatrix() {
   const roles = useRoles();
@@ -28,6 +52,9 @@ export function RolePermissionMatrix() {
   const [roleId, setRoleId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<Set<string>>(new Set());
   const [filter, setFilter] = React.useState('');
+  const [creating, setCreating] = React.useState(false);
+  const [deleting, setDeleting] = React.useState<RoleView | null>(null);
+  const [editing, setEditing] = React.useState<RoleView | null>(null);
 
   const role: RoleView | undefined = roles.data?.find((r) => r.id === roleId) ?? roles.data?.[0];
 
@@ -100,6 +127,9 @@ export function RolePermissionMatrix() {
   return (
     <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
       <nav aria-label="Roles" className="space-y-1">
+        <Button variant="outline" size="sm" className="mb-2 w-full" onClick={() => setCreating(true)}>
+          <Plus className="mr-1 size-3.5" /> New role
+        </Button>
         {roles.data?.map((r) => (
           <button
             key={r.id}
@@ -119,7 +149,15 @@ export function RolePermissionMatrix() {
                 {r.isImmutable ? 'All permissions' : `${r.permissionKeys.length} permissions`} · {r.userCount} users
               </span>
             </span>
-            {r.isCustomised ? <Badge variant="warning" className="text-[10px]">Custom</Badge> : null}
+            {r.isCustom ? (
+              <Badge variant="info" className="text-[10px]">
+                Custom
+              </Badge>
+            ) : r.isCustomised ? (
+              <Badge variant="warning" className="text-[10px]">
+                Edited
+              </Badge>
+            ) : null}
           </button>
         ))}
       </nav>
@@ -130,18 +168,47 @@ export function RolePermissionMatrix() {
             <div>
               <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <Shield className="size-4" /> {role.name}
-                {role.isCustomised ? <Badge variant="warning">Customised</Badge> : <Badge variant="muted">Default</Badge>}
+                {role.isCustom ? (
+                  <Badge variant="info">Custom role</Badge>
+                ) : role.isCustomised ? (
+                  <Badge variant="warning">Customised</Badge>
+                ) : (
+                  <Badge variant="muted">Default</Badge>
+                )}
               </h2>
+              {role.description ? <p className="text-sm text-muted-foreground">{role.description}</p> : null}
               <p className="text-xs text-muted-foreground">
                 {readOnly
                   ? 'Super Admin always has every permission and cannot be edited.'
-                  : role.isCustomised
-                    ? 'This role differs from the platform defaults and is no longer updated automatically.'
-                    : 'Follows the platform defaults. Saving changes marks it as customised.'}
+                  : role.isCustom
+                    ? 'Created by your team. It grants exactly the permissions ticked below.'
+                    : role.isCustomised
+                      ? 'This role differs from the platform defaults and is no longer updated automatically.'
+                      : 'Follows the platform defaults. Saving changes marks it as customised.'}
               </p>
             </div>
             {!readOnly ? (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                {role.isCustom ? (
+                  <Button variant="outline" size="sm" onClick={() => setEditing(role)}>
+                    <Pencil className="mr-1 size-3.5" /> Edit details
+                  </Button>
+                ) : null}
+                {role.isCustom ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={role.userCount > 0}
+                    title={
+                      role.userCount > 0
+                        ? `Remove this role from its ${role.userCount} user${role.userCount === 1 ? '' : 's'} first`
+                        : undefined
+                    }
+                    onClick={() => setDeleting(role)}
+                  >
+                    <Trash2 className="mr-1 size-3.5" /> Delete
+                  </Button>
+                ) : null}
                 {!role.matchesDefaults ? (
                   <Button variant="outline" size="sm" disabled={reset.isPending} onClick={() => void onReset()}>
                     <RotateCcw className="mr-1 size-3.5" /> Restore defaults
@@ -228,6 +295,133 @@ export function RolePermissionMatrix() {
           )}
         </CardContent>
       </Card>
+
+      <CreateRoleModal
+        open={creating}
+        onOpenChange={setCreating}
+        roles={roles.data ?? []}
+        onCreated={(r) => setRoleId(r.id)}
+      />
+      <EditRoleDialog role={editing} onClose={() => setEditing(null)} />
+      <DeleteRoleDialog
+        role={deleting}
+        onClose={() => setDeleting(null)}
+        onDeleted={() => setRoleId(null)}
+      />
     </div>
+  );
+}
+
+function EditRoleDialog({ role, onClose }: { role: RoleView | null; onClose: () => void }) {
+  const update = useUpdateRole();
+  const [name, setName] = React.useState('');
+  const [description, setDescription] = React.useState('');
+
+  React.useEffect(() => {
+    setName(role?.name ?? '');
+    setDescription(role?.description ?? '');
+  }, [role]);
+
+  if (!role) return null;
+  const trimmed = name.trim();
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (trimmed.length < 2) return;
+    try {
+      // An empty description clears it.
+      await update.mutateAsync({ id: role.id, name: trimmed, description: description.trim() });
+      toast.success(`${trimmed} updated`);
+      onClose();
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Failed to update role'));
+    }
+  };
+
+  return (
+    <Modal open onOpenChange={(o) => (!o ? onClose() : undefined)}>
+      <ModalContent className="max-w-md">
+        <form onSubmit={(e) => void submit(e)} className="space-y-4">
+          <ModalHeader>
+            <ModalTitle>Edit {role.name}</ModalTitle>
+            <ModalDescription>Renaming doesn’t change who holds the role or what it grants.</ModalDescription>
+          </ModalHeader>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-role-name">Name</Label>
+            <Input
+              id="edit-role-name"
+              required
+              minLength={2}
+              maxLength={60}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-role-description">Description (optional)</Label>
+            <Input
+              id="edit-role-description"
+              maxLength={300}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          <ModalFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={trimmed.length < 2 || update.isPending}>
+              {update.isPending ? 'Saving…' : 'Save'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
+  );
+}
+
+function DeleteRoleDialog({
+  role,
+  onClose,
+  onDeleted,
+}: {
+  role: RoleView | null;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const remove = useDeleteRole();
+  if (!role) return null;
+
+  const submit = async () => {
+    try {
+      await remove.mutateAsync(role.id);
+      toast.success(`${role.name} deleted`);
+      onDeleted();
+      onClose();
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Failed to delete role'));
+    }
+  };
+
+  return (
+    <Modal open onOpenChange={(o) => (!o ? onClose() : undefined)}>
+      <ModalContent className="max-w-md">
+        <ModalHeader>
+          <ModalTitle>Delete {role.name}?</ModalTitle>
+          <ModalDescription>This can’t be undone. No users hold this role.</ModalDescription>
+        </ModalHeader>
+        <ModalFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="destructive" disabled={remove.isPending} onClick={() => void submit()}>
+            {remove.isPending ? 'Deleting…' : 'Delete role'}
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }

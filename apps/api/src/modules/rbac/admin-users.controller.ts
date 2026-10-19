@@ -1,6 +1,6 @@
 import type { AuthPrincipal } from '@ac/auth';
-import { Permission, UserRole } from '@ac/types';
-import { Body, Controller, Delete, Get, Param, ParseEnumPipe, Patch, Post, Put, Query } from '@nestjs/common';
+import { Permission } from '@ac/types';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CurrentUser, RequirePermissions } from '../../common/decorators';
@@ -10,6 +10,7 @@ import {
   CreateStaffUserDto,
   DeactivateStaffUserDto,
   ListStaffUsersDto,
+  RevokeUserRoleParamsDto,
   SetUserRolesDto,
   UpdateStaffUserDto,
 } from './dto/staff-users.dto';
@@ -76,10 +77,9 @@ export class AdminUsersController {
   @ApiOperation({ summary: 'Revoke one role from a user.' })
   revokeRole(
     @CurrentUser() actor: AuthPrincipal,
-    @Param('id') id: string,
-    @Param('roleKey', new ParseEnumPipe(UserRole)) roleKey: UserRole,
+    @Param() params: RevokeUserRoleParamsDto,
   ) {
-    return this.users.revokeRole(actor, id, roleKey);
+    return this.users.revokeRole(actor, params.id, params.roleKey);
   }
 
   @Post(':id/deactivate')

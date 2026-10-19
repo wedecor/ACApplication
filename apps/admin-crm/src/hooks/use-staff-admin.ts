@@ -1,9 +1,10 @@
 'use client';
 
-import type { UserRole } from '@ac/types';
+import type { RoleKey } from '@ac/types';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+  type CreateRoleInput,
   type CreateStaffUserInput,
   rolesApi,
   type StaffUserListQuery,
@@ -80,7 +81,7 @@ export function useUpdateStaffUser() {
 export function useSetStaffUserRoles() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, roleKeys }: { id: string; roleKeys: UserRole[] }) => staffUsersApi.setRoles(id, roleKeys),
+    mutationFn: ({ id, roleKeys }: { id: string; roleKeys: RoleKey[] }) => staffUsersApi.setRoles(id, roleKeys),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: staffAdminKeys.users });
       void qc.invalidateQueries({ queryKey: staffAdminKeys.roles });
@@ -128,6 +129,42 @@ export function useResetRole() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => rolesApi.reset(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.roles });
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.assignableRoles });
+    },
+  });
+}
+
+export function useCreateRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateRoleInput) => rolesApi.create(input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.roles });
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.assignableRoles });
+    },
+  });
+}
+
+export function useUpdateRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...input }: { id: string; name?: string; description?: string }) =>
+      rolesApi.update(id, input),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.roles });
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.assignableRoles });
+      // Staff rows show role names.
+      void qc.invalidateQueries({ queryKey: staffAdminKeys.users });
+    },
+  });
+}
+
+export function useDeleteRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => rolesApi.remove(id),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: staffAdminKeys.roles });
       void qc.invalidateQueries({ queryKey: staffAdminKeys.assignableRoles });

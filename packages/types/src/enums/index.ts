@@ -14,6 +14,17 @@ export const UserRole = {
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
+/**
+ * Key of any role a user can hold: a system `UserRole`, or a tenant-created
+ * custom role (`CUSTOM_<NAME>`). Authorization is permission-based, so code
+ * should only compare against system keys, never enumerate custom ones.
+ */
+// `string & {}` keeps editor completion for the system keys.
+export type RoleKey = UserRole | (string & {});
+
+/** Prefix of every tenant-created role key. */
+export const CUSTOM_ROLE_PREFIX = 'CUSTOM_';
+
 export const UserStatus = {
   PENDING: 'PENDING',
   ACTIVE: 'ACTIVE',

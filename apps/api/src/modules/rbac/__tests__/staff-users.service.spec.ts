@@ -8,6 +8,8 @@ const ROLES = [
   { id: 'r_disp', key: 'DISPATCHER', name: 'Dispatcher', description: null, isSystem: true, perms: ['lead:view'] },
   { id: 'r_super', key: 'SUPER_ADMIN', name: 'Super Admin', description: null, isSystem: true, perms: ['*'] },
   { id: 'r_tech', key: 'TECHNICIAN', name: 'Technician', description: null, isSystem: true, perms: ['technician:status:write'] },
+  { id: 'r_area', key: 'CUSTOM_AREA_LEAD', name: 'Area lead', description: null, isSystem: false, perms: ['lead:view'] },
+  { id: 'r_fin', key: 'CUSTOM_FINANCE', name: 'Finance', description: null, isSystem: false, perms: ['payment:refund'] },
 ].map((r) => ({ ...r, permissions: r.perms.map((key) => ({ permission: { key } })) }));
 
 function principal(overrides: Partial<{ userId: string; roles: string[]; permissions: string[] }> = {}) {
@@ -129,6 +131,33 @@ describe('StaffUsersService', () => {
     expect(tx.tenant.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 'tenant_1' }, data: { rbacVersion: { increment: 1 } } }),
     );
+  });
+
+  describe('custom roles', () => {
+    it('assigns a custom role like any staff role', async () => {
+      const { service, client, tx } = build();
+      client.user.findFirst.mockResolvedValue(userRow('u2', ['r_disp']));
+      await service.setRoles(principal() as never, 'u2', ['DISPATCHER', 'CUSTOM_AREA_LEAD']);
+      expect(tx.userRoleAssignment.createMany).toHaveBeenCalledWith(
+        expect.objectContaining({ data: [{ userId: 'u2', roleId: 'r_area', assignedBy: 'admin_1' }] }),
+      );
+    });
+
+    it('refuses a custom role carrying permissions the actor does not hold (escalation)', async () => {
+      const { service, client, tx } = build();
+      client.user.findFirst.mockResolvedValue(userRow('u2', ['r_disp']));
+      await expect(
+        service.setRoles(principal() as never, 'u2', ['DISPATCHER', 'CUSTOM_FINANCE']),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(tx.userRoleAssignment.createMany).not.toHaveBeenCalled();
+    });
+
+    it('rejects a custom role key the tenant does not have', async () => {
+      const { service } = build();
+      await expect(
+        service.create(principal() as never, { firstName: 'X', phone: '+919800000009', roleKeys: ['CUSTOM_GHOST'] }),
+      ).rejects.toBeInstanceOf(BadRequestException);
+    });
   });
 
   it('does not let an admin modify a super admin', async () => {

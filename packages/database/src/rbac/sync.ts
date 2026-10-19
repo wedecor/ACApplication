@@ -6,7 +6,8 @@ import {
   SYSTEM_ROLE_KEYS,
   validateRegistry,
 } from '@ac/auth';
-import type { PrismaClient, UserRole } from '@prisma/client';
+import type { UserRole } from '@ac/types';
+import type { PrismaClient } from '@prisma/client';
 
 export interface RbacSyncOptions {
   /** Delete DB permissions not in registry when they have no role assignments. */

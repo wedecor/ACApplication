@@ -1,6 +1,6 @@
 'use client';
 
-import type { UserRole } from '@ac/types';
+import type { RoleKey } from '@ac/types';
 import {
   Button,
   Input,
@@ -31,7 +31,7 @@ interface Props {
   user?: StaffUser | null;
 }
 
-const PROFILE_ROLES: UserRole[] = ['TECHNICIAN', 'CUSTOMER'];
+const PROFILE_ROLES: RoleKey[] = ['TECHNICIAN', 'CUSTOMER'];
 
 export function StaffUserFormModal({ open, onOpenChange, user }: Props) {
   const isEdit = !!user;
@@ -44,7 +44,7 @@ export function StaffUserFormModal({ open, onOpenChange, user }: Props) {
   const [lastName, setLastName] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [email, setEmail] = React.useState('');
-  const [roleKeys, setRoleKeys] = React.useState<UserRole[]>([]);
+  const [roleKeys, setRoleKeys] = React.useState<RoleKey[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
@@ -57,7 +57,7 @@ export function StaffUserFormModal({ open, onOpenChange, user }: Props) {
     setError(null);
   }, [open, user]);
 
-  const toggle = (k: UserRole) =>
+  const toggle = (k: RoleKey) =>
     setRoleKeys((cur) => (cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k]));
 
   const submit = async (e: React.FormEvent) => {

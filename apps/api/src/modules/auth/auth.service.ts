@@ -1,6 +1,6 @@
 import { session } from '@ac/auth';
 import type { LoadedServerEnv } from '@ac/config';
-import type { Permission, UserRole } from '@ac/types';
+import type { Permission, RoleKey } from '@ac/types';
 import {
   Inject,
   Injectable,
@@ -27,7 +27,7 @@ export interface AuthTokensResponse {
     lastName: string | null;
     phone: string | null;
     email: string | null;
-    roles: UserRole[];
+    roles: RoleKey[];
   };
 }
 
@@ -205,7 +205,7 @@ export class AuthService {
     existing?: { sessionId: string; refreshOpaque: string },
     deviceId?: string,
   ): Promise<AuthTokensResponse> {
-    const roles = user.roles.map((a) => a.role.key as UserRole);
+    const roles = user.roles.map((a) => a.role.key);
     const permissionSet = new Set<Permission>();
     for (const assignment of user.roles) {
       for (const rp of assignment.role.permissions) {

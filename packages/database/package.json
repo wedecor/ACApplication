@@ -54,6 +54,7 @@
   },
   "dependencies": {
     "@ac/auth": "workspace:*",
+    "@ac/types": "workspace:*",
     "@prisma/client": "^5.20.0"
   },
   "devDependencies": {

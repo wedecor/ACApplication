@@ -79,6 +79,7 @@ export type {
   TechnicianStatus,
   Tenant,
   User,
-  UserRole,
   UserStatus,
 } from '@prisma/client';
+// Role keys are plain strings in the DB since custom roles; the system enum lives in @ac/types.
+export type { UserRole } from '@ac/types';

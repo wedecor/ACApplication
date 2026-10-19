@@ -1,11 +1,11 @@
-import type { Permission, UserRole } from '@ac/types';
+import type { Permission, RoleKey } from '@ac/types';
 import { Injectable } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 
 import { PrismaService } from '../../common/prisma/prisma.service';
 
 export interface LoadedUserAuth {
-  roles: UserRole[];
+  roles: RoleKey[];
   permissions: Permission[];
 }
 
