@@ -135,6 +135,7 @@ export class MeSupportController {
 
   @Get('tickets/:id')
   @RequirePermissions(Permission.SELF_SERVICE)
+  @ApiOperation({ summary: 'Get details of a support ticket owned by the current customer.' })
   async detail(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     const customerId = await this.requireCustomer(actor);
     const ticket = await this.prisma.client.supportTicket.findFirst({
@@ -162,6 +163,7 @@ export class MeSupportController {
 
   @Get('tickets/:id/messages')
   @RequirePermissions(Permission.SELF_SERVICE)
+  @ApiOperation({ summary: 'List customer-visible message thread on a support ticket.' })
   async messages(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -224,6 +226,7 @@ export class MeSupportController {
 
   @Post('tickets/:id/csat')
   @RequirePermissions(Permission.SELF_SERVICE)
+  @ApiOperation({ summary: 'Submit a CSAT customer satisfaction rating for a resolved ticket.' })
   async csat(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
