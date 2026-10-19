@@ -32,18 +32,21 @@ export class KnowledgeBaseController {
 
   @Get('categories')
   @RequirePermissions(Permission.KB_VIEW)
+  @ApiOperation({ summary: 'List knowledge base categories.' })
   listCategories(@CurrentUser() actor: AuthPrincipal) {
     return this.kb.listCategories(actor);
   }
 
   @Post('categories')
   @RequirePermissions(Permission.KB_WRITE)
+  @ApiOperation({ summary: 'Create a knowledge base category.' })
   createCategory(@CurrentUser() actor: AuthPrincipal, @Body() dto: CreateKbCategoryDto) {
     return this.kb.createCategory(actor, dto);
   }
 
   @Patch('categories/:id')
   @RequirePermissions(Permission.KB_WRITE)
+  @ApiOperation({ summary: 'Update a knowledge base category.' })
   updateCategory(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -54,6 +57,7 @@ export class KnowledgeBaseController {
 
   @Get('articles')
   @RequirePermissions(Permission.KB_VIEW)
+  @ApiOperation({ summary: 'List knowledge base articles with pagination.' })
   async listArticles(@CurrentUser() actor: AuthPrincipal, @Query() dto: ListKbArticlesDto) {
     const r = await this.kb.listArticles(actor, dto);
     return { items: r.items, meta: buildPaginationMeta(r.page, r.pageSize, r.total) };
@@ -61,12 +65,14 @@ export class KnowledgeBaseController {
 
   @Post('articles')
   @RequirePermissions(Permission.KB_WRITE)
+  @ApiOperation({ summary: 'Create a knowledge base article.' })
   createArticle(@CurrentUser() actor: AuthPrincipal, @Body() dto: CreateKbArticleDto) {
     return this.kb.createArticle(actor, dto);
   }
 
   @Patch('articles/:id')
   @RequirePermissions(Permission.KB_WRITE)
+  @ApiOperation({ summary: 'Update a knowledge base article.' })
   updateArticle(
     @CurrentUser() actor: AuthPrincipal,
     @Param('id') id: string,
@@ -77,12 +83,14 @@ export class KnowledgeBaseController {
 
   @Delete('articles/:id')
   @RequirePermissions(Permission.KB_PUBLISH)
+  @ApiOperation({ summary: 'Delete a knowledge base article.' })
   deleteArticle(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.kb.deleteArticle(actor, id);
   }
 
   @Get('articles/:id')
   @RequirePermissions(Permission.KB_VIEW)
+  @ApiOperation({ summary: 'Get a knowledge base article by ID for agent view.' })
   read(@CurrentUser() actor: AuthPrincipal, @Param('id') id: string) {
     return this.kb.readForAgent(actor, id);
   }
