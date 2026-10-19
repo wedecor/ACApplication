@@ -1,3 +1,31 @@
+const apiOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000').origin;
+  } catch {
+    return 'http://localhost:4000';
+  }
+})();
+const isDevBuild = process.env.NODE_ENV !== 'production';
+
+/**
+ * Marketing site CSP: own scripts plus the analytics tags it loads (GA4/GTM,
+ * Meta Pixel). Inline scripts stay allowed for Next hydration and the tag
+ * snippets; framing is denied and plugins/base hijacking blocked.
+ */
+const websiteCsp = [
+  "default-src 'self'",
+  `script-src 'self' 'unsafe-inline'${isDevBuild ? " 'unsafe-eval'" : ''} https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' data: blob: https:",
+  `connect-src 'self' ${apiOrigin} https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://connect.facebook.net https://www.facebook.com${isDevBuild ? ' ws://localhost:* http://localhost:*' : ''}`,
+  "frame-src https://www.googletagmanager.com https://www.facebook.com https://www.google.com",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join('; ');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -31,6 +59,10 @@ const nextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+          { key: 'Content-Security-Policy', value: websiteCsp },
+          ...(process.env.NODE_ENV === 'production'
+            ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }]
+            : []),
         ],
       },
       // Long cache for immutable assets (Next handles hashing)

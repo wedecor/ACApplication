@@ -42,7 +42,11 @@ const InputSchema = z.object({
     .enum(['WEBSITE', 'GOOGLE_ADS', 'WHATSAPP', 'FACEBOOK', 'INSTAGRAM'])
     .optional(),
   originUrl: z.string().max(500).optional(),
-  utm: z.record(z.string()).optional(),
+  // Attribution only: a handful of short keys (utm_*, gclid…), bounded in size.
+  utm: z
+    .record(z.string().max(64), z.string().max(256))
+    .refine((v) => Object.keys(v).length <= 12, 'Too many attribution fields')
+    .optional(),
   hp_url: z.string().max(0).optional(), // honeypot — must be empty
 });
 
