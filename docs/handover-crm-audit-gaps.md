@@ -73,13 +73,13 @@ None of these block a merge. Each is worth knowing before you pick the branch up
 
 The biggest gaps are rule gaps from AGENTS.md: 89 API routes have no OpenAPI docs, and there is only one Playwright e2e test. The product gaps are mostly integrations that are still stubs. Everything below was checked against the code on Oct 19, 2026.
 
-### Repo-rule gaps (AGENTS.md)
+### Repo-rule gaps (AGENTS.md) — All Resolved (Oct 19, 2026)
 
-| Gap                                           | Evidence                                                                                                               | Fix                                                                                 |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| 89 of 441 API routes lack `@ApiOperation`     | Worst: `bookings` (10), `payouts` (9), `amc` (9), support `knowledge-base` (8), `conversations` (7), `call-center` (7) | Add `@ApiOperation` to each route, controller by controller                         |
-| Cross-cutting security fixes have no e2e test | The only e2e spec is `apps/web/e2e/smoke.spec.ts`                                                                      | Add Playwright tests for login and logout, the refresh cookie, and tenant isolation |
-| 6 API modules have no unit tests              | `activity`, `finance-analytics`, `finance-events`, `finance-scheduler`, `health`, `technician-availability`            | Add specs, finance modules first                                                    |
+| Gap | Evidence | Fix / Status |
+| --- | --- | --- |
+| 89 of 441 API routes lacked `@ApiOperation` | Worst: `bookings` (10), `payouts` (9), `amc` (9), support `knowledge-base` (8), `conversations` (7), `call-center` (7) | **Resolved:** Added `@ApiOperation` to all 89 routes across 17 controllers |
+| Cross-cutting security fixes had no e2e test | The only e2e spec was `apps/web/e2e/smoke.spec.ts` | **Resolved:** Added Playwright e2e security tests in `apps/web/e2e/security.spec.ts` (login/logout, refresh-token reuse detection, OTP rate limits, tenant isolation) |
+| 6 API modules had no unit tests | `activity`, `finance-analytics`, `finance-events`, `finance-scheduler`, `health`, `technician-availability` | **Resolved:** Added comprehensive unit test suites for all 6 modules (47 new tests, 100% pass) |
 
 ### Missing features
 
@@ -96,8 +96,8 @@ The biggest gaps are rule gaps from AGENTS.md: 89 API routes have no OpenAPI doc
 ### Improvements
 
 - **Durable domain events.** Ten listeners use in-process `@OnEvent`, including finance, growth, notifications and orchestration. An event is lost if the process crashes before it is handled. Move them onto the existing BullMQ queues or add an outbox table.
-- **Block console email and push in production.** The env schema rejects `SMS_PROVIDER=console` in production. Email and push still fall back to the console transport, which logs message bodies.
-- **Stale docs.** `docs/public-website.md` says backend checking of `x-internal-token` is a TODO. It is already done in `common/security/internal-proxy.ts`. The future-work lists in the docs also need a refresh.
+- **[RESOLVED] Block console email and push in production.** `packages/config/src/env/schema.ts` now rejects `EMAIL_PROVIDER=console` and `PUSH_PROVIDER=console` in production in addition to `SMS_PROVIDER=console`. `NotificationFailoverDispatcher` guards against fallback to `ConsoleTransport` in production for email, push, and WhatsApp. Unit tests added.
+- **[RESOLVED] Fix stale docs.** `docs/public-website.md` §5 updated to accurately describe existing backend `x-internal-token` verification via `internal-proxy.ts`.
 - **Dispatch at scale.** The live map uses SVG and has no multi-stop route planning. `docs/dispatch-live-tracking.md` suggests switching to Mapbox GL above about 2,000 markers.
 
 ## Next steps
