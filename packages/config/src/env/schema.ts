@@ -186,6 +186,20 @@ export const serverEnvSchema = z.object({
   if (env.SMS_PROVIDER === 'console') {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'SMS_PROVIDER=console is not allowed in production', path: ['SMS_PROVIDER'] });
   }
+  if (env.EMAIL_PROVIDER === 'console') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'EMAIL_PROVIDER=console is not allowed in production',
+      path: ['EMAIL_PROVIDER'],
+    });
+  }
+  if (env.PUSH_PROVIDER === 'console') {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'PUSH_PROVIDER=console is not allowed in production',
+      path: ['PUSH_PROVIDER'],
+    });
+  }
 
   const requireFields = (fields: (keyof typeof env)[], message: string) => {
     for (const field of fields) {
