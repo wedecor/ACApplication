@@ -155,6 +155,7 @@ export class PublicWebChatController {
   @Public()
   @Get(':sessionId/messages')
   @Throttle({ global: { limit: 120, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Poll messages from a public web-chat session.' })
   async list(
     @Param('sessionId') sessionId: string,
     @Query('tenantSlug') tenantSlug: string,
