@@ -1,6 +1,6 @@
 import type { AuthPrincipal } from '@ac/auth';
 import { Permission } from '@ac/types';
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
@@ -220,6 +220,10 @@ export class StaffUploadsController {
   @Throttle({ global: { limit: 60, ttl: 60_000 } })
   @ApiOperation({ summary: 'Presigned PUT for staff / technician uploads → { uploadUrl, publicUrl }.' })
   presign(@CurrentUser() actor: AuthPrincipal, @Body() dto: PresignUploadDto) {
+    // Customers upload through /me/uploads/presign (customer scope), never staff scope.
+    if ((actor.roles as string[]).every((r) => r === 'CUSTOMER')) {
+      throw new ForbiddenException('Use /me/uploads/presign');
+    }
     return this.storage.presignUpload({ ...dto, tenantId: actor.tenantId, scope: 'staff' });
   }
 }

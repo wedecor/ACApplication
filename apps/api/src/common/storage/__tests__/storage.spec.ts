@@ -97,7 +97,9 @@ describe('StorageService', () => {
       scope: 'customer',
       filename: 'photo.jpg',
       contentType: 'image/jpeg',
+      sizeBytes: 2048,
     });
+    expect(res.uploadUrl).toContain('content-length');
     expect(res.uploadUrl.startsWith('http://localhost:9000/ac-media/t1/customer/')).toBe(true);
     expect(res.uploadUrl).toContain('X-Amz-Expires=600');
     expect(res.publicUrl).toBe(`http://localhost:9000/ac-media/${res.key}`);
@@ -112,7 +114,14 @@ describe('StorageService', () => {
   it('refuses to sign when credentials are missing', () => {
     const svc = new StorageService({ ...env, S3_BUCKET: undefined });
     expect(() =>
-      svc.presignUpload({ tenantId: 't', scope: 's', filename: 'a.png', contentType: 'image/png' }),
+      svc.presignUpload({ tenantId: 't', scope: 's', filename: 'a.png', contentType: 'image/png', sizeBytes: 10 }),
     ).toThrow(ServiceUnavailableException);
+  });
+
+  it('refuses to sign without a declared size', () => {
+    const svc = new StorageService(env);
+    expect(() =>
+      svc.presignUpload({ tenantId: 't', scope: 's', filename: 'a.png', contentType: 'image/png' }),
+    ).toThrow(BadRequestException);
   });
 });

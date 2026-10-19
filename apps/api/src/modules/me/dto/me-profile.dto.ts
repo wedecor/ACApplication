@@ -198,10 +198,9 @@ export class PresignUploadDto {
   @MaxLength(80)
   contentType!: string;
 
-  @ApiPropertyOptional({ description: 'Declared size in bytes; when sent it is enforced by the signature.' })
-  @IsOptional()
+  @ApiProperty({ description: 'Exact size in bytes; signed into the URL as content-length, so larger uploads fail.' })
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  sizeBytes?: number;
+  sizeBytes!: number;
 }

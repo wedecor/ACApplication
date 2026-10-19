@@ -149,7 +149,7 @@ export const profileApi = {
 };
 
 export const uploadApi = {
-  presign: (body: { filename: string; contentType: string; sizeBytes?: number }) =>
+  presign: (body: { filename: string; contentType: string; sizeBytes: number }) =>
     api.post<{ uploadUrl: string; publicUrl: string; headers?: Record<string, string> }>(
       '/v1/me/uploads/presign',
       body,

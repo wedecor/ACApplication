@@ -43,13 +43,15 @@ export async function uploadLocalFile(input: {
 }): Promise<UploadedFile> {
   const info = await FileSystem.getInfoAsync(input.localUri);
   if (!info.exists) throw new ApiError('Local file is missing', 410);
+  // The size is signed into the presigned URL, so it must be known up front.
   const sizeBytes = 'size' in info && typeof info.size === 'number' ? info.size : undefined;
+  if (!sizeBytes) throw new ApiError('Could not read the file size', 400);
   const filename = input.filename ?? `${Crypto.randomUUID()}.${extensionFor(input.contentType)}`;
 
   const presign = await uploadsApi.presign({
     filename,
     contentType: input.contentType,
-    ...(sizeBytes ? { sizeBytes } : {}),
+    sizeBytes,
   });
 
   const res = await FileSystem.uploadAsync(presign.uploadUrl, input.localUri, {

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import type { LoadedServerEnv } from '@ac/config';
-import { Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, ServiceUnavailableException } from '@nestjs/common';
 
 import { APP_CONFIG } from '../config/config.module';
 import { presignUrl } from './sigv4';
@@ -66,8 +66,9 @@ export class StorageService {
       id: randomUUID(),
       now: input.now,
     });
-    const headers: Record<string, string> = { 'content-type': contentType };
-    if (input.sizeBytes != null) headers['content-length'] = String(input.sizeBytes);
+    if (input.sizeBytes == null) throw new BadRequestException('sizeBytes is required');
+    // content-length is part of the signature: the bucket rejects any other size.
+    const headers: Record<string, string> = { 'content-type': contentType, 'content-length': String(input.sizeBytes) };
 
     const ttl = this.env.UPLOAD_URL_TTL_SECONDS ?? 900;
     const now = input.now ?? new Date();

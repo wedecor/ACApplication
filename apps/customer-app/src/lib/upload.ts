@@ -41,9 +41,10 @@ export async function pickAndUploadImage(source: 'camera' | 'library'): Promise<
   const filename = asset.fileName ?? `photo-${Date.now()}.jpg`;
   const contentType = asset.mimeType ?? 'image/jpeg';
 
-  const { uploadUrl, publicUrl, headers } = await uploadApi.presign({ filename, contentType });
+  // Read the bytes first: the declared size is signed into the upload URL.
   const fetchResp = await fetch(asset.uri);
   const blob = await fetchResp.blob();
+  const { uploadUrl, publicUrl, headers } = await uploadApi.presign({ filename, contentType, sizeBytes: blob.size });
   // Content-Type is part of the presigned signature — send exactly what the
   // server signed (images / pdf only, size-capped server-side).
   const put = await fetch(uploadUrl, {
