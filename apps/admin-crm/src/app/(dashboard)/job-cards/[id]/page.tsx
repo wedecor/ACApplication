@@ -9,6 +9,7 @@ import { errorMessage, JobCardStatusBadge } from '@/components/repair/repair-ui'
 import { useJobCard } from '@/hooks/use-repair';
 import { type ChecklistItem, type ChecklistTemplate, humanize, type JobCard } from '@/lib/api/repair';
 import { formatDateTime, formatMinor } from '@/lib/format';
+import { safeHttpUrl } from '@/lib/safe-url';
 
 export default function JobCardDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,8 +95,11 @@ export default function JobCardDetailPage() {
                 <CardTitle className="text-base">Photos</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {jc.photos.map((url) => (
-                  <a key={url} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border">
+                {jc.photos.flatMap((raw) => {
+                  const url = safeHttpUrl(raw);
+                  return url ? [url] : [];
+                }).map((url) => (
+                  <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-md border">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt="Job card attachment" className="aspect-square w-full object-cover" />
                   </a>
@@ -192,9 +196,10 @@ function Answer({ item, value }: { item: ChecklistItem; value: unknown }) {
     );
   }
   if (item.type === 'photo') {
-    const url = display(Array.isArray(value) ? (value as unknown[])[0] : value);
+    const url = safeHttpUrl(Array.isArray(value) ? (value as unknown[])[0] : value);
+    if (!url) return <span className="text-xs text-muted-foreground">No photo</span>;
     return (
-      <a href={url} target="_blank" rel="noreferrer" className="text-xs text-primary hover:underline">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
         View photo
       </a>
     );

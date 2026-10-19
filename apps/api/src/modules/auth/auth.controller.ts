@@ -5,10 +5,14 @@ import {
   HttpStatus,
   Inject,
   Post,
+  Req,
+  Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { LoadedServerEnv } from '@ac/config';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { AuthPrincipal } from '@ac/auth';
 
 import { IdempotencyKeys } from '@ac/notifications';
@@ -23,6 +27,13 @@ import { AuthService } from './auth.service';
 import { RefreshSessionDto } from './dto/refresh-session.dto';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import {
+  clearRefreshCookie,
+  readRefreshCookie,
+  setRefreshCookie,
+  wantsCookieTransport,
+  withoutRefreshToken,
+} from './session-cookie';
 
 @ApiTags('auth')
 @Controller({ path: 'auth', version: '1' })
@@ -84,8 +95,15 @@ export class AuthController {
   @Post('otp/verify')
   @Throttle({ global: { limit: 10, ttl: 60_000 } })
   @ApiOperation({ summary: 'Verify an OTP and issue access + refresh tokens.' })
-  async verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.auth.verifyOtpAndIssueTokens(dto.destination, dto.code, dto.device ? sessionDeviceFor(dto.device.platform) : undefined, dto.device?.deviceId);
+  async verifyOtp(
+    @Body() dto: VerifyOtpDto,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const tokens = await this.auth.verifyOtpAndIssueTokens(dto.destination, dto.code, dto.device ? sessionDeviceFor(dto.device.platform) : undefined, dto.device?.deviceId);
+    if (!wantsCookieTransport(req)) return tokens;
+    setRefreshCookie(reply, tokens.refreshToken, tokens.refreshTokenExpiresAt);
+    return withoutRefreshToken(tokens);
   }
 
   @Public()
@@ -93,8 +111,18 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Throttle({ global: { limit: 30, ttl: 60_000 } })
   @ApiOperation({ summary: 'Exchange a refresh token for a new access token.' })
-  refresh(@Body() dto: RefreshSessionDto) {
-    return this.auth.refreshWithOpaqueToken(dto.refreshToken);
+  async refresh(
+    @Body() dto: RefreshSessionDto,
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const cookieMode = wantsCookieTransport(req);
+    const presented = cookieMode ? readRefreshCookie(req) : dto.refreshToken;
+    if (!presented) throw new UnauthorizedException('Invalid or expired refresh token');
+    const tokens = await this.auth.refreshWithOpaqueToken(presented);
+    if (!cookieMode) return tokens;
+    setRefreshCookie(reply, tokens.refreshToken, tokens.refreshTokenExpiresAt);
+    return withoutRefreshToken(tokens);
   }
 
   @AllowAuthenticated()
@@ -102,8 +130,12 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Revoke the current session (refresh token stops working).' })
-  async logout(@CurrentUser() user: AuthPrincipal): Promise<void> {
+  async logout(
+    @CurrentUser() user: AuthPrincipal,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<void> {
     await this.auth.revokeSessions(user.userId, user.sessionId);
+    clearRefreshCookie(reply);
   }
 
   @AllowAuthenticated()

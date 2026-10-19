@@ -15,7 +15,8 @@ import {
 } from '@ac/ui';
 
 import { authApi } from '@/lib/api/auth';
-import { setAccessToken, setRefreshToken } from '@/lib/api/auth-token';
+import { setAccessToken } from '@/lib/api/auth-token';
+import { safeNextPath } from '@/lib/safe-next';
 import { setStoredPermissionVersion } from '@/lib/rbac/permissions';
 
 const IS_DEV = process.env.NEXT_PUBLIC_APP_ENV === 'development';
@@ -70,10 +71,9 @@ export default function LoginPage() {
     try {
       const res = await authApi.verifyOtp(destination, otp);
       setAccessToken(res.accessToken);
-      setRefreshToken(res.refreshToken);
       setStoredPermissionVersion(res.permissionVersion);
       toast.success(`Welcome back${res.user.firstName ? `, ${res.user.firstName}` : ''}`);
-      router.replace(next.startsWith('/') ? next : '/leads');
+      router.replace(safeNextPath(next) as never);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Invalid OTP');
     } finally {

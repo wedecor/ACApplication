@@ -81,6 +81,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         details: typeof resp === 'object' ? resp : undefined,
       };
     }
+    // Fastify's own client errors (empty/invalid JSON body, payload too large,
+    // unsupported media type) carry a 4xx statusCode and an FST_ code — report
+    // them as the client error they are, not as a 500.
+    const fastify = fastifyClientError(exception);
+    if (fastify) return fastify;
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: ApiErrorCode.INTERNAL,
@@ -112,4 +117,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         return status >= 500 ? ApiErrorCode.INTERNAL : ApiErrorCode.BAD_REQUEST;
     }
   }
+}
+
+export function fastifyClientError(
+  exception: unknown,
+): { statusCode: number; code: ApiErrorCode; message: string } | null {
+  const e = exception as { code?: unknown; statusCode?: unknown; message?: unknown } | null;
+  if (!e || typeof e.code !== 'string' || !e.code.startsWith('FST_')) return null;
+  if (typeof e.statusCode !== 'number' || e.statusCode < 400 || e.statusCode >= 500) return null;
+  return {
+    statusCode: e.statusCode,
+    code: ApiErrorCode.BAD_REQUEST,
+    message: typeof e.message === 'string' ? e.message : 'Bad request',
+  };
 }

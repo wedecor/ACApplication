@@ -654,16 +654,19 @@ model UserRoleAssignment {
 }
 
 model Session {
-  id               String        @id @default(cuid())
-  userId           String
-  refreshTokenHash String        @unique
-  device           SessionDevice @default(UNKNOWN)
-  deviceId         String?
-  userAgent        String?
-  ipAddress        String?
-  expiresAt        DateTime
-  revokedAt        DateTime?
-  lastUsedAt       DateTime      @default(now())
+  id                       String        @id @default(cuid())
+  userId                   String
+  refreshTokenHash         String        @unique
+  /// Hash of the token this one replaced — presenting it again signals reuse (theft).
+  previousRefreshTokenHash String?       @unique
+  refreshRotatedAt         DateTime?
+  device                   SessionDevice @default(UNKNOWN)
+  deviceId                 String?
+  userAgent                String?
+  ipAddress                String?
+  expiresAt                DateTime
+  revokedAt                DateTime?
+  lastUsedAt               DateTime      @default(now())
 
   createdAt DateTime @default(now())
 

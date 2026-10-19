@@ -1,13 +1,10 @@
 import type { ApiError, ApiResponse } from '@ac/types';
 
 import { env } from '@/env';
-import {
-  clearAuthTokens,
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  setRefreshToken,
-} from './auth-token';
+import { clearAuthTokens, getAccessToken, setAccessToken } from './auth-token';
+
+/** Tells the API to keep the refresh token in its httpOnly cookie, never in JS. */
+export const COOKIE_TRANSPORT = { 'x-session-transport': 'cookie' } as const;
 
 export class ApiClientError extends Error {
   constructor(
@@ -49,31 +46,34 @@ function buildQuery(query?: RequestOptions['query']): string {
 
 let refreshInFlight: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refresh = getRefreshToken();
-  if (!refresh) return null;
+async function refreshOnce(): Promise<{ accessToken: string; permissionVersion: number } | null> {
+  const base = `${env.NEXT_PUBLIC_API_URL}/api/v1`;
+  const res = await fetch(`${base}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...COOKIE_TRANSPORT },
+    body: JSON.stringify({}),
+    credentials: 'include',
+  });
+  const json = (await res.json().catch(() => null)) as ApiResponse<{
+    accessToken: string;
+    permissionVersion: number;
+  }> | null;
+  return json?.success ? json.data : null;
+}
 
+/** New access token from the refresh cookie, or null when the session is over. */
+export async function refreshAccessToken(): Promise<string | null> {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        const base = `${env.NEXT_PUBLIC_API_URL}/api/v1`;
-        const res = await fetch(`${base}/auth/refresh`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ refreshToken: refresh }),
-          credentials: 'include',
-        });
-        const json = (await res.json().catch(() => null)) as ApiResponse<{
-          accessToken: string;
-          refreshToken: string;
-          permissionVersion: number;
-        }> | null;
-        if (!json?.success) return null;
-        setAccessToken(json.data.accessToken);
-        setRefreshToken(json.data.refreshToken);
+        // Another tab may have just rotated the cookie; one short retry covers that race.
+        const data =
+          (await refreshOnce()) ?? (await new Promise((r) => setTimeout(r, 400)).then(refreshOnce));
+        if (!data) return null;
+        setAccessToken(data.accessToken);
         const { setStoredPermissionVersion } = await import('@/lib/rbac/permissions');
-        setStoredPermissionVersion(json.data.permissionVersion);
-        return json.data.accessToken;
+        setStoredPermissionVersion(data.permissionVersion);
+        return data.accessToken;
       } catch {
         return null;
       } finally {
@@ -105,7 +105,8 @@ export async function apiFetch<T>(path: string, opts: RequestOptions = {}): Prom
   const res = await fetch(`${base}${path}${buildQuery(opts.query)}`, {
     ...opts,
     headers: {
-      'content-type': 'application/json',
+      // Only declare JSON when sending a body — an empty JSON body is a 400.
+      ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...opts.headers,
     },

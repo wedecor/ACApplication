@@ -1,12 +1,14 @@
 /**
- * Access + refresh token storage for the admin CRM.
- * Tokens live in sessionStorage so the API client can attach Bearer auth.
+ * Access-token storage for the admin CRM. The short-lived access token lives
+ * in sessionStorage (per tab) so the API client can attach Bearer auth across
+ * reloads. The long-lived refresh token is never visible to scripts: the API
+ * keeps it in an httpOnly cookie (see `x-session-transport: cookie`).
  */
 const ACCESS_KEY = 'ac:access-token';
-const REFRESH_KEY = 'ac:refresh-token';
+/** Pre-cookie builds stored the refresh token here; cleared on first run. */
+const LEGACY_REFRESH_KEY = 'ac:refresh-token';
 
 let accessInMemory: string | null = null;
-let refreshInMemory: string | null = null;
 
 export function setAccessToken(token: string | null): void {
   accessInMemory = token;
@@ -18,25 +20,12 @@ export function setAccessToken(token: string | null): void {
 export function getAccessToken(): string | null {
   if (accessInMemory) return accessInMemory;
   if (typeof window === 'undefined') return null;
+  sessionStorage.removeItem(LEGACY_REFRESH_KEY);
   accessInMemory = sessionStorage.getItem(ACCESS_KEY);
   return accessInMemory;
 }
 
-export function setRefreshToken(token: string | null): void {
-  refreshInMemory = token;
-  if (typeof window === 'undefined') return;
-  if (token) sessionStorage.setItem(REFRESH_KEY, token);
-  else sessionStorage.removeItem(REFRESH_KEY);
-}
-
-export function getRefreshToken(): string | null {
-  if (refreshInMemory) return refreshInMemory;
-  if (typeof window === 'undefined') return null;
-  refreshInMemory = sessionStorage.getItem(REFRESH_KEY);
-  return refreshInMemory;
-}
-
 export function clearAuthTokens(): void {
   setAccessToken(null);
-  setRefreshToken(null);
+  if (typeof window !== 'undefined') sessionStorage.removeItem(LEGACY_REFRESH_KEY);
 }

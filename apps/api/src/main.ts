@@ -8,6 +8,7 @@ import {
 } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import compress from '@fastify/compress';
+import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import { Logger } from 'nestjs-pino';
@@ -38,6 +39,8 @@ async function bootstrap() {
   // Security headers + CORS.
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(compress);
+  // Parses the httpOnly refresh-token cookie used by the admin CRM (auth routes only read it).
+  await app.register(cookie);
   await app.register(cors, {
     origin: (origin, cb) => {
       // CORS_EXTRA_ORIGINS: comma-separated, e.g. Expo web previews on http://localhost:8081.

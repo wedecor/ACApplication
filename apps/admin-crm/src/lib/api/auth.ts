@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api/client';
+import { apiFetch, COOKIE_TRANSPORT } from '@/lib/api/client';
 
 export interface RequestOtpResponse {
   ttlSeconds: number;
@@ -8,7 +8,8 @@ export interface RequestOtpResponse {
 
 export interface VerifyOtpResponse {
   accessToken: string;
-  refreshToken: string;
+  /** Absent in cookie transport — the API sets it as an httpOnly cookie. */
+  refreshToken?: string;
   accessTokenExpiresAt: string;
   refreshTokenExpiresAt: string;
   permissionVersion: number;
@@ -33,5 +34,9 @@ export const authApi = {
     apiFetch<VerifyOtpResponse>('/auth/otp/verify', {
       method: 'POST',
       body: { destination, code },
+      headers: COOKIE_TRANSPORT,
     }),
+
+  /** Revokes the session server-side and clears the refresh cookie. */
+  logout: () => apiFetch<void>('/auth/logout', { method: 'POST', headers: COOKIE_TRANSPORT }),
 };

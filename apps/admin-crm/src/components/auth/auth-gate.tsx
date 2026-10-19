@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { getAccessToken, getRefreshToken } from '@/lib/api/auth-token';
+import { getAccessToken } from '@/lib/api/auth-token';
+import { refreshAccessToken } from '@/lib/api/client';
 
 /**
  * Redirects unauthenticated users to /login. Public auth routes are excluded.
@@ -14,13 +15,21 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const token = getAccessToken() ?? getRefreshToken();
-    if (!token) {
-      const next = encodeURIComponent(pathname || '/');
-      router.replace(`/login?next=${next}`);
-      return;
-    }
-    setReady(true);
+    let live = true;
+    void (async () => {
+      // A new tab has no access token yet; the httpOnly refresh cookie may still hold a session.
+      const token = getAccessToken() ?? (await refreshAccessToken());
+      if (!live) return;
+      if (!token) {
+        const next = encodeURIComponent(pathname || '/');
+        router.replace(`/login?next=${next}` as never);
+        return;
+      }
+      setReady(true);
+    })();
+    return () => {
+      live = false;
+    };
   }, [pathname, router]);
 
   if (!ready) {

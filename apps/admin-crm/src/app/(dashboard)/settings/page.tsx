@@ -6,12 +6,15 @@ import { LogOut, Settings } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@ac/ui';
 
 import { CustomFieldsManager } from '@/components/settings/custom-fields-manager';
+import { authApi } from '@/lib/api/auth';
 import { clearAuthTokens } from '@/lib/api/auth-token';
 
 export default function SettingsPage() {
   const router = useRouter();
 
-  function signOut() {
+  async function signOut() {
+    // End the session on the server too, so the refresh cookie can't be reused.
+    await authApi.logout().catch(() => undefined);
     clearAuthTokens();
     router.replace('/login');
   }
@@ -35,7 +38,7 @@ export default function SettingsPage() {
             Sign out of the admin CRM on this browser. You will need to verify OTP again to sign
             back in.
           </p>
-          <Button variant="destructive" onClick={signOut}>
+          <Button variant="destructive" onClick={() => void signOut()}>
             <LogOut className="size-4" />
             Sign out
           </Button>

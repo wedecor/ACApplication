@@ -1,9 +1,10 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RefreshSessionDto {
-  @ApiProperty({ description: 'Opaque refresh token from OTP verify.' })
+  @ApiPropertyOptional({ description: 'Opaque refresh token from OTP verify (omit when using the httpOnly cookie).' })
+  @IsOptional()
   @IsString()
   @MinLength(20)
-  refreshToken!: string;
+  refreshToken?: string;
 }

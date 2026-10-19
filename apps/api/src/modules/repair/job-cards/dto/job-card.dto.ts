@@ -9,6 +9,7 @@ import {
   IsObject,
   IsOptional,
   IsString,
+  IsUrl,
   MaxLength,
   ValidateNested,
 } from 'class-validator';
@@ -124,7 +125,8 @@ export class UpsertJobCardDto {
   @IsOptional()
   @IsArray()
   @ArrayMaxSize(50)
-  @IsString({ each: true })
+  // http(s) only: these links are opened by staff in the admin CRM.
+  @IsUrl({ protocols: ['https', 'http'], require_protocol: true, require_tld: false }, { each: true })
   photos?: string[];
 
   @ApiPropertyOptional()

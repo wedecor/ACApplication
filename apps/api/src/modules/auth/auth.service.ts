@@ -34,6 +34,9 @@ export interface AuthTokensResponse {
 /**
  * Auth orchestrator — OTP verification, session persistence, JWT issuance.
  */
+/** Old refresh tokens are tolerated this long after rotation (concurrent refreshes). */
+const REFRESH_REUSE_GRACE_MS = 30_000;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -115,25 +118,55 @@ export class AuthService {
       },
     });
 
-    if (!dbSession?.user || dbSession.user.deletedAt || dbSession.user.status !== UserStatus.ACTIVE) {
+    if (!dbSession) {
+      await this.handleRefreshReuse(refreshHash, now);
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+    if (!dbSession.user || dbSession.user.deletedAt || dbSession.user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
     const nextOpaque = session.newId();
     const nextHash = session.hashRefresh(nextOpaque);
 
-    await this.prisma.client.session.update({
-      where: { id: dbSession.id },
+    // Compare-and-swap: only the request still holding the current token rotates it.
+    const rotated = await this.prisma.client.session.updateMany({
+      where: { id: dbSession.id, refreshTokenHash: refreshHash, revokedAt: null },
       data: {
         refreshTokenHash: nextHash,
+        previousRefreshTokenHash: refreshHash,
+        refreshRotatedAt: now,
         lastUsedAt: now,
       },
     });
+    if (rotated.count !== 1) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
 
     return this.issueSessionForUser(dbSession.user, dbSession.device, {
       sessionId: dbSession.id,
       refreshOpaque: nextOpaque,
     });
+  }
+
+  /**
+   * A refresh token that was already rotated is being presented again. Within a
+   * short grace window that is a benign race (two tabs refreshing together);
+   * after it, the old token has leaked — revoke the whole session.
+   */
+  private async handleRefreshReuse(refreshHash: string, now: Date): Promise<void> {
+    const reused = await this.prisma.client.session.findFirst({
+      where: { previousRefreshTokenHash: refreshHash, revokedAt: null },
+      select: { id: true, userId: true, refreshRotatedAt: true },
+    });
+    if (!reused) return;
+    const rotatedAgoMs = reused.refreshRotatedAt ? now.getTime() - reused.refreshRotatedAt.getTime() : Infinity;
+    if (rotatedAgoMs <= REFRESH_REUSE_GRACE_MS) return;
+    await this.prisma.client.session.updateMany({
+      where: { id: reused.id, revokedAt: null },
+      data: { revokedAt: now },
+    });
+    this.logger.warn({ sessionId: reused.id, userId: reused.userId }, 'Refresh token reuse detected — session revoked');
   }
 
   /**
